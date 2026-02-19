@@ -2,11 +2,29 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { signIn } from "next-auth/react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { z } from "zod";
 import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
+import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+
+const loginSchema = z.object({
+  email: z.string().min(1, "Email is required").email("Enter a valid email"),
+  password: z.string().min(1, "Password is required"),
+});
+
+type LoginValues = z.infer<typeof loginSchema>;
 
 function GoogleIcon({ className }: { className?: string }) {
   return (
@@ -49,6 +67,40 @@ function FacebookIcon({ className }: { className?: string }) {
 
 export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
+  const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
+  const [googleError, setGoogleError] = useState<string | null>(null);
+
+  const form = useForm<LoginValues>({
+    resolver: zodResolver(loginSchema),
+    defaultValues: { email: "", password: "" },
+  });
+
+  function onSubmit(values: LoginValues) {
+    // TODO: sign in with Supabase email/password or your API
+    console.log(values);
+  }
+
+  async function handleGoogleSignIn() {
+    setGoogleError(null);
+    setIsLoadingGoogle(true);
+    const supabase = createClient();
+    // Only use window inside the click handler (client-only) to avoid hydration mismatch
+    const redirectTo = `${window.location.origin}/auth/callback`;
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider: "google",
+      options: { redirectTo },
+    });
+    if (error) {
+      setGoogleError(error.message);
+      setIsLoadingGoogle(false);
+      return;
+    }
+    if (data?.url) {
+      window.location.href = data.url;
+    } else {
+      setIsLoadingGoogle(false);
+    }
+  }
 
   return (
     <div className="space-y-6">
@@ -56,13 +108,19 @@ export function LoginForm() {
       <div className="space-y-3">
         <Button
           variant="outline"
-          className="w-full h-11 rounded-xs border-border bg-background font-medium"
+          className="w-full h-12 rounded-xs border-border bg-background font-medium text-base"
           type="button"
-          onClick={() => signIn("google", { callbackUrl: "/" })}
+          onClick={handleGoogleSignIn}
+          disabled={isLoadingGoogle}
         >
-          <GoogleIcon className="text-foreground" />
-          Continue with Google
+          <GoogleIcon className="size-6 text-foreground" />
+          {isLoadingGoogle ? "Signing in…" : "Continue with Google"}
         </Button>
+        {googleError && (
+          <p className="text-sm text-destructive" role="alert">
+            {googleError}
+          </p>
+        )}
         <Button
           variant="outline"
           className="w-full h-11 rounded-xs border-border bg-background font-medium"
@@ -94,67 +152,79 @@ export function LoginForm() {
       </div>
 
       {/* Email & password form */}
-      <form className="space-y-4">
-        <div className="space-y-2">
-          <label
-            htmlFor="email"
-            className="text-sm font-medium text-foreground"
-          >
-            Email address
-          </label>
-          <Input
-            id="email"
+      <Form {...form}>
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <FormField
+            control={form.control}
             name="email"
-            type="email"
-            placeholder="Enter your email"
-            autoComplete="email"
-            className="h-11 rounded-xs"
+            render={({ field }) => (
+              <FormItem>
+                <FormLabel>Email address</FormLabel>
+                <FormControl>
+                  <Input
+                    placeholder="Enter your email"
+                    autoComplete="email"
+                    className="h-11 rounded-xs"
+                    {...field}
+                  />
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
           />
-        </div>
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <label
-              htmlFor="password"
-              className="text-sm font-medium text-foreground"
+          <FormField
+            control={form.control}
+            name="password"
+            render={({ field }) => (
+              <FormItem>
+                <div className="flex items-center justify-between">
+                  <FormLabel>Password</FormLabel>
+                </div>
+                <FormControl>
+                  <div className="relative">
+                    <Input
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      autoComplete="current-password"
+                      className="h-11 rounded-xs pr-10"
+                      {...field}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword((p) => !p)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
+                      aria-label={showPassword ? "Hide password" : "Show password"}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="size-4" />
+                      ) : (
+                        <Eye className="size-4" />
+                      )}
+                    </button>
+                  </div>
+                </FormControl>
+                <FormMessage />
+              </FormItem>
+            )}
+          />
+          <div className="flex justify-end">
+            <Link
+              href="/forgot-password"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground"
             >
-              Password
-            </label>
+              Forgot Password?
+            </Link>
           </div>
-          <div className="relative">
-            <Input
-              id="password"
-              name="password"
-              type={showPassword ? "text" : "password"}
-              placeholder="Enter your password"
-              autoComplete="current-password"
-              className="h-11 rounded-xs pr-10"
-            />
-            <button
-              type="button"
-              onClick={() => setShowPassword((p) => !p)}
-              className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground focus:outline-none focus-visible:ring-2 focus-visible:ring-ring rounded-sm"
-              aria-label={showPassword ? "Hide password" : "Show password"}
-            >
-              {showPassword ? (
-                <EyeOff className="size-4" />
-              ) : (
-                <Eye className="size-4" />
-              )}
-            </button>
-          </div>
-        </div>
-        <div className="flex justify-end">
-          <Link
-            href="/forgot-password"
-            className="text-sm font-medium text-muted-foreground hover:text-foreground"
+          <Button
+            type="submit"
+            className="w-full h-11 rounded-xs"
+            size="lg"
+            disabled={form.formState.isSubmitting}
           >
-            Forgot Password?
-          </Link>
-        </div>
-        <Button type="submit" className="w-full h-11 rounded-xs" size="lg">
-          Log in
-        </Button>
-      </form>
+            {form.formState.isSubmitting ? "Signing in…" : "Log in"}
+          </Button>
+        </form>
+      </Form>
 
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
