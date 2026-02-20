@@ -1,13 +1,13 @@
 import Link from "next/link";
 import Image from "next/image";
-import { LoginForm } from "@/components/login-form";
+import { SignupForm } from "@/components/signup-form";
 
 export const metadata = {
-  title: "Log in — The Sample Lab",
-  description: "Log in to your account to continue.",
+  title: "Create account — The Sample Lab",
+  description: "Create an account to download samples and manage your credits.",
 };
 
-export default function LoginPage() {
+export default function SignupPage() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background px-4 py-12">
       <div className="w-full max-w-[544px] space-y-8">
@@ -22,17 +22,17 @@ export default function LoginPage() {
           />
         </Link>
 
-        {/* Welcome */}
-        <div className="text-center space-y-1">
+        {/* Heading */}
+        <div className="space-y-1 text-center">
           <h1 className="text-2xl font-bold text-foreground">
-            Welcome back
+            Create account
           </h1>
           <p className="text-sm text-muted-foreground">
-            Please log in to your account to continue
+            Create an account to download samples and manage your credits.
           </p>
         </div>
 
-        <LoginForm />
+        <SignupForm />
       </div>
     </div>
   );
