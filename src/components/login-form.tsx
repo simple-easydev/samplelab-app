@@ -69,15 +69,34 @@ export function LoginForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: { email: "", password: "" },
   });
 
-  function onSubmit(values: LoginValues) {
-    // TODO: sign in with Supabase email/password or your API
-    console.log(values);
+  async function onSubmit(values: LoginValues) {
+    setLoginError(null);
+    const supabase = createClient();
+    
+    // Add customer_ prefix to email for authentication
+    const customerEmail = `customer_${values.email}`;
+    
+    const { data, error } = await supabase.auth.signInWithPassword({
+      email: customerEmail,
+      password: values.password,
+    });
+
+    if (error) {
+      setLoginError(error.message);
+      return;
+    }
+
+    if (data?.session) {
+      // Redirect to home or dashboard after successful login
+      window.location.href = "/";
+    }
   }
 
   async function handleGoogleSignIn() {
@@ -215,6 +234,11 @@ export function LoginForm() {
               Forgot Password?
             </Link>
           </div>
+          {loginError && (
+            <p className="text-sm text-destructive" role="alert">
+              {loginError}
+            </p>
+          )}
           <Button
             type="submit"
             className="w-full h-11 rounded-xs"
