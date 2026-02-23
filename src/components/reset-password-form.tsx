@@ -91,7 +91,7 @@ export function ResetPasswordForm() {
               name="password"
               render={({ field }) => (
                 <FormItem className="space-y-2">
-                  <FormLabel className="text-base text-[#5e584b] font-medium">
+                  <FormLabel className="text-base !text-[#5e584b] font-medium">
                     New password
                   </FormLabel>
                   <FormControl>
@@ -144,7 +144,7 @@ export function ResetPasswordForm() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem className="space-y-2">
-                  <FormLabel className="text-base text-[#5e584b] font-medium">
+                  <FormLabel className="text-base !text-[#5e584b] font-medium">
                     Confirm password
                   </FormLabel>
                   <FormControl>
