@@ -19,6 +19,7 @@ import {
 } from "@/components/ui/form";
 import { createClient } from "@/lib/supabase/client";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 
 const resetPasswordSchema = z.object({
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -65,8 +66,13 @@ export function ResetPasswordForm() {
       return;
     }
 
-    // Redirect to dashboard after successful password reset
-    router.push("/dashboard");
+    // Show success toast
+    toast.success("Password reset successfully.");
+    
+    // Redirect to dashboard after a brief delay to show toast
+    setTimeout(() => {
+      router.push("/dashboard");
+    }, 1500);
   }
 
   return (
@@ -91,7 +97,7 @@ export function ResetPasswordForm() {
               name="password"
               render={({ field }) => (
                 <FormItem className="space-y-2">
-                  <FormLabel className="text-base !text-[#5e584b] font-medium">
+                  <FormLabel className="text-base text-[#5e584b]! font-medium">
                     New password
                   </FormLabel>
                   <FormControl>
@@ -144,7 +150,7 @@ export function ResetPasswordForm() {
               name="confirmPassword"
               render={({ field }) => (
                 <FormItem className="space-y-2">
-                  <FormLabel className="text-base !text-[#5e584b] font-medium">
+                  <FormLabel className="text-base text-[#5e584b]! font-medium">
                     Confirm password
                   </FormLabel>
                   <FormControl>
