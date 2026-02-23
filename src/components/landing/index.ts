@@ -1,9 +1,0 @@
-export { Hero } from "./hero";
-export { SubscriptionSection } from "./subscription-section";
-export { TrendingSection } from "./trending-section";
-export { FeaturedPicks } from "./featured-picks";
-export { DiscoverSection } from "./discover-section";
-export { LicensingSection } from "./licensing-section";
-export { PricingSection } from "./pricing-section";
-export { FAQSection } from "./faq-section";
-export { Footer } from "./footer";
