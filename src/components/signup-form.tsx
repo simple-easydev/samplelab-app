@@ -79,15 +79,47 @@ export function SignupForm() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   const form = useForm<SignupValues>({
     resolver: zodResolver(signupSchema),
     defaultValues: { email: "", password: "", confirmPassword: "" },
   });
 
-  function onSubmit(values: SignupValues) {
-    // TODO: sign up with Supabase auth.signUp({ email, password }) or your API
-    console.log(values);
+  async function onSubmit(values: SignupValues) {
+    const supabase = createClient();
+    const { data, error } = await supabase.functions.invoke("sign-up", {
+      body: {
+        email: values.email.trim().toLowerCase(),
+        password: values.password,
+      },
+    });
+
+    if (error) {
+      setSuccessMessage(null);
+      const message =
+        (data as { error?: string } | null)?.error ??
+        error.message ??
+        "Something went wrong. Please try again.";
+      form.setError("root", { type: "server", message });
+      return;
+    }
+
+    const result = data as { success?: boolean; message?: string; user_id?: string } | null;
+    if (result?.success) {
+      form.reset();
+      form.clearErrors("root");
+      setSuccessMessage(
+        result.message ?? "Account created. Please check your email to confirm your account."
+      );
+      return;
+    }
+
+    setSuccessMessage(null);
+    form.setError("root", {
+      type: "server",
+      message: "Something went wrong. Please try again.",
+    });
   }
 
   async function handleGoogleSignIn() {
@@ -278,6 +310,16 @@ export function SignupForm() {
               );
             }}
           />
+          {form.formState.errors.root?.message && (
+            <p className="text-sm text-destructive" role="alert">
+              {form.formState.errors.root.message}
+            </p>
+          )}
+          {successMessage && (
+            <p className="text-sm text-green-600" role="status">
+              {successMessage}
+            </p>
+          )}
           <p className="text-muted-foreground text-sm">
             By clicking on &quot;Create account&quot; you agree to{" "}
             <Link
