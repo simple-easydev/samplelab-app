@@ -5,6 +5,8 @@ import SignupPage from './pages/SignupPage';
 import DashboardPage from './pages/DashboardPage';
 import ForgotPasswordPage from './pages/ForgotPasswordPage';
 import ResetPasswordPage from './pages/ResetPasswordPage';
+import OnboardingPage from './pages/OnboardingPage';
+import AuthCallbackPage from './pages/AuthCallbackPage';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
 
@@ -15,6 +17,9 @@ function App() {
         {/* Root redirects based on auth status */}
         <Route path="/" element={<Navigate to="/login" replace />} />
         
+        {/* Auth callback for OAuth */}
+        <Route path="/auth/callback" element={<AuthCallbackPage />} />
+        
         {/* Public routes - redirect to dashboard if logged in */}
         <Route element={<PublicRoute />}>
           <Route path="/login" element={<LoginPage />} />
@@ -23,8 +28,9 @@ function App() {
           <Route path="/reset-password" element={<ResetPasswordPage />} />
         </Route>
         
-        {/* Protected routes - require authentication */}
+        {/* Onboarding - requires auth but separate from main protected routes */}
         <Route element={<ProtectedRoute />}>
+          <Route path="/onboarding" element={<OnboardingPage />} />
           <Route path="/dashboard" element={<DashboardPage />} />
         </Route>
       </Routes>

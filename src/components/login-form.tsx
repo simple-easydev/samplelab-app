@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -15,6 +15,7 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { createClient } from "@/lib/supabase/client";
+import { checkNeedsOnboarding } from "@/lib/supabase/onboarding";
 import { cn } from "@/lib/utils";
 
 const loginSchema = z.object({
@@ -64,6 +65,7 @@ function FacebookIcon({ className }: { className?: string }) {
 }
 
 export function LoginForm() {
+  const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoadingGoogle, setIsLoadingGoogle] = useState(false);
   const [googleError, setGoogleError] = useState<string | null>(null);
@@ -91,9 +93,15 @@ export function LoginForm() {
       return;
     }
 
-    if (data?.session) {
-      // Redirect to dashboard after successful login
-      window.location.href = "/dashboard";
+    if (data.session) {
+      // Check if user needs onboarding
+      const needsOnboarding = await checkNeedsOnboarding();
+      
+      if (needsOnboarding) {
+        navigate('/onboarding', { replace: true });
+      } else {
+        navigate('/dashboard', { replace: true });
+      }
     }
   }
 
