@@ -1,7 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -228,7 +226,7 @@ export function LoginForm() {
           />
           <div className="flex justify-end">
             <Link
-              href="/forgot-password"
+              to="/forgot-password"
               className="text-sm font-medium text-muted-foreground hover:text-foreground"
             >
               Forgot Password?
@@ -252,7 +250,7 @@ export function LoginForm() {
 
       <p className="text-center text-sm text-muted-foreground">
         Don&apos;t have an account?{" "}
-        <Link href="/signup" className="font-medium text-foreground hover:underline">
+        <Link to="/signup" className="font-medium text-foreground hover:underline">
           Sign up
         </Link>
       </p>

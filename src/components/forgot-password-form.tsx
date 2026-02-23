@@ -1,7 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -118,7 +116,7 @@ export function ForgotPasswordForm() {
           </Button>
 
           <Link
-            href="/login"
+            to="/login"
             className="flex items-center justify-center gap-2 text-base font-medium text-[#161410] hover:underline"
           >
             <ArrowLeft className="size-6" />
@@ -181,7 +179,7 @@ export function ForgotPasswordForm() {
             </Button>
 
             <Link
-              href="/login"
+              to="/login"
               className="flex items-center justify-center gap-2 text-base font-medium text-[#161410] hover:underline"
             >
               <ArrowLeft className="size-6" />

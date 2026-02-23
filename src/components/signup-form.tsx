@@ -1,7 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import Link from "next/link";
+import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -323,7 +321,7 @@ export function SignupForm() {
           <p className="text-muted-foreground text-sm">
             By clicking on &quot;Create account&quot; you agree to{" "}
             <Link
-              href="/terms"
+              to="/terms"
               className="font-medium text-foreground underline underline-offset-4 hover:no-underline"
             >
               Terms &amp; Privacy Policy
@@ -343,7 +341,7 @@ export function SignupForm() {
 
       <p className="text-center text-sm text-muted-foreground">
         Already have an account?{" "}
-        <Link href="/login" className="font-medium text-foreground hover:underline">
+        <Link to="/login" className="font-medium text-foreground hover:underline">
           Log in
         </Link>
       </p>

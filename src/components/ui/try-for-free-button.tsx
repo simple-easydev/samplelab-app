@@ -1,7 +1,5 @@
-"use client";
-
 import * as React from "react";
-import { Slot } from "radix-ui";
+import { Slot } from "@radix-ui/react-slot";
 import { cn } from "@/lib/utils";
 
 export interface TryForFreeButtonProps
@@ -18,7 +16,7 @@ const TryForFreeButton = React.forwardRef<
   HTMLButtonElement,
   TryForFreeButtonProps
 >(({ className, asChild = false, children = "Try for free", ...props }, ref) => {
-  const Comp = asChild ? Slot.Root : "button";
+  const Comp = asChild ? Slot : "button";
 
   return (
     <Comp

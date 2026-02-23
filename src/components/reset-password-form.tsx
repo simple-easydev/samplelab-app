@@ -1,7 +1,5 @@
-"use client";
-
 import { useState } from "react";
-import { useRouter } from "next/navigation";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -35,7 +33,7 @@ export function ResetPasswordForm() {
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [resetError, setResetError] = useState<string | null>(null);
-  const router = useRouter();
+  const navigate = useNavigate();
 
   const form = useForm<ResetPasswordValues>({
     resolver: zodResolver(resetPasswordSchema),
@@ -71,7 +69,7 @@ export function ResetPasswordForm() {
     
     // Redirect to dashboard after a brief delay to show toast
     setTimeout(() => {
-      router.push("/dashboard");
+      navigate("/dashboard");
     }, 1500);
   }
 
