@@ -94,8 +94,8 @@ export function LoginForm() {
     }
 
     if (data?.session) {
-      // Redirect to home or dashboard after successful login
-      window.location.href = "/";
+      // Redirect to dashboard after successful login
+      window.location.href = "/dashboard";
     }
   }
 
