@@ -69,20 +69,12 @@ export default function OnboardingPage() {
       toast.error('Please select at least one sample type');
       return;
     }
-    // Step 3 is informational, no validation needed
-    if (step === 4 && !formData.fullName.trim()) {
-      toast.error('Please enter your full name');
-      return;
-    }
-    if (step === 5 && !formData.role.trim()) {
-      toast.error('Please select your role');
-      return;
-    }
+    // Steps 3 and 4 are informational, no validation needed
     setStep(step + 1);
   };
 
   const handleComplete = async () => {
-    if (formData.genres.length === 0) {
+    if (!formData.fullName.trim() || !formData.role.trim()) {
       toast.error('Please complete all required fields');
       return;
     }
@@ -123,21 +115,7 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleSkip = async () => {
-    setIsSubmitting(true);
-    try {
-      // Mark onboarding as completed even if skipped
-      await supabase.auth.updateUser({
-        data: { onboarding_completed: true }
-      });
-      navigate('/dashboard', { replace: true });
-    } catch (error) {
-      console.error('Skip error:', error);
-      navigate('/dashboard', { replace: true });
-    } finally {
-      setIsSubmitting(false);
-    }
-  };
+
 
   return (
     <div className="min-h-screen flex flex-col bg-[#fffbf0]">
@@ -154,7 +132,7 @@ export default function OnboardingPage() {
 
         {/* Stepper */}
         <div className="flex gap-2 w-full max-w-[676px]">
-          {[1, 2, 3, 4, 5, 6].map((s) => (
+          {[1, 2, 3, 4, 5].map((s) => (
             <div
               key={s}
               className={`flex-1 h-[2px] rounded-full transition-colors ${
@@ -167,7 +145,7 @@ export default function OnboardingPage() {
 
       {/* Content */}
       <div className="flex-1 flex items-start justify-center px-4">
-        <div className={`w-full ${step === 3 ? 'max-w-[1376px]' : 'max-w-[676px]'}`}>
+        <div className={`w-full ${(step === 3 || step === 4) ? 'max-w-[1376px]' : 'max-w-[676px]'}`}>
           {/* Step 1: Genre Selection */}
           {step === 1 && (
             <div className="flex flex-col gap-12">
@@ -377,8 +355,83 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 4: Basic Info */}
+          {/* Step 4: Testimonials */}
           {step === 4 && (
+            <div className="flex flex-col gap-12">
+              {/* Title */}
+              <div className="flex flex-col gap-3 text-center">
+                <p className="text-sm font-semibold text-[#b3402d] uppercase tracking-[0.9px]">
+                  BUILT FOR MODERN PRODUCERS
+                </p>
+                <h1 className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
+                  Used by creators at every level
+                </h1>
+              </div>
+
+              {/* Testimonial Cards */}
+              <div className="grid grid-cols-4 gap-4">
+                {[
+                  {
+                    quote: "Finally a sample platform that actually feels curated and thoughtfully selected.",
+                    name: "Creator Name"
+                  },
+                  {
+                    quote: "Clear licensing, no confusion, no headaches — just download and create.",
+                    name: "Creator Name"
+                  },
+                  {
+                    quote: "Exclusive packs with a unique sound that I genuinely can't find anywhere else.",
+                    name: "Creator Name"
+                  },
+                  {
+                    quote: "The quality is consistently high — I can trust every sample and pack I download.",
+                    name: "Creator Name"
+                  }
+                ].map((testimonial, idx) => (
+                  <div
+                    key={idx}
+                    className="bg-[#f6f2e6] border border-[#e8e2d2] rounded p-6 flex flex-col gap-5"
+                  >
+                    <div className="w-16 h-16 rounded-full bg-[#dde1e6] overflow-hidden">
+                      <div className="w-full h-full bg-gradient-to-br from-gray-400 to-gray-500" />
+                    </div>
+                    <div className="flex flex-col gap-3">
+                      <p className="text-base leading-6 text-[#161410]">
+                        &ldquo;{testimonial.quote}&rdquo;
+                      </p>
+                      <p className="text-sm font-bold leading-5 tracking-[0.1px] text-[#161410]">
+                        {testimonial.name}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-4 w-full max-w-[676px] mx-auto">
+                <Button
+                  variant="outline"
+                  onClick={() => setStep(3)}
+                  disabled={isSubmitting}
+                  className="flex-1 h-14 rounded-sm text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
+                >
+                  <svg className="w-7 h-7 mr-2" viewBox="0 0 28 28" fill="none">
+                    <path d="M17.5 21L10.5 14L17.5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Back
+                </Button>
+                <Button
+                  onClick={handleNext}
+                  disabled={isSubmitting}
+                  className="flex-1 h-14 rounded-sm text-lg font-medium bg-[#161410] text-white hover:bg-[#2a2620]"
+                >
+                  Continue
+                </Button>
+              </div>
+            </div>
+          )}
+          {/* Step 5: Basic Info & Role */}
+          {step === 5 && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <h1 className="text-3xl font-bold text-foreground">
@@ -411,133 +464,42 @@ export default function OnboardingPage() {
                   />
                 </div>
 
+                <div className="space-y-2">
+                  <Label>What&apos;s your role? *</Label>
+                  <div className="space-y-2">
+                    {['Music Producer', 'Sound Designer', 'DJ', 'Musician', 'Hobbyist', 'Other'].map((role) => (
+                      <button
+                        key={role}
+                        onClick={() => handleInputChange('role', role)}
+                        className={`w-full p-4 text-left rounded-lg border-2 transition-all hover:border-primary ${
+                          formData.role === role
+                            ? 'border-primary bg-primary/5'
+                            : 'border-border'
+                        }`}
+                      >
+                        <span className="font-medium">{role}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <div className="flex gap-3 pt-4">
                   <Button
                     variant="outline"
-                    onClick={() => setStep(3)}
+                    onClick={() => setStep(4)}
                     disabled={isSubmitting}
                     className="flex-1"
                   >
                     Back
                   </Button>
                   <Button
-                    onClick={handleNext}
+                    onClick={handleComplete}
                     disabled={isSubmitting}
                     className="flex-1"
                   >
-                    Next
+                    {isSubmitting ? 'Completing...' : 'Complete Setup'}
                   </Button>
                 </div>
-              </div>
-            </div>
-          )}
-          {/* Step 5: Role */}
-          {step === 5 && (
-            <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <h1 className="text-3xl font-bold text-foreground">
-                  What&apos;s your role?
-                </h1>
-                <p className="text-muted-foreground">
-                  Help us personalize your experience
-                </p>
-              </div>
-
-              <div className="space-y-3">
-                {['Music Producer', 'Sound Designer', 'DJ', 'Musician', 'Hobbyist', 'Other'].map((role) => (
-                  <button
-                    key={role}
-                    onClick={() => {
-                      handleInputChange('role', role);
-                      setTimeout(handleNext, 300);
-                    }}
-                    className={`w-full p-4 text-left rounded-lg border-2 transition-all hover:border-primary ${
-                      formData.role === role
-                        ? 'border-primary bg-primary/5'
-                        : 'border-border'
-                    }`}
-                  >
-                    <span className="font-medium">{role}</span>
-                  </button>
-                ))}
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setStep(4)}
-                  disabled={isSubmitting}
-                  className="flex-1"
-                >
-                  Back
-                </Button>
-                <Button
-                  variant="outline"
-                  onClick={handleSkip}
-                  disabled={isSubmitting}
-                  className="flex-1"
-                >
-                  Skip
-                </Button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 6: Confirmation */}
-          {step === 6 && (
-            <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <h1 className="text-3xl font-bold text-foreground">
-                  All set! 🎉
-                </h1>
-                <p className="text-muted-foreground">
-                  You&apos;re ready to explore amazing sounds
-                </p>
-              </div>
-
-              <div className="bg-muted rounded-lg p-6 space-y-3">
-                <div>
-                  <p className="text-sm text-muted-foreground">Selected Genres</p>
-                  <p className="font-medium">{formData.genres.join(', ') || 'None'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Sample Types</p>
-                  <p className="font-medium">{formData.sampleTypes.join(', ') || 'None'}</p>
-                </div>
-                <div>
-                  <p className="text-sm text-muted-foreground">Name</p>
-                  <p className="font-medium">{formData.fullName || 'Not provided'}</p>
-                </div>
-                {formData.companyName && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Company</p>
-                    <p className="font-medium">{formData.companyName}</p>
-                  </div>
-                )}
-                {formData.role && (
-                  <div>
-                    <p className="text-sm text-muted-foreground">Role</p>
-                    <p className="font-medium">{formData.role}</p>
-                  </div>
-                )}
-              </div>
-
-              <div className="flex gap-3 pt-4">
-                <Button
-                  variant="outline"
-                  onClick={() => setStep(5)}
-                  disabled={isSubmitting}
-                  className="flex-1"
-                >
-                  Back
-                </Button>
-                <Button
-                  onClick={handleComplete}
-                  disabled={isSubmitting}
-                  className="flex-1"
-                >
-                  {isSubmitting ? 'Completing...' : 'Complete Setup'}
-                </Button>
               </div>
             </div>
           )}
