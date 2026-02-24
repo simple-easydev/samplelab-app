@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
+import { ArrowLeftIcon, CheckIcon, CheckCircleIcon } from '@/components/icons';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 
@@ -224,9 +225,7 @@ export default function OnboardingPage() {
                   disabled={isSubmitting}
                   className="flex-1 h-14 rounded-sm text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
                 >
-                  <svg className="w-7 h-7 mr-2" viewBox="0 0 28 28" fill="none">
-                    <path d="M17.5 21L10.5 14L17.5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                  <ArrowLeftIcon className="mr-2" />
                   Back
                 </Button>
                 <Button
@@ -328,9 +327,7 @@ export default function OnboardingPage() {
                   disabled={isSubmitting}
                   className="flex-1 h-14 rounded-sm text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
                 >
-                  <svg className="w-7 h-7 mr-2" viewBox="0 0 28 28" fill="none">
-                    <path d="M17.5 21L10.5 14L17.5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                  <ArrowLeftIcon className="mr-2" />
                   Back
                 </Button>
                 <Button
@@ -404,9 +401,7 @@ export default function OnboardingPage() {
                   disabled={isSubmitting}
                   className="flex-1 h-14 rounded-sm text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
                 >
-                  <svg className="w-7 h-7 mr-2" viewBox="0 0 28 28" fill="none">
-                    <path d="M17.5 21L10.5 14L17.5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                  </svg>
+                  <ArrowLeftIcon className="mr-2" />
                   Back
                 </Button>
                 <Button
@@ -452,10 +447,7 @@ export default function OnboardingPage() {
                   {/* Show checkmark only when selected */}
                   {formData.selectedPlan === 'pro-monthly' && (
                     <div className="absolute top-[10px] right-[10px] w-6 h-6 z-10">
-                      <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
-                        <circle cx="12" cy="12" r="10" fill="#161410"/>
-                        <path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                      </svg>
+                      <CheckCircleIcon />
                     </div>
                   )}
                   
@@ -480,9 +472,7 @@ export default function OnboardingPage() {
                   <div className="flex flex-col gap-3 text-left z-10">
                     {['150 credits / month', 'Full library access', 'Unused credits roll over', 'Cancel anytime'].map((benefit) => (
                       <div key={benefit} className="flex gap-2 items-start">
-                        <svg className="w-5 h-5 shrink-0" viewBox="0 0 20 20" fill="none">
-                          <path d="M5.83 10L8.99 13.17L14.17 8" stroke="#161410" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                        <CheckIcon stroke="#161410" />
                         <span className="text-sm text-[#161410] leading-5 tracking-[0.1px]">
                           {benefit}
                         </span>
@@ -536,9 +526,7 @@ export default function OnboardingPage() {
                   <div className="flex flex-col gap-3 text-left z-10">
                     {['150 credits / month', 'Full library access', 'Unused credits roll over', 'Cancel anytime'].map((benefit) => (
                       <div key={benefit} className="flex gap-2 items-start">
-                        <svg className="w-5 h-5 shrink-0" viewBox="0 0 20 20" fill="none">
-                          <path d="M5.83 10L8.99 13.17L14.17 8" stroke="#161410" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                        <CheckIcon stroke="#161410" />
                         <span className="text-sm text-[#161410] leading-5 tracking-[0.1px]">
                           {benefit}
                         </span>
@@ -579,9 +567,7 @@ export default function OnboardingPage() {
                   <div className="flex flex-col gap-3 text-left z-10">
                     {['Explore the library', 'Preview samples', 'Save favorites', 'Upgrade anytime'].map((benefit) => (
                       <div key={benefit} className="flex gap-2 items-start">
-                        <svg className="w-5 h-5 shrink-0" viewBox="0 0 20 20" fill="none">
-                          <path d="M5.83 10L8.99 13.17L14.17 8" stroke="#161410" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                        <CheckIcon stroke="#161410" />
                         <span className="text-sm text-[#161410] leading-5 tracking-[0.1px]">
                           {benefit}
                         </span>
@@ -600,9 +586,7 @@ export default function OnboardingPage() {
                     disabled={isSubmitting}
                     className="flex-1 h-14 rounded-sm text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
                   >
-                    <svg className="w-7 h-7 mr-2" viewBox="0 0 28 28" fill="none">
-                      <path d="M17.5 21L10.5 14L17.5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                    </svg>
+                    <ArrowLeftIcon className="mr-2" />
                     Back
                   </Button>
                   <Button
