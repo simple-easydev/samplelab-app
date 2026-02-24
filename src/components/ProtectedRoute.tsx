@@ -11,6 +11,8 @@ export default function ProtectedRoute() {
 
   useEffect(() => {
     const checkAuth = async () => {
+
+    console.log(" checking auth...")
       const { data: { session } } = await supabase.auth.getSession();
       setIsAuthenticated(!!session);
       

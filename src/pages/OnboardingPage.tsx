@@ -438,7 +438,7 @@ export default function OnboardingPage() {
               {/* Pricing Cards */}
               <div className="flex gap-4 w-[910px]">
                 {/* PRO MONTHLY */}
-                <button
+                <div
                   onClick={() => handleInputChange('selectedPlan', 'pro-monthly')}
                   className={`flex-1 bg-[#f6f2e6] rounded p-8 flex flex-col gap-8 relative overflow-hidden border-2 ${
                     formData.selectedPlan === 'pro-monthly'
@@ -446,18 +446,20 @@ export default function OnboardingPage() {
                       : 'border-[#e8e2d2]'
                   }`}
                 >
+                  {/* Always show gradient for Pro Monthly */}
+                  <div className="absolute w-full h-full left-0 top-0 bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
+                  
+                  {/* Show checkmark only when selected */}
                   {formData.selectedPlan === 'pro-monthly' && (
-                    <>
-                      <div className="absolute top-[10px] right-[10px] w-6 h-6 z-10">
-                        <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
-                          <circle cx="12" cy="12" r="10" fill="#161410"/>
-                          <path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                      <div className="absolute inset-[-2px,-2px,94px,-2px] bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
-                    </>
+                    <div className="absolute top-[10px] right-[10px] w-6 h-6 z-10">
+                      <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
+                        <circle cx="12" cy="12" r="10" fill="#161410"/>
+                        <path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                      </svg>
+                    </div>
                   )}
-                  <div className={`flex flex-col gap-3 text-left ${formData.selectedPlan === 'pro-monthly' ? 'z-10' : ''}`}>
+                  
+                  <div className="flex flex-col gap-3 text-left z-10">
                     <div className="flex gap-2 items-center">
                       <p className="text-sm font-medium text-[#161410] uppercase tracking-[0.9px]">
                         PRO MONTHLY
@@ -475,7 +477,7 @@ export default function OnboardingPage() {
                       </span>
                     </div>
                   </div>
-                  <div className={`flex flex-col gap-3 text-left ${formData.selectedPlan === 'pro-monthly' ? 'z-10' : ''}`}>
+                  <div className="flex flex-col gap-3 text-left z-10">
                     {['150 credits / month', 'Full library access', 'Unused credits roll over', 'Cancel anytime'].map((benefit) => (
                       <div key={benefit} className="flex gap-2 items-start">
                         <svg className="w-5 h-5 shrink-0" viewBox="0 0 20 20" fill="none">
@@ -487,10 +489,10 @@ export default function OnboardingPage() {
                       </div>
                     ))}
                   </div>
-                </button>
+                </div>
 
                 {/* PRO YEARLY */}
-                <button
+                <div
                   onClick={() => handleInputChange('selectedPlan', 'pro-yearly')}
                   className={`flex-1 bg-[#f6f2e6] rounded p-8 flex flex-col gap-8 relative overflow-hidden border-2 ${
                     formData.selectedPlan === 'pro-yearly'
@@ -498,18 +500,19 @@ export default function OnboardingPage() {
                       : 'border-[#e8e2d2]'
                   }`}
                 >
+                  {/* Show gradient and checkmark only when selected */}
                   {formData.selectedPlan === 'pro-yearly' && (
                     <>
+                      <div className="absolute inset-[-2px,-2px,94px,-2px] bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
                       <div className="absolute top-[10px] right-[10px] w-6 h-6 z-10">
                         <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
                           <circle cx="12" cy="12" r="10" fill="#161410"/>
                           <path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                       </div>
-                      <div className="absolute inset-[-2px,-2px,94px,-2px] bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
                     </>
                   )}
-                  <div className={`flex flex-col gap-3 text-left ${formData.selectedPlan === 'pro-yearly' ? 'z-10' : ''}`}>
+                  <div className="flex flex-col gap-3 text-left z-10">
                     <div className="flex gap-2 items-center">
                       <p className="text-sm font-medium text-[#161410] uppercase tracking-[0.9px]">
                         PRO YEARLY
@@ -530,7 +533,7 @@ export default function OnboardingPage() {
                       </span>
                     </div>
                   </div>
-                  <div className={`flex flex-col gap-3 text-left ${formData.selectedPlan === 'pro-yearly' ? 'z-10' : ''}`}>
+                  <div className="flex flex-col gap-3 text-left z-10">
                     {['150 credits / month', 'Full library access', 'Unused credits roll over', 'Cancel anytime'].map((benefit) => (
                       <div key={benefit} className="flex gap-2 items-start">
                         <svg className="w-5 h-5 shrink-0" viewBox="0 0 20 20" fill="none">
@@ -542,10 +545,10 @@ export default function OnboardingPage() {
                       </div>
                     ))}
                   </div>
-                </button>
+                </div>
 
                 {/* FREE */}
-                <button
+                <div
                   onClick={() => handleInputChange('selectedPlan', 'free')}
                   className={`flex-1 bg-[#f6f2e6] rounded p-8 flex flex-col gap-8 relative overflow-hidden border-2 ${
                     formData.selectedPlan === 'free'
@@ -553,18 +556,19 @@ export default function OnboardingPage() {
                       : 'border-[#e8e2d2]'
                   }`}
                 >
+                  {/* Show gradient and checkmark only when selected */}
                   {formData.selectedPlan === 'free' && (
                     <>
+                      <div className="absolute inset-[-2px,-2px,94px,-2px] bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
                       <div className="absolute top-[10px] right-[10px] w-6 h-6 z-10">
                         <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
                           <circle cx="12" cy="12" r="10" fill="#161410"/>
                           <path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
                         </svg>
                       </div>
-                      <div className="absolute inset-[-2px,-2px,94px,-2px] bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
                     </>
                   )}
-                  <div className={`flex flex-col gap-3 text-left ${formData.selectedPlan === 'free' ? 'z-10' : ''}`}>
+                  <div className="flex flex-col gap-3 text-left z-10">
                     <p className="text-sm font-medium text-[#161410] uppercase tracking-[0.9px]">
                       FREE
                     </p>
@@ -572,7 +576,7 @@ export default function OnboardingPage() {
                       $0
                     </span>
                   </div>
-                  <div className={`flex flex-col gap-3 text-left ${formData.selectedPlan === 'free' ? 'z-10' : ''}`}>
+                  <div className="flex flex-col gap-3 text-left z-10">
                     {['Explore the library', 'Preview samples', 'Save favorites', 'Upgrade anytime'].map((benefit) => (
                       <div key={benefit} className="flex gap-2 items-start">
                         <svg className="w-5 h-5 shrink-0" viewBox="0 0 20 20" fill="none">
@@ -584,7 +588,7 @@ export default function OnboardingPage() {
                       </div>
                     ))}
                   </div>
-                </button>
+                </div>
               </div>
 
               {/* Buttons and disclaimer */}
