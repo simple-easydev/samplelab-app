@@ -1,8 +1,19 @@
 import { supabase } from './client';
+import { Session } from '@supabase/supabase-js';
 
-export async function checkNeedsOnboarding(): Promise<boolean> {
+/**
+ * Check if user needs onboarding
+ * @param session Optional session to avoid additional auth call
+ */
+export async function checkNeedsOnboarding(session?: Session | null): Promise<boolean> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    // Use provided session or fetch user
+    let user = session?.user;
+    
+    if (!user) {
+      const { data: { user: fetchedUser } } = await supabase.auth.getUser();
+      user = fetchedUser;
+    }
     
     if (!user) {
       return false;

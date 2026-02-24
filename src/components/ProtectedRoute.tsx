@@ -1,44 +1,9 @@
-import { useEffect, useState } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
-import { supabase } from '@/lib/supabase/client';
-import { checkNeedsOnboarding } from '@/lib/supabase/onboarding';
+import { useAuth } from '@/contexts/AuthContext';
 
 export default function ProtectedRoute() {
   const location = useLocation();
-  const [isLoading, setIsLoading] = useState(true);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [needsOnboarding, setNeedsOnboarding] = useState(false);
-
-  useEffect(() => {
-    const checkAuth = async () => {
-
-    console.log(" checking auth...")
-      const { data: { session } } = await supabase.auth.getSession();
-      setIsAuthenticated(!!session);
-      
-      if (session) {
-        const onboardingNeeded = await checkNeedsOnboarding();
-        setNeedsOnboarding(onboardingNeeded);
-      }
-      
-      setIsLoading(false);
-    };
-
-    checkAuth();
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (_event, session) => {
-      setIsAuthenticated(!!session);
-      
-      if (session) {
-        const onboardingNeeded = await checkNeedsOnboarding();
-        setNeedsOnboarding(onboardingNeeded);
-      } else {
-        setNeedsOnboarding(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
+  const { session, isLoading, needsOnboarding } = useAuth();
 
   if (isLoading) {
     return (
@@ -50,7 +15,7 @@ export default function ProtectedRoute() {
     );
   }
 
-  if (!isAuthenticated) {
+  if (!session) {
     return <Navigate to="/login" replace />;
   }
 
