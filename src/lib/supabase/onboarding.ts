@@ -12,7 +12,7 @@ export async function checkNeedsOnboarding(session?: Session | null): Promise<bo
     
     if (!user) {
       const { data: { user: fetchedUser } } = await supabase.auth.getUser();
-      user = fetchedUser;
+      user = fetchedUser ?? undefined;
     }
     
     if (!user) {
