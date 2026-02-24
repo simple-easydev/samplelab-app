@@ -1,8 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 
@@ -33,9 +31,7 @@ export default function OnboardingPage() {
   const [formData, setFormData] = useState({
     genres: [] as string[],
     sampleTypes: [] as string[],
-    fullName: '',
-    companyName: '',
-    role: '',
+    selectedPlan: 'pro-monthly' as 'pro-monthly' | 'pro-yearly' | 'free',
   });
 
   const handleGenreToggle = (genre: string) => {
@@ -74,11 +70,6 @@ export default function OnboardingPage() {
   };
 
   const handleComplete = async () => {
-    if (!formData.fullName.trim() || !formData.role.trim()) {
-      toast.error('Please complete all required fields');
-      return;
-    }
-
     setIsSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -93,9 +84,7 @@ export default function OnboardingPage() {
         data: {
           genres: formData.genres,
           sample_types: formData.sampleTypes,
-          full_name: formData.fullName,
-          company_name: formData.companyName,
-          role: formData.role,
+          selected_plan: formData.selectedPlan,
           onboarding_completed: true,
         }
       });
@@ -430,76 +419,199 @@ export default function OnboardingPage() {
               </div>
             </div>
           )}
-          {/* Step 5: Basic Info & Role */}
+          {/* Step 5: Pricing Selection */}
           {step === 5 && (
-            <div className="space-y-6">
-              <div className="text-center space-y-2">
-                <h1 className="text-3xl font-bold text-foreground">
-                  Welcome! Let&apos;s get you started
+            <div className="flex flex-col gap-12 items-center">
+              {/* Title */}
+              <div className="flex flex-col gap-3 text-center">
+                <p className="text-sm font-semibold text-[#b3402d] uppercase tracking-[0.9px]">
+                  START CREATING
+                </p>
+                <h1 className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
+                  Choose how you want to start
                 </h1>
-                <p className="text-muted-foreground">
-                  Tell us a bit about yourself
+                <p className="text-sm text-[#5e584b] leading-5 tracking-[0.1px]">
+                  Start free, or unlock full access with a 3-day Pro trial
                 </p>
               </div>
 
-              <div className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="fullName">Full Name *</Label>
-                  <Input
-                    id="fullName"
-                    placeholder="Enter your full name"
-                    value={formData.fullName}
-                    onChange={(e) => handleInputChange('fullName', e.target.value)}
-                    autoFocus
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label htmlFor="companyName">Company Name (Optional)</Label>
-                  <Input
-                    id="companyName"
-                    placeholder="Your company or organization"
-                    value={formData.companyName}
-                    onChange={(e) => handleInputChange('companyName', e.target.value)}
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <Label>What&apos;s your role? *</Label>
-                  <div className="space-y-2">
-                    {['Music Producer', 'Sound Designer', 'DJ', 'Musician', 'Hobbyist', 'Other'].map((role) => (
-                      <button
-                        key={role}
-                        onClick={() => handleInputChange('role', role)}
-                        className={`w-full p-4 text-left rounded-lg border-2 transition-all hover:border-primary ${
-                          formData.role === role
-                            ? 'border-primary bg-primary/5'
-                            : 'border-border'
-                        }`}
-                      >
-                        <span className="font-medium">{role}</span>
-                      </button>
+              {/* Pricing Cards */}
+              <div className="flex gap-4 w-[910px]">
+                {/* PRO MONTHLY */}
+                <button
+                  onClick={() => handleInputChange('selectedPlan', 'pro-monthly')}
+                  className={`flex-1 bg-[#f6f2e6] rounded p-8 flex flex-col gap-8 relative overflow-hidden border-2 ${
+                    formData.selectedPlan === 'pro-monthly'
+                      ? 'border-[#161410]'
+                      : 'border-[#e8e2d2]'
+                  }`}
+                >
+                  {formData.selectedPlan === 'pro-monthly' && (
+                    <>
+                      <div className="absolute top-[10px] right-[10px] w-6 h-6 z-10">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
+                          <circle cx="12" cy="12" r="10" fill="#161410"/>
+                          <path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                      <div className="absolute inset-[-2px,-2px,94px,-2px] bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
+                    </>
+                  )}
+                  <div className={`flex flex-col gap-3 text-left ${formData.selectedPlan === 'pro-monthly' ? 'z-10' : ''}`}>
+                    <div className="flex gap-2 items-center">
+                      <p className="text-sm font-medium text-[#161410] uppercase tracking-[0.9px]">
+                        PRO MONTHLY
+                      </p>
+                      <span className="bg-[rgba(46,159,111,0.2)] border border-[rgba(46,159,111,0.2)] text-[#1a6548] text-[10px] font-medium px-1.5 py-0.5 rounded leading-3 tracking-[0.3px]">
+                        Popular
+                      </span>
+                    </div>
+                    <div className="flex gap-1 items-end">
+                      <span className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
+                        $19.99
+                      </span>
+                      <span className="text-base font-medium text-[#7f7766] leading-6 pb-0.5">
+                        / month
+                      </span>
+                    </div>
+                  </div>
+                  <div className={`flex flex-col gap-3 text-left ${formData.selectedPlan === 'pro-monthly' ? 'z-10' : ''}`}>
+                    {['150 credits / month', 'Full library access', 'Unused credits roll over', 'Cancel anytime'].map((benefit) => (
+                      <div key={benefit} className="flex gap-2 items-start">
+                        <svg className="w-5 h-5 shrink-0" viewBox="0 0 20 20" fill="none">
+                          <path d="M5.83 10L8.99 13.17L14.17 8" stroke="#161410" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <span className="text-sm text-[#161410] leading-5 tracking-[0.1px]">
+                          {benefit}
+                        </span>
+                      </div>
                     ))}
                   </div>
-                </div>
+                </button>
 
-                <div className="flex gap-3 pt-4">
+                {/* PRO YEARLY */}
+                <button
+                  onClick={() => handleInputChange('selectedPlan', 'pro-yearly')}
+                  className={`flex-1 bg-[#f6f2e6] rounded p-8 flex flex-col gap-8 relative overflow-hidden border-2 ${
+                    formData.selectedPlan === 'pro-yearly'
+                      ? 'border-[#161410]'
+                      : 'border-[#e8e2d2]'
+                  }`}
+                >
+                  {formData.selectedPlan === 'pro-yearly' && (
+                    <>
+                      <div className="absolute top-[10px] right-[10px] w-6 h-6 z-10">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
+                          <circle cx="12" cy="12" r="10" fill="#161410"/>
+                          <path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                      <div className="absolute inset-[-2px,-2px,94px,-2px] bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
+                    </>
+                  )}
+                  <div className={`flex flex-col gap-3 text-left ${formData.selectedPlan === 'pro-yearly' ? 'z-10' : ''}`}>
+                    <div className="flex gap-2 items-center">
+                      <p className="text-sm font-medium text-[#161410] uppercase tracking-[0.9px]">
+                        PRO YEARLY
+                      </p>
+                      <span className="bg-[rgba(235,141,126,0.3)] border border-[rgba(235,141,126,0.3)] text-[#b3402d] text-[10px] font-medium px-1.5 py-0.5 rounded leading-3 tracking-[0.3px]">
+                        Save up to 17%
+                      </span>
+                    </div>
+                    <div className="flex gap-1 items-end">
+                      <span className="text-[32px] text-[#7f7766] leading-[40px] tracking-[-0.3px] line-through">
+                        $239
+                      </span>
+                      <span className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
+                        $199
+                      </span>
+                      <span className="text-base font-medium text-[#7f7766] leading-6 pb-0.5">
+                        / year
+                      </span>
+                    </div>
+                  </div>
+                  <div className={`flex flex-col gap-3 text-left ${formData.selectedPlan === 'pro-yearly' ? 'z-10' : ''}`}>
+                    {['150 credits / month', 'Full library access', 'Unused credits roll over', 'Cancel anytime'].map((benefit) => (
+                      <div key={benefit} className="flex gap-2 items-start">
+                        <svg className="w-5 h-5 shrink-0" viewBox="0 0 20 20" fill="none">
+                          <path d="M5.83 10L8.99 13.17L14.17 8" stroke="#161410" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <span className="text-sm text-[#161410] leading-5 tracking-[0.1px]">
+                          {benefit}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </button>
+
+                {/* FREE */}
+                <button
+                  onClick={() => handleInputChange('selectedPlan', 'free')}
+                  className={`flex-1 bg-[#f6f2e6] rounded p-8 flex flex-col gap-8 relative overflow-hidden border-2 ${
+                    formData.selectedPlan === 'free'
+                      ? 'border-[#161410]'
+                      : 'border-[#e8e2d2]'
+                  }`}
+                >
+                  {formData.selectedPlan === 'free' && (
+                    <>
+                      <div className="absolute top-[10px] right-[10px] w-6 h-6 z-10">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
+                          <circle cx="12" cy="12" r="10" fill="#161410"/>
+                          <path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                      <div className="absolute inset-[-2px,-2px,94px,-2px] bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
+                    </>
+                  )}
+                  <div className={`flex flex-col gap-3 text-left ${formData.selectedPlan === 'free' ? 'z-10' : ''}`}>
+                    <p className="text-sm font-medium text-[#161410] uppercase tracking-[0.9px]">
+                      FREE
+                    </p>
+                    <span className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
+                      $0
+                    </span>
+                  </div>
+                  <div className={`flex flex-col gap-3 text-left ${formData.selectedPlan === 'free' ? 'z-10' : ''}`}>
+                    {['Explore the library', 'Preview samples', 'Save favorites', 'Upgrade anytime'].map((benefit) => (
+                      <div key={benefit} className="flex gap-2 items-start">
+                        <svg className="w-5 h-5 shrink-0" viewBox="0 0 20 20" fill="none">
+                          <path d="M5.83 10L8.99 13.17L14.17 8" stroke="#161410" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                        <span className="text-sm text-[#161410] leading-5 tracking-[0.1px]">
+                          {benefit}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </button>
+              </div>
+
+              {/* Buttons and disclaimer */}
+              <div className="flex flex-col gap-6 w-full max-w-[676px]">
+                <div className="flex gap-4 w-full">
                   <Button
                     variant="outline"
                     onClick={() => setStep(4)}
                     disabled={isSubmitting}
-                    className="flex-1"
+                    className="flex-1 h-14 rounded-sm text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
                   >
+                    <svg className="w-7 h-7 mr-2" viewBox="0 0 28 28" fill="none">
+                      <path d="M17.5 21L10.5 14L17.5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                    </svg>
                     Back
                   </Button>
                   <Button
                     onClick={handleComplete}
                     disabled={isSubmitting}
-                    className="flex-1"
+                    className="flex-1 h-14 rounded-sm text-lg font-medium bg-[#161410] text-white hover:bg-[#2a2620]"
                   >
-                    {isSubmitting ? 'Completing...' : 'Complete Setup'}
+                    {isSubmitting ? 'Completing...' : 'Start free trial'}
                   </Button>
                 </div>
+                <p className="text-sm text-[#5e584b] text-center leading-5 tracking-[0.1px]">
+                  No charge today. Cancel anytime during your 3-day trial.
+                </p>
               </div>
             </div>
           )}
