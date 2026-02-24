@@ -10,3 +10,8 @@ export { ArrowRightIcon } from './ArrowRightIcon';
 // UI Icons
 export { CheckIcon } from './CheckIcon';
 export { CheckCircleIcon } from './CheckCircleIcon';
+
+export { MusicRecordIcon } from './MusicRecordIcon';
+export { LayerIcon } from './LayerIcon';
+export { HeadsetIcon } from './HeadsetIcon';
+export { CoinsIcon } from './CoinsIcon';

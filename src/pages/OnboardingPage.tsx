@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { ArrowLeftIcon, CheckIcon, CheckCircleIcon } from '@/components/icons';
+import { ArrowLeftIcon, CheckIcon, CheckCircleIcon, MusicRecordIcon, LayerIcon, HeadsetIcon, CoinsIcon } from '@/components/icons';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 
@@ -261,7 +261,9 @@ export default function OnboardingPage() {
                 {/* Card 1 */}
                 <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-6 gap-6">
                   <div className="w-16 h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
-                    <span className="text-3xl">💿</span>
+                    <span className="text-3xl">
+                      <MusicRecordIcon />
+                    </span>
                   </div>
                   <div className="flex flex-col gap-2">
                     <h3 className="text-[20px] font-bold text-[#161410] leading-[28px]">
@@ -276,7 +278,9 @@ export default function OnboardingPage() {
                 {/* Card 2 */}
                 <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-6 gap-6">
                   <div className="w-16 h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
-                    <span className="text-3xl">📜</span>
+                    <span className="text-3xl">
+                      <LayerIcon />
+                    </span>
                   </div>
                   <div className="flex flex-col gap-2">
                     <h3 className="text-[20px] font-bold text-[#161410] leading-[28px]">
@@ -291,7 +295,9 @@ export default function OnboardingPage() {
                 {/* Card 3 */}
                 <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-6 gap-6">
                   <div className="w-16 h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
-                    <span className="text-3xl">🎧</span>
+                    <span className="text-3xl">
+                      <HeadsetIcon />
+                    </span>
                   </div>
                   <div className="flex flex-col gap-2">
                     <h3 className="text-[20px] font-bold text-[#161410] leading-[28px]">
@@ -306,7 +312,9 @@ export default function OnboardingPage() {
                 {/* Card 4 */}
                 <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-6 gap-6">
                   <div className="w-16 h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
-                    <span className="text-3xl">🪙</span>
+                    <span className="text-3xl">
+                      <CoinsIcon />
+                    </span>
                   </div>
                   <div className="flex flex-col gap-2">
                     <h3 className="text-[20px] font-bold text-[#161410] leading-[28px]">
