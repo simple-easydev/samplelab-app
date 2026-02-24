@@ -69,11 +69,12 @@ export default function OnboardingPage() {
       toast.error('Please select at least one sample type');
       return;
     }
-    if (step === 3 && !formData.fullName.trim()) {
+    // Step 3 is informational, no validation needed
+    if (step === 4 && !formData.fullName.trim()) {
       toast.error('Please enter your full name');
       return;
     }
-    if (step === 4 && !formData.role.trim()) {
+    if (step === 5 && !formData.role.trim()) {
       toast.error('Please select your role');
       return;
     }
@@ -153,7 +154,7 @@ export default function OnboardingPage() {
 
         {/* Stepper */}
         <div className="flex gap-2 w-full max-w-[676px]">
-          {[1, 2, 3, 4, 5].map((s) => (
+          {[1, 2, 3, 4, 5, 6].map((s) => (
             <div
               key={s}
               className={`flex-1 h-[2px] rounded-full transition-colors ${
@@ -166,7 +167,7 @@ export default function OnboardingPage() {
 
       {/* Content */}
       <div className="flex-1 flex items-start justify-center px-4">
-        <div className="w-full max-w-[676px]">
+        <div className={`w-full ${step === 3 ? 'max-w-[1376px]' : 'max-w-[676px]'}`}>
           {/* Step 1: Genre Selection */}
           {step === 1 && (
             <div className="flex flex-col gap-12">
@@ -276,8 +277,108 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 3: Basic Info */}
+          {/* Step 3: Feature Showcase */}
           {step === 3 && (
+            <div className="flex flex-col gap-12 items-center w-full">
+              {/* Title */}
+              <div className="flex flex-col gap-3 text-center max-w-[676px]">
+                <p className="text-sm font-semibold text-[#b3402d] uppercase tracking-wide">
+                  What you get
+                </p>
+                <h1 className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-tight">
+                  Everything you need to create without limits
+                </h1>
+              </div>
+
+              {/* Feature Cards Grid - Wider container */}
+              <div className="grid grid-cols-4 gap-4 w-full max-w-[1376px]">
+                {/* Card 1 */}
+                <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-6 gap-6">
+                  <div className="w-16 h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
+                    <span className="text-3xl">💿</span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-[20px] font-bold text-[#161410] leading-[28px]">
+                      10,000+ curated samples
+                    </h3>
+                    <p className="text-[14px] text-[#5e584b] leading-5">
+                      Packs, loops, stems & one-shots
+                    </p>
+                  </div>
+                </div>
+
+                {/* Card 2 */}
+                <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-6 gap-6">
+                  <div className="w-16 h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
+                    <span className="text-3xl">📜</span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-[20px] font-bold text-[#161410] leading-[28px]">
+                      Royalty-Free & Cleared
+                    </h3>
+                    <p className="text-[14px] text-[#5e584b] leading-5">
+                      Release anywhere with confidence
+                    </p>
+                  </div>
+                </div>
+
+                {/* Card 3 */}
+                <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-6 gap-6">
+                  <div className="w-16 h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
+                    <span className="text-3xl">🎧</span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-[20px] font-bold text-[#161410] leading-[28px]">
+                      New sounds every week
+                    </h3>
+                    <p className="text-[14px] text-[#5e584b] leading-5">
+                      Fresh drops and exclusive content
+                    </p>
+                  </div>
+                </div>
+
+                {/* Card 4 */}
+                <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-6 gap-6">
+                  <div className="w-16 h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
+                    <span className="text-3xl">🪙</span>
+                  </div>
+                  <div className="flex flex-col gap-2">
+                    <h3 className="text-[20px] font-bold text-[#161410] leading-[28px]">
+                      Credits roll over
+                    </h3>
+                    <p className="text-[14px] text-[#5e584b] leading-5">
+                      Your unused credits stay with you
+                    </p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Buttons */}
+              <div className="flex gap-4 w-full max-w-[676px]">
+                <Button
+                  variant="outline"
+                  onClick={() => setStep(2)}
+                  disabled={isSubmitting}
+                  className="flex-1 h-14 rounded-sm text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
+                >
+                  <svg className="w-7 h-7 mr-2" viewBox="0 0 28 28" fill="none">
+                    <path d="M17.5 21L10.5 14L17.5 7" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                  </svg>
+                  Back
+                </Button>
+                <Button
+                  onClick={handleNext}
+                  disabled={isSubmitting}
+                  className="flex-1 h-14 rounded-sm text-lg font-medium bg-[#161410] text-white hover:bg-[#2a2620]"
+                >
+                  Continue
+                </Button>
+              </div>
+            </div>
+          )}
+
+          {/* Step 4: Basic Info */}
+          {step === 4 && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <h1 className="text-3xl font-bold text-foreground">
@@ -313,7 +414,7 @@ export default function OnboardingPage() {
                 <div className="flex gap-3 pt-4">
                   <Button
                     variant="outline"
-                    onClick={() => setStep(2)}
+                    onClick={() => setStep(3)}
                     disabled={isSubmitting}
                     className="flex-1"
                   >
@@ -330,8 +431,8 @@ export default function OnboardingPage() {
               </div>
             </div>
           )}
-          {/* Step 4: Role */}
-          {step === 4 && (
+          {/* Step 5: Role */}
+          {step === 5 && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <h1 className="text-3xl font-bold text-foreground">
@@ -364,7 +465,7 @@ export default function OnboardingPage() {
               <div className="flex gap-3 pt-4">
                 <Button
                   variant="outline"
-                  onClick={() => setStep(3)}
+                  onClick={() => setStep(4)}
                   disabled={isSubmitting}
                   className="flex-1"
                 >
@@ -382,8 +483,8 @@ export default function OnboardingPage() {
             </div>
           )}
 
-          {/* Step 5: Confirmation */}
-          {step === 5 && (
+          {/* Step 6: Confirmation */}
+          {step === 6 && (
             <div className="space-y-6">
               <div className="text-center space-y-2">
                 <h1 className="text-3xl font-bold text-foreground">
@@ -424,7 +525,7 @@ export default function OnboardingPage() {
               <div className="flex gap-3 pt-4">
                 <Button
                   variant="outline"
-                  onClick={() => setStep(4)}
+                  onClick={() => setStep(5)}
                   disabled={isSubmitting}
                   className="flex-1"
                 >
