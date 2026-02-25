@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeftIcon, CheckIcon, CheckCircleIcon, MusicRecordIcon, LayerIcon, HeadsetIcon, CoinsIcon } from '@/components/icons';
@@ -28,6 +28,44 @@ const SAMPLE_TYPES = [
 export default function OnboardingPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
+
+  // Fetch Stripe products using Supabase Edge Function
+  // useEffect(() => {
+  //   const fetchStripeProducts = async () => {
+  //     try {
+  //       const { data, error } = await supabase.functions.invoke('get-stripe-products', {
+  //         method: 'GET',
+  //       });
+
+  //       if (error) {
+  //         console.error('Error fetching Stripe products:', error);
+  //         return;
+  //       }
+
+  //       console.log('Stripe Products:', data);
+  //       console.log('Total products:', data?.data?.length || 0);
+        
+  //       // Log each product detail
+  //       if (data?.data && Array.isArray(data.data)) {
+  //         data.data.forEach((product: any, index: number) => {
+  //           console.log(`Product ${index + 1}:`, {
+  //             id: product.id,
+  //             name: product.name,
+  //             description: product.description,
+  //             active: product.active,
+  //             metadata: product.metadata,
+  //           });
+  //         });
+  //       }
+  //     } catch (error) {
+  //       console.error('Error calling edge function:', error);
+  //     }
+  //   };
+
+  //   fetchStripeProducts();
+  // }, []);
+
+  
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     genres: [] as string[],
