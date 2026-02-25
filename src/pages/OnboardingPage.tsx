@@ -440,6 +440,47 @@ export default function OnboardingPage() {
 
               {/* Pricing Cards */}
               <div className="flex gap-4 w-[910px]">
+                {/* FREE */}
+                <div
+                  onClick={() => handleInputChange('selectedPlan', 'free')}
+                  className={`flex-1 bg-[#f6f2e6] rounded p-8 flex flex-col gap-8 relative overflow-hidden border-2 ${
+                    formData.selectedPlan === 'free'
+                      ? 'border-[#161410]'
+                      : 'border-[#e8e2d2]'
+                  }`}
+                >
+                  {/* Show gradient and checkmark only when selected */}
+                  {formData.selectedPlan === 'free' && (
+                    <>
+                      <div className="absolute inset-[-2px,-2px,94px,-2px] bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
+                      <div className="absolute top-[10px] right-[10px] w-6 h-6 z-10">
+                        <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
+                          <circle cx="12" cy="12" r="10" fill="#161410"/>
+                          <path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                      </div>
+                    </>
+                  )}
+                  <div className="flex flex-col gap-3 text-left z-10">
+                    <p className="text-sm font-medium text-[#161410] uppercase tracking-[0.9px]">
+                      FREE
+                    </p>
+                    <span className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
+                      $0
+                    </span>
+                  </div>
+                  <div className="flex flex-col gap-3 text-left z-10">
+                    {['Explore the library', 'Preview samples', 'Save favorites', 'Upgrade anytime'].map((benefit) => (
+                      <div key={benefit} className="flex gap-2 items-start">
+                        <CheckIcon stroke="#161410" />
+                        <span className="text-sm text-[#161410] leading-5 tracking-[0.1px]">
+                          {benefit}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+                
                 {/* PRO MONTHLY */}
                 <div
                   onClick={() => handleInputChange('selectedPlan', 'pro-monthly')}
@@ -543,46 +584,7 @@ export default function OnboardingPage() {
                   </div>
                 </div>
 
-                {/* FREE */}
-                <div
-                  onClick={() => handleInputChange('selectedPlan', 'free')}
-                  className={`flex-1 bg-[#f6f2e6] rounded p-8 flex flex-col gap-8 relative overflow-hidden border-2 ${
-                    formData.selectedPlan === 'free'
-                      ? 'border-[#161410]'
-                      : 'border-[#e8e2d2]'
-                  }`}
-                >
-                  {/* Show gradient and checkmark only when selected */}
-                  {formData.selectedPlan === 'free' && (
-                    <>
-                      <div className="absolute inset-[-2px,-2px,94px,-2px] bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
-                      <div className="absolute top-[10px] right-[10px] w-6 h-6 z-10">
-                        <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
-                          <circle cx="12" cy="12" r="10" fill="#161410"/>
-                          <path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                    </>
-                  )}
-                  <div className="flex flex-col gap-3 text-left z-10">
-                    <p className="text-sm font-medium text-[#161410] uppercase tracking-[0.9px]">
-                      FREE
-                    </p>
-                    <span className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
-                      $0
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-3 text-left z-10">
-                    {['Explore the library', 'Preview samples', 'Save favorites', 'Upgrade anytime'].map((benefit) => (
-                      <div key={benefit} className="flex gap-2 items-start">
-                        <CheckIcon stroke="#161410" />
-                        <span className="text-sm text-[#161410] leading-5 tracking-[0.1px]">
-                          {benefit}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+                
               </div>
 
               {/* Buttons and disclaimer */}
