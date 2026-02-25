@@ -15,3 +15,10 @@ export { MusicRecordIcon } from './MusicRecordIcon';
 export { LayerIcon } from './LayerIcon';
 export { HeadsetIcon } from './HeadsetIcon';
 export { CoinsIcon } from './CoinsIcon';
+
+export { FoldersIcon } from './FoldersIcon';
+export { StackCoinsIcon } from './StackCoinsIcon';
+export { RepeatIcon } from './RepeatIcon';
+export { LockIcon } from './LockIcon';
+export { HandsCoinsIcon } from './HandsCoinsIcon';
+

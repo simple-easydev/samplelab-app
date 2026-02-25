@@ -1,9 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeftIcon, CheckIcon, CheckCircleIcon, MusicRecordIcon, LayerIcon, HeadsetIcon, CoinsIcon } from '@/components/icons';
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { BonusCreditsModal } from '@/components/bonus-credits-modal';
 
 const GENRES = [
   'Hip-Hop',
@@ -65,8 +66,9 @@ export default function OnboardingPage() {
   //   fetchStripeProducts();
   // }, []);
 
-  
+
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showBonusModal, setShowBonusModal] = useState(false);
   const [formData, setFormData] = useState({
     genres: [] as string[],
     sampleTypes: [] as string[],
@@ -108,7 +110,17 @@ export default function OnboardingPage() {
     setStep(step + 1);
   };
 
-  const handleComplete = async () => {
+  const handleButtonClick = () => {
+    // If free plan, complete directly
+    if (formData.selectedPlan === 'free') {
+      handleComplete();
+    } else {
+      // For pro plans, show the bonus modal
+      setShowBonusModal(true);
+    }
+  };
+
+  const handleComplete = async (skipBonus = false) => {
     setIsSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -133,16 +145,37 @@ export default function OnboardingPage() {
         return;
       }
 
-      toast.success('Welcome! Your profile is set up.');
+      // If free plan, just navigate to dashboard
+      if (formData.selectedPlan === 'free') {
+        toast.success('Welcome! Your profile is set up.');
+        navigate('/dashboard', { replace: true });
+        return;
+      }
+
+      // For pro plans, initiate trial/payment flow
+      // TODO: Add Stripe checkout or trial initiation logic here
+      if (skipBonus) {
+        toast.success('Starting your free trial!');
+      } else {
+        toast.success('Starting Pro plan with bonus credits!');
+      }
       navigate('/dashboard', { replace: true });
     } catch (error) {
       console.error('Onboarding error:', error);
       toast.error('Something went wrong');
     } finally {
       setIsSubmitting(false);
+      setShowBonusModal(false);
     }
   };
 
+  const handleContinueTrial = () => {
+    handleComplete(true);
+  };
+
+  const handleStartProWithBonus = () => {
+    handleComplete(false);
+  };
 
 
   return (
@@ -638,21 +671,40 @@ export default function OnboardingPage() {
                     Back
                   </Button>
                   <Button
-                    onClick={handleComplete}
+                    onClick={handleButtonClick}
                     disabled={isSubmitting}
                     className="flex-1 h-14 rounded-sm text-lg font-medium bg-[#161410] text-white hover:bg-[#2a2620]"
                   >
-                    {isSubmitting ? 'Completing...' : 'Start free trial'}
+                    {isSubmitting 
+                      ? 'Completing...' 
+                      : formData.selectedPlan === 'free' 
+                        ? 'Continue' 
+                        : 'Start free trial'}
                   </Button>
                 </div>
-                <p className="text-sm text-[#5e584b] text-center leading-5 tracking-[0.1px]">
-                  No charge today. Cancel anytime during your 3-day trial.
-                </p>
+                {formData.selectedPlan !== 'free' && (
+                  <p className="text-sm text-[#5e584b] text-center leading-5 tracking-[0.1px]">
+                    No charge today. Cancel anytime during your 3-day trial.
+                  </p>
+                )}
+                {formData.selectedPlan === 'free' && (
+                  <p className="text-sm text-[#5e584b] text-center leading-5 tracking-[0.1px]">
+                    Upgrade anytime to unlock downloads.
+                  </p>
+                )}
               </div>
             </div>
           )}
         </div>
       </div>
+
+      {/* Bonus Credits Modal */}
+      <BonusCreditsModal
+        open={showBonusModal}
+        onOpenChange={setShowBonusModal}
+        onContinueTrial={handleContinueTrial}
+        onStartProWithBonus={handleStartProWithBonus}
+      />
     </div>
   );
 }
