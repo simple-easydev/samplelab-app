@@ -19,8 +19,23 @@ export async function checkNeedsOnboarding(session?: Session | null): Promise<bo
       return false;
     }
 
-    // Check if onboarding is completed in user metadata
-    const onboardingCompleted = user.user_metadata?.onboarding_completed;
+    // Check if onboarding is completed
+    // Supabase returns user_metadata (processed) which includes recent updates
+    // raw_user_meta_data is the raw database column (may have sync delay)
+    const userMetadata = user.user_metadata;
+    console.log('Onboarding check - User metadata:', {
+      userId: user.id,
+      email: user.email,
+      userMetadata,
+      hasOnboardingFlag: !!userMetadata?.onboarding_completed
+    });
+    
+    const onboardingCompleted = userMetadata?.onboarding_completed;
+    
+    console.log('Onboarding status result:', {
+      onboardingCompleted,
+      needsOnboarding: !onboardingCompleted
+    });
     
     return !onboardingCompleted;
   } catch (error) {
@@ -35,6 +50,8 @@ export async function completeOnboarding(profileData: {
   role?: string;
 }) {
   try {
+    console.log('Completing onboarding with data:', profileData);
+    
     const { error } = await supabase.auth.updateUser({
       data: {
         ...profileData,
@@ -42,8 +59,12 @@ export async function completeOnboarding(profileData: {
       }
     });
 
-    if (error) throw error;
+    if (error) {
+      console.error('Error updating user metadata:', error);
+      throw error;
+    }
     
+    console.log('Onboarding completed successfully, metadata updated');
     return { success: true };
   } catch (error) {
     console.error('Error completing onboarding:', error);

@@ -5,6 +5,7 @@ import { ArrowLeftIcon, CheckIcon, CheckCircleIcon, MusicRecordIcon, LayerIcon, 
 import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { BonusCreditsModal } from '@/components/bonus-credits-modal';
+import { createCheckoutSession } from '@/lib/supabase/subscriptions';
 
 const GENRES = [
   'Hip-Hop',
@@ -120,7 +121,7 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleComplete = async (skipBonus = false) => {
+  const handleComplete = async (trialDays = true) => {
     setIsSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -130,20 +131,31 @@ export default function OnboardingPage() {
         return;
       }
 
-      // Update user metadata to mark onboarding as complete
+      console.log('Saving onboarding data:', {
+        genres: formData.genres,
+        sample_types: formData.sampleTypes,
+        selected_plan: formData.selectedPlan
+      });
+
+      // For FREE plan: Save preferences AND mark onboarding complete
+      // For PRO plans: Save preferences only, complete onboarding AFTER payment
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           genres: formData.genres,
           sample_types: formData.sampleTypes,
           selected_plan: formData.selectedPlan,
-          onboarding_completed: true,
+          // Only mark onboarding complete for free plan
+          onboarding_completed: formData.selectedPlan === 'free',
         }
       });
 
       if (updateError) {
+        console.error('Failed to save profile:', updateError);
         toast.error('Failed to save profile');
         return;
       }
+
+      console.log('Onboarding data saved successfully');
 
       // If free plan, just navigate to dashboard
       if (formData.selectedPlan === 'free') {
@@ -152,29 +164,50 @@ export default function OnboardingPage() {
         return;
       }
 
-      // For pro plans, initiate trial/payment flow
-      // TODO: Add Stripe checkout or trial initiation logic here
-      if (skipBonus) {
-        toast.success('Starting your free trial!');
-      } else {
-        toast.success('Starting Pro plan with bonus credits!');
+      // For pro plans, initiate Stripe checkout flow
+      const priceId = formData.selectedPlan === 'pro-monthly' 
+        ? import.meta.env.VITE_STRIPE_PRICE_ID_MONTHLY 
+        : import.meta.env.VITE_STRIPE_PRICE_ID_YEARLY;
+
+      if (!priceId) {
+        toast.error('Stripe price ID not configured. Please contact support.');
+        console.error('Missing Stripe price ID for plan:', formData.selectedPlan);
+        return;
       }
-      navigate('/dashboard', { replace: true });
+
+      console.log('Creating checkout session for price:', priceId);
+
+      // Create checkout session with trialDays boolean
+      const result = await createCheckoutSession(priceId, trialDays);
+
+      console.log('Checkout session result:', result);
+
+      if ('error' in result) {
+        console.error('❌ Checkout session failed:', result.error);
+        toast.error(result.error);
+        return;
+      }
+
+      console.log('✅ Redirecting to Stripe Checkout URL:', result.url);
+      
+      // Redirect to Stripe Checkout
+      window.location.href = result.url;
     } catch (error) {
       console.error('Onboarding error:', error);
       toast.error('Something went wrong');
-    } finally {
       setIsSubmitting(false);
-      setShowBonusModal(false);
     }
+    // Don't set isSubmitting to false here - we're redirecting to Stripe
   };
 
   const handleContinueTrial = () => {
     handleComplete(true);
+    setShowBonusModal(false);
   };
 
   const handleStartProWithBonus = () => {
     handleComplete(false);
+    setShowBonusModal(false);
   };
 
 
