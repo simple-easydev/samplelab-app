@@ -1,4 +1,4 @@
-import { Navigate, Outlet, useLocation } from 'react-router-dom';
+import { Navigate, Outlet, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 /**
@@ -9,10 +9,17 @@ import { useAuth } from '@/contexts/AuthContext';
  * 2. Redirects to login if not authenticated
  * 3. Enforces onboarding completion before accessing protected routes
  * 4. Prevents completed users from accessing onboarding page again
+ * 5. Allows dashboard access when returning from Stripe checkout
  */
 export default function ProtectedRoute() {
   const location = useLocation();
+  const [searchParams] = useSearchParams();
   const { session, isLoading, needsOnboarding } = useAuth();
+
+  // Check if returning from Stripe checkout
+  const hasStripeSession = searchParams.has('session_id');
+
+  console.log({ hasStripeSession })
 
   // Show loading spinner while checking authentication
   if (isLoading) {
@@ -28,6 +35,12 @@ export default function ProtectedRoute() {
   // Redirect to login if not authenticated
   if (!session) {
     return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Allow dashboard access when returning from Stripe (needs to complete onboarding process)
+  if (hasStripeSession && location.pathname === '/dashboard') {
+    console.log('🔓 Allowing dashboard access for Stripe return (session_id present)');
+    return <Outlet />;
   }
 
   // Force users who haven't completed onboarding to the onboarding page

@@ -5,6 +5,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase/client';
 import { getUserCredits } from '@/lib/supabase/subscriptions';
+import { authManager } from '@/lib/supabase/auth-manager';
 
 export default function DashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -39,7 +40,6 @@ export default function DashboardPage() {
         const { error } = await supabase.auth.updateUser({
           data: {
             selected_plan: 'free',
-            pending_bonus_credits: false,
           }
         });
 
@@ -65,28 +65,34 @@ export default function DashboardPage() {
     const sessionId = searchParams.get('session_id');
     
     if (sessionId) {
-      // Payment successful - webhook will handle credit updates
+      // Payment successful - refresh session to get updated metadata, then update onboarding
       const handlePaymentSuccess = async () => {
         try {
-          const { data: { user } } = await supabase.auth.getUser();
+          console.log('💳 Payment successful, refreshing session to get updated metadata...');
           
-          if (!user) {
-            console.error('User not found');
+          // First, refresh the session to get latest data from server
+          const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+          
+          if (refreshError || !session?.user) {
+            console.error('Error refreshing session:', refreshError);
             return;
           }
           
-          console.log('Post-payment: Clearing pending_bonus_credits flag and completing onboarding');
+          const user = session.user;
+          console.log('✅ Got fresh session, metadata:', user.user_metadata);
 
-          // Clear the pending bonus flag and mark onboarding complete (webhook already updated credits in DB)
+          // Update metadata: mark onboarding complete
           const { error } = await supabase.auth.updateUser({
             data: {
               onboarding_completed: true,
-              pending_bonus_credits: false,
             }
           });
 
           if (error) {
             console.error('Error updating user metadata:', error);
+          } else {
+            // After updating metadata, refresh auth manager state
+            await authManager.refreshUserData();
           }
         } catch (error) {
           console.error('Error in handlePaymentSuccess:', error);
@@ -97,22 +103,17 @@ export default function DashboardPage() {
         // Refresh credits from database (webhook should have updated it)
         const creditBalance = await getUserCredits();
         setCredits(creditBalance);
-        
-        const { data: { user } } = await supabase.auth.getUser();
-        const hadPendingBonus = user?.user_metadata?.pending_bonus_credits;
+
+        // Clean up URL
+        setSearchParams({}, { replace: true });
 
         // Show success message
         if (isTrialing) {
           toast.success('🎉 Your 3-day free trial has started!');
-        } else if (hadPendingBonus) {
-          toast.success('🎉 Welcome to Pro! +50 bonus credits added to your account!');
         } else {
-          toast.success('🎉 Welcome to Pro! Your subscription is active.');
+          toast.success('🎉 Welcome to Pro! +50 bonus credits added to your account!');
         }
       });
-      
-      // Clean up URL
-      setSearchParams({}, { replace: true });
     }
   }, [searchParams, setSearchParams, isTrialing]);
 

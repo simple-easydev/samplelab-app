@@ -146,8 +146,6 @@ export default function OnboardingPage() {
           selected_plan: formData.selectedPlan,
           // Mark onboarding complete only for free plan (pro plans complete after payment)
           onboarding_completed: formData.selectedPlan === 'free',
-          // Store trial choice for bonus credits application after payment
-          pending_bonus_credits: !isTrial,
         }
       });
 
