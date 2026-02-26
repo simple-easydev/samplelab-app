@@ -138,14 +138,14 @@ export default function OnboardingPage() {
         is_trial: isTrial
       });
 
-      // Save preferences and mark onboarding complete for all plans
+      // Save preferences and mark onboarding complete only for free plan
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           genres: formData.genres,
           sample_types: formData.sampleTypes,
           selected_plan: formData.selectedPlan,
-          // Mark onboarding complete for all plans
-          onboarding_completed: true,
+          // Mark onboarding complete only for free plan (pro plans complete after payment)
+          onboarding_completed: formData.selectedPlan === 'free',
           // Store trial choice for bonus credits application after payment
           pending_bonus_credits: !isTrial,
         }

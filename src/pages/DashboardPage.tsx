@@ -75,11 +75,12 @@ export default function DashboardPage() {
             return;
           }
           
-          console.log('Post-payment: Clearing pending_bonus_credits flag');
+          console.log('Post-payment: Clearing pending_bonus_credits flag and completing onboarding');
 
-          // Clear the pending bonus flag (webhook already updated credits in DB)
+          // Clear the pending bonus flag and mark onboarding complete (webhook already updated credits in DB)
           const { error } = await supabase.auth.updateUser({
             data: {
+              onboarding_completed: true,
               pending_bonus_credits: false,
             }
           });
