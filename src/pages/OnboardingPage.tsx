@@ -121,7 +121,7 @@ export default function OnboardingPage() {
     }
   };
 
-  const handleComplete = async (trialDays = true) => {
+  const handleComplete = async (isTrial = true) => {
     setIsSubmitting(true);
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -134,18 +134,20 @@ export default function OnboardingPage() {
       console.log('Saving onboarding data:', {
         genres: formData.genres,
         sample_types: formData.sampleTypes,
-        selected_plan: formData.selectedPlan
+        selected_plan: formData.selectedPlan,
+        is_trial: isTrial
       });
 
-      // For FREE plan: Save preferences AND mark onboarding complete
-      // For PRO plans: Save preferences only, complete onboarding AFTER payment
+      // Save preferences and mark onboarding complete for all plans
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           genres: formData.genres,
           sample_types: formData.sampleTypes,
           selected_plan: formData.selectedPlan,
-          // Only mark onboarding complete for free plan
-          onboarding_completed: formData.selectedPlan === 'free',
+          // Mark onboarding complete for all plans
+          onboarding_completed: true,
+          // Store trial choice for bonus credits application after payment
+          pending_bonus_credits: !isTrial,
         }
       });
 
@@ -177,8 +179,8 @@ export default function OnboardingPage() {
 
       console.log('Creating checkout session for price:', priceId);
 
-      // Create checkout session with trialDays boolean
-      const result = await createCheckoutSession(priceId, trialDays);
+      // Create checkout session with isTrial boolean
+      const result = await createCheckoutSession(priceId, isTrial);
 
       console.log('Checkout session result:', result);
 

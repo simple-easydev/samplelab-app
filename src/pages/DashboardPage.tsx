@@ -1,46 +1,114 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { toast } from 'sonner';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase/client';
+import { getUserCredits } from '@/lib/supabase/subscriptions';
 
 export default function DashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { subscription, isActive, isTrialing, loading } = useSubscription();
+  const [credits, setCredits] = useState<number>(0);
+
+  // Fetch user credits from customers table
+  useEffect(() => {
+    const fetchCredits = async () => {
+      const creditBalance = await getUserCredits();
+      setCredits(creditBalance);
+    };
+    fetchCredits();
+  }, []);
+
+  // Check if user has pro plan selected but no active subscription (payment failed/canceled)
+  useEffect(() => {
+    const checkFailedPayment = async () => {
+      // Wait for subscription loading to complete
+      if (loading) return;
+
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const selectedPlan = user.user_metadata?.selected_plan;
+      const isProPlan = selectedPlan === 'pro-monthly' || selectedPlan === 'pro-yearly';
+      
+      // If user selected pro but has no active subscription, downgrade to free
+      if (isProPlan && !isActive) {
+        console.log('⚠️ User has pro plan selected but no active subscription - downgrading to free');
+        
+        const { error } = await supabase.auth.updateUser({
+          data: {
+            selected_plan: 'free',
+            pending_bonus_credits: false,
+          }
+        });
+
+        if (!error) {
+          // Check if they explicitly canceled
+          const canceled = searchParams.get('canceled');
+          if (canceled) {
+            toast.error('Payment was canceled. You\'ve been switched to the free plan.');
+            // Clean up URL
+            setSearchParams({}, { replace: true });
+          } else {
+            toast.info('Switched to free plan.');
+          }
+        }
+      }
+    };
+
+    checkFailedPayment();
+  }, [loading, isActive, searchParams, setSearchParams]);
 
   useEffect(() => {
     // Check if returning from Stripe checkout
     const sessionId = searchParams.get('session_id');
     
     if (sessionId) {
-      // Mark onboarding as complete for Pro users returning from Stripe
-      const completeOnboarding = async () => {
+      // Payment successful - webhook will handle credit updates
+      const handlePaymentSuccess = async () => {
         try {
+          const { data: { user } } = await supabase.auth.getUser();
+          
+          if (!user) {
+            console.error('User not found');
+            return;
+          }
+          
+          console.log('Post-payment: Clearing pending_bonus_credits flag');
+
+          // Clear the pending bonus flag (webhook already updated credits in DB)
           const { error } = await supabase.auth.updateUser({
             data: {
-              onboarding_completed: true,
+              pending_bonus_credits: false,
             }
           });
 
           if (error) {
-            console.error('Error completing onboarding:', error);
-          } else {
-            console.log('Onboarding marked as complete after Stripe checkout');
+            console.error('Error updating user metadata:', error);
           }
         } catch (error) {
-          console.error('Error updating user:', error);
+          console.error('Error in handlePaymentSuccess:', error);
         }
       };
 
-      completeOnboarding();
+      handlePaymentSuccess().then(async () => {
+        // Refresh credits from database (webhook should have updated it)
+        const creditBalance = await getUserCredits();
+        setCredits(creditBalance);
+        
+        const { data: { user } } = await supabase.auth.getUser();
+        const hadPendingBonus = user?.user_metadata?.pending_bonus_credits;
 
-      // Show success message
-      if (isTrialing) {
-        toast.success('🎉 Your 3-day free trial has started!');
-      } else {
-        toast.success('🎉 Welcome to Pro! Your subscription is active.');
-      }
+        // Show success message
+        if (isTrialing) {
+          toast.success('🎉 Your 3-day free trial has started!');
+        } else if (hadPendingBonus) {
+          toast.success('🎉 Welcome to Pro! +50 bonus credits added to your account!');
+        } else {
+          toast.success('🎉 Welcome to Pro! Your subscription is active.');
+        }
+      });
       
       // Clean up URL
       setSearchParams({}, { replace: true });
@@ -105,6 +173,17 @@ export default function DashboardPage() {
           )}
 
           <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+            {/* Credits Card */}
+            <div className="bg-gradient-to-br from-purple-50 to-blue-50 border-2 border-purple-200 rounded-lg p-6">
+              <h3 className="text-sm font-medium text-purple-700 mb-2">
+                Available Credits
+              </h3>
+              <p className="text-3xl font-bold text-purple-900">{credits}</p>
+              <p className="text-xs text-muted-foreground mt-2">
+                Use credits to download samples
+              </p>
+            </div>
+
             {/* Overview Cards */}
             <div className="bg-card border rounded-lg p-6">
               <h3 className="text-sm font-medium text-muted-foreground mb-2">

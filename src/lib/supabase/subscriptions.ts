@@ -175,11 +175,11 @@ export async function createCheckoutSession(
       customerId,
       userId: user.id,
       email: user.email,
-      // isTrial = true: send boolean for edge function to handle (3-day free trial)
-      // isTrial = false: send boolean for edge function to handle (immediate charge + bonus)
+      // isTrial = true: 3-day free trial (no immediate charge, no bonus)
+      // isTrial = false: Immediate charge with +50 bonus credits (backend determines this)
       isTrial: isTrial,
       successUrl: `${window.location.origin}/dashboard?session_id={CHECKOUT_SESSION_ID}`,
-      cancelUrl: `${window.location.origin}/onboarding`,
+      cancelUrl: `${window.location.origin}/dashboard?canceled=true`,
     };
 
     console.log('📤 Calling edge function with body:', requestBody);
@@ -218,21 +218,36 @@ export async function createCheckoutSession(
 }
 
 /**
- * Get user's remaining credits (if you have a credits system)
+ * Get user's remaining credits from customers.credit_balance
  */
 export async function getUserCredits(): Promise<number> {
   try {
-    const { data: { user } } = await supabase.auth.getUser();
+    const customerId = await getCustomerId();
     
-    if (!user) {
+    if (!customerId) {
+      console.log('❌ getUserCredits: No customer_id found');
       return 0;
     }
 
-    // Assuming you have a user_credits table or it's in user metadata
-    const credits = user.user_metadata?.credits || 0;
+    console.log('🔍 getUserCredits: Fetching credit_balance for customer:', customerId);
+
+    // Query customers table for credit_balance
+    const { data, error } = await supabase
+      .from('customers')
+      .select('credit_balance')
+      .eq('id', customerId)
+      .single();
+
+    if (error) {
+      console.error('❌ getUserCredits: Error fetching credits:', error);
+      return 0;
+    }
+
+    const credits = data?.credit_balance ?? 0;
+    console.log('✅ getUserCredits: Found credits:', credits);
     return credits;
   } catch (error) {
-    console.error('Error fetching user credits:', error);
+    console.error('❌ getUserCredits: Exception:', error);
     return 0;
   }
 }
