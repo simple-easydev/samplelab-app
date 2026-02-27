@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { toast } from 'sonner';
 import { useSubscription } from '@/hooks/useSubscription';
 import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase/client';
@@ -11,8 +10,6 @@ export default function DashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { subscription, isActive, isTrialing, loading } = useSubscription();
   const [credits, setCredits] = useState<number>(0);
-
-  console.log({ subscription })
 
   // Fetch user credits from customers table
   useEffect(() => {

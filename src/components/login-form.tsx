@@ -43,7 +43,7 @@ export function LoginForm() {
     // Add customer_ prefix to email for authentication
     const customerEmail = `customer_${values.email}`;
     
-    const { data, error } = await supabase.auth.signInWithPassword({
+    const { error } = await supabase.auth.signInWithPassword({
       email: customerEmail,
       password: values.password,
     });
