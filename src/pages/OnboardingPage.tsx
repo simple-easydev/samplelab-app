@@ -238,9 +238,9 @@ export default function OnboardingPage() {
                   <button
                     key={genre}
                     onClick={() => handleGenreToggle(genre)}
-                    className={`h-12 px-4 flex items-center justify-center rounded-sm border transition-all ${
+                    className={`h-12 px-4 flex items-center justify-center rounded-[2px] border transition-all ${
                       formData.genres.includes(genre)
-                        ? 'border-[#161410] bg-[#161410] text-white'
+                        ? 'border-[#161410] bg-[#e8e2d2] text-[#161410]'
                         : 'border-[#d6ceb8] bg-transparent text-[#5e584b] hover:border-[#161410]'
                     }`}
                   >
@@ -286,10 +286,10 @@ export default function OnboardingPage() {
                   <button
                     key={type}
                     onClick={() => handleSampleTypeToggle(type)}
-                    className={`h-12 px-4 flex items-center justify-center rounded-sm border transition-all ${
+                    className={`h-12 px-4 flex items-center justify-center rounded-[2px] border transition-all ${
                       formData.sampleTypes.includes(type)
-                        ? 'border-[#161410] bg-[#161410] text-white'
-                        : 'border-[#d6ceb8] bg-transparent text-[#161410] hover:border-[#161410]'
+                        ? 'border-[#161410] bg-[#e8e2d2] text-[#161410]'
+                        : 'border-[#d6ceb8] bg-transparent text-[#5e584b] hover:border-[#161410]'
                     }`}
                   >
                     <span className="text-base font-medium">{type}</span>
