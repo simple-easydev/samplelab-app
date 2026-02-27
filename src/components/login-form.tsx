@@ -39,12 +39,9 @@ export function LoginForm() {
   async function onSubmit(values: LoginValues) {
     setLoginError(null);
     const supabase = createClient();
-    
-    // Add customer_ prefix to email for authentication
-    const customerEmail = `customer_${values.email}`;
-    
+
     const { error } = await supabase.auth.signInWithPassword({
-      email: customerEmail,
+      email: values.email,
       password: values.password,
     });
 
