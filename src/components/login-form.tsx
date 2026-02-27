@@ -54,16 +54,7 @@ export function LoginForm() {
       return;
     }
 
-    if (data.session) {
-      // Check if user needs onboarding
-      const needsOnboarding = await checkNeedsOnboarding();
-      
-      if (needsOnboarding) {
-        navigate('/onboarding', { replace: true });
-      } else {
-        navigate('/dashboard', { replace: true });
-      }
-    }
+    navigate("/auth/callback")
   }
 
   async function handleGoogleSignIn() {

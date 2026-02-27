@@ -21,44 +21,9 @@ export default function DashboardPage() {
     fetchCredits();
   }, []);
 
-  // Check if user has pro plan selected but no active subscription (payment failed/canceled)
   useEffect(() => {
-    const checkFailedPayment = async () => {
-      // Wait for subscription loading to complete
-      if (loading) return;
-
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      const selectedPlan = user.user_metadata?.selected_plan;
-      const isProPlan = selectedPlan === 'pro-monthly' || selectedPlan === 'pro-yearly';
-      
-      // If user selected pro but has no active subscription, downgrade to free
-      if (isProPlan && !isActive) {
-        console.log('⚠️ User has pro plan selected but no active subscription - downgrading to free');
-        
-        const { error } = await supabase.auth.updateUser({
-          data: {
-            selected_plan: 'free',
-          }
-        });
-
-        if (!error) {
-          // Check if they explicitly canceled
-          const canceled = searchParams.get('canceled');
-          if (canceled) {
-            toast.error('Payment was canceled. You\'ve been switched to the free plan.');
-            // Clean up URL
-            setSearchParams({}, { replace: true });
-          } else {
-            toast.info('Switched to free plan.');
-          }
-        }
-      }
-    };
-
-    checkFailedPayment();
-  }, [loading, isActive, searchParams, setSearchParams]);
+    console.log({ loading, isActive })
+  }, [loading, isActive, isTrialing]);
 
   useEffect(() => {
     // Check if returning from Stripe checkout
@@ -81,19 +46,10 @@ export default function DashboardPage() {
           const user = session.user;
           console.log('✅ Got fresh session, metadata:', user.user_metadata);
 
-          // Update metadata: mark onboarding complete
-          const { error } = await supabase.auth.updateUser({
-            data: {
-              onboarding_completed: true,
-            }
-          });
 
-          if (error) {
-            console.error('Error updating user metadata:', error);
-          } else {
-            // After updating metadata, refresh auth manager state
-            await authManager.refreshUserData();
-          }
+          await authManager.refreshUserData();
+
+          
         } catch (error) {
           console.error('Error in handlePaymentSuccess:', error);
         }
@@ -106,16 +62,9 @@ export default function DashboardPage() {
 
         // Clean up URL
         setSearchParams({}, { replace: true });
-
-        // Show success message
-        if (isTrialing) {
-          toast.success('🎉 Your 3-day free trial has started!');
-        } else {
-          toast.success('🎉 Welcome to Pro! +50 bonus credits added to your account!');
-        }
       });
     }
-  }, [searchParams, setSearchParams, isTrialing]);
+  }, [searchParams, setSearchParams]);
 
   return (
     <div className="min-h-screen bg-background">
