@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { ArrowLeftIcon, CheckIcon, CheckCircleIcon, MusicRecordIcon, LayerIcon, HeadsetIcon, CoinsIcon } from '@/components/icons';
@@ -6,6 +6,7 @@ import { supabase } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 import { BonusCreditsModal } from '@/components/bonus-credits-modal';
 import { createCheckoutSession } from '@/lib/supabase/subscriptions';
+import { getStripePlans, type PlanTierPublic } from '@/lib/supabase/plans';
 
 const GENRES = [
   'Hip-Hop',
@@ -31,50 +32,26 @@ export default function OnboardingPage() {
   const navigate = useNavigate();
   const [step, setStep] = useState(1);
 
-  // Fetch Stripe products using Supabase Edge Function
-  // useEffect(() => {
-  //   const fetchStripeProducts = async () => {
-  //     try {
-  //       const { data, error } = await supabase.functions.invoke('get-stripe-products', {
-  //         method: 'GET',
-  //       });
-
-  //       if (error) {
-  //         console.error('Error fetching Stripe products:', error);
-  //         return;
-  //       }
-
-  //       console.log('Stripe Products:', data);
-  //       console.log('Total products:', data?.data?.length || 0);
-        
-  //       // Log each product detail
-  //       if (data?.data && Array.isArray(data.data)) {
-  //         data.data.forEach((product: any, index: number) => {
-  //           console.log(`Product ${index + 1}:`, {
-  //             id: product.id,
-  //             name: product.name,
-  //             description: product.description,
-  //             active: product.active,
-  //             metadata: product.metadata,
-  //           });
-  //         });
-  //       }
-  //     } catch (error) {
-  //       console.error('Error calling edge function:', error);
-  //     }
-  //   };
-
-  //   fetchStripeProducts();
-  // }, []);
-
-
+  const [plans, setPlans] = useState<PlanTierPublic[]>([]);
+  const [plansLoading, setPlansLoading] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showBonusModal, setShowBonusModal] = useState(false);
-  const [formData, setFormData] = useState({
-    genres: [] as string[],
-    sampleTypes: [] as string[],
-    selectedPlan: 'pro-monthly' as 'pro-monthly' | 'pro-yearly' | 'free',
+  const [formData, setFormData] = useState<{
+    genres: string[];
+    sampleTypes: string[];
+    selectedPlan: string;
+  }>({
+    genres: [],
+    sampleTypes: [],
+    selectedPlan: 'free',
   });
+
+  useEffect(() => {
+    getStripePlans().then((p) => {
+      setPlans(p);
+      setPlansLoading(false);
+    });
+  }, []);
 
   const handleGenreToggle = (genre: string) => {
     setFormData(prev => ({
@@ -111,12 +88,14 @@ export default function OnboardingPage() {
     setStep(step + 1);
   };
 
+  const selectedPlanObj = plans.find((p) => p.id === formData.selectedPlan);
+  const isFreeSelection =
+    formData.selectedPlan === 'free' || selectedPlanObj?.stripe_price_id == null;
+
   const handleButtonClick = () => {
-    // If free plan, complete directly
-    if (formData.selectedPlan === 'free') {
+    if (isFreeSelection) {
       handleComplete();
     } else {
-      // For pro plans, show the bonus modal
       setShowBonusModal(true);
     }
   };
@@ -139,13 +118,15 @@ export default function OnboardingPage() {
       });
 
       // Save preferences and mark onboarding complete only for free plan
+      const selectedPlanForCompletion = plans.find((p) => p.id === formData.selectedPlan);
+      const isFree = formData.selectedPlan === 'free' || selectedPlanForCompletion?.stripe_price_id == null;
+
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
           genres: formData.genres,
           sample_types: formData.sampleTypes,
           selected_plan: formData.selectedPlan,
-          // Mark onboarding complete only for free plan (pro plans complete after payment)
-          onboarding_completed: formData.selectedPlan === 'free',
+          onboarding_completed: isFree,
         }
       });
 
@@ -157,21 +138,16 @@ export default function OnboardingPage() {
 
       console.log('Onboarding data saved successfully');
 
-      // If free plan, just navigate to dashboard
-      if (formData.selectedPlan === 'free') {
+      if (isFree) {
         toast.success('Welcome! Your profile is set up.');
         navigate('/dashboard', { replace: true });
         return;
       }
 
-      // For pro plans, initiate Stripe checkout flow
-      const priceId = formData.selectedPlan === 'pro-monthly' 
-        ? import.meta.env.VITE_STRIPE_PRICE_ID_MONTHLY 
-        : import.meta.env.VITE_STRIPE_PRICE_ID_YEARLY;
+      const priceId = selectedPlanForCompletion?.stripe_price_id ?? null;
 
       if (!priceId) {
-        toast.error('Stripe price ID not configured. Please contact support.');
-        console.error('Missing Stripe price ID for plan:', formData.selectedPlan);
+        toast.error('Please select a plan or try again.');
         return;
       }
 
@@ -543,152 +519,79 @@ export default function OnboardingPage() {
               </div>
 
               {/* Pricing Cards */}
-              <div className="flex gap-4 w-[910px]">
-                {/* FREE */}
-                <div
-                  onClick={() => handleInputChange('selectedPlan', 'free')}
-                  className={`flex-1 bg-[#f6f2e6] rounded p-8 flex flex-col gap-8 relative overflow-hidden border-2 ${
-                    formData.selectedPlan === 'free'
-                      ? 'border-[#161410]'
-                      : 'border-[#e8e2d2]'
-                  }`}
-                >
-                  {/* Show gradient and checkmark only when selected */}
-                  {formData.selectedPlan === 'free' && (
-                    <>
-                      <div className="absolute inset-[-2px,-2px,94px,-2px] bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
-                      <div className="absolute top-[10px] right-[10px] w-6 h-6 z-10">
-                        <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
-                          <circle cx="12" cy="12" r="10" fill="#161410"/>
-                          <path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+              <div className="flex gap-4 w-[910px] flex-wrap">
+                {/* Paid plans from API */}
+                {plansLoading ? (
+                  <div className="flex-1 min-w-[280px] bg-[#f6f2e6] rounded p-8 border-2 border-[#e8e2d2] flex items-center justify-center min-h-[280px]">
+                    <span className="text-sm text-[#5e584b]">Loading plans…</span>
+                  </div>
+                ) : (
+                  plans.map((plan) => {
+                    const isSelected = formData.selectedPlan === plan.id;
+                    const isFreePlan = plan.stripe_price_id == null;
+                    const cycleLabel = plan.billing_cycle === 'year' ? '/ year' : '/ month';
+                    return (
+                      <div
+                        key={plan.id}
+                        onClick={() => handleInputChange('selectedPlan', plan.id)}
+                        className={`flex-1 min-w-[280px] bg-[#f6f2e6] rounded p-8 flex flex-col gap-8 relative overflow-hidden border-2 ${
+                          isSelected ? 'border-[#161410]' : 'border-[#e8e2d2]'
+                        }`}
+                      >
+                        {plan.is_popular && !isFreePlan && (
+                          <div className="absolute w-full h-full left-0 top-0 bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
+                        )}
+                        {isSelected && (
+                          <div className="absolute top-[10px] right-[10px] w-6 h-6 z-10">
+                            <CheckCircleIcon />
+                          </div>
+                        )}
+                        <div className="flex flex-col gap-3 text-left z-10">
+                          <div className="flex gap-2 items-center flex-wrap">
+                            <p className="text-sm font-medium text-[#161410] uppercase tracking-[0.9px]">
+                              {plan.display_name}
+                            </p>
+                            {plan.is_popular && !isFreePlan && (
+                              <span className="bg-[rgba(46,159,111,0.2)] border border-[rgba(46,159,111,0.2)] text-[#1a6548] text-[10px] font-medium px-1.5 py-0.5 rounded leading-3 tracking-[0.3px]">
+                                Popular
+                              </span>
+                            )}
+                            {!isFreePlan && plan.original_price != null && plan.original_price > plan.price && (
+                              <span className="bg-[rgba(235,141,126,0.3)] border border-[rgba(235,141,126,0.3)] text-[#b3402d] text-[10px] font-medium px-1.5 py-0.5 rounded leading-3 tracking-[0.3px]">
+                                Save {Math.round((1 - plan.price / plan.original_price) * 100)}%
+                              </span>
+                            )}
+                          </div>
+                          <div className="flex gap-1 items-end flex-wrap">
+                            {!isFreePlan && plan.original_price != null && plan.original_price > plan.price && (
+                              <span className="text-[32px] text-[#7f7766] leading-[40px] tracking-[-0.3px] line-through">
+                                ${plan.original_price}
+                              </span>
+                            )}
+                            <span className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
+                              ${plan.price}
+                            </span>
+                            {!isFreePlan && (
+                              <span className="text-base font-medium text-[#7f7766] leading-6 pb-0.5">
+                                {cycleLabel}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                        <div className="flex flex-col gap-3 text-left z-10">
+                          {(plan.features.length > 0 ? plan.features : isFreePlan ? ['Explore the library', 'Preview samples', 'Save favorites', 'Upgrade anytime'] : ['Full library access', 'Unused credits roll over', 'Cancel anytime']).map((benefit) => (
+                            <div key={benefit} className="flex gap-2 items-start">
+                              <CheckIcon stroke="#161410" />
+                              <span className="text-sm text-[#161410] leading-5 tracking-[0.1px]">
+                                {benefit}
+                              </span>
+                            </div>
+                          ))}
+                        </div>
                       </div>
-                    </>
-                  )}
-                  <div className="flex flex-col gap-3 text-left z-10">
-                    <p className="text-sm font-medium text-[#161410] uppercase tracking-[0.9px]">
-                      FREE
-                    </p>
-                    <span className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
-                      $0
-                    </span>
-                  </div>
-                  <div className="flex flex-col gap-3 text-left z-10">
-                    {['Explore the library', 'Preview samples', 'Save favorites', 'Upgrade anytime'].map((benefit) => (
-                      <div key={benefit} className="flex gap-2 items-start">
-                        <CheckIcon stroke="#161410" />
-                        <span className="text-sm text-[#161410] leading-5 tracking-[0.1px]">
-                          {benefit}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                
-                {/* PRO MONTHLY */}
-                <div
-                  onClick={() => handleInputChange('selectedPlan', 'pro-monthly')}
-                  className={`flex-1 bg-[#f6f2e6] rounded p-8 flex flex-col gap-8 relative overflow-hidden border-2 ${
-                    formData.selectedPlan === 'pro-monthly'
-                      ? 'border-[#161410]'
-                      : 'border-[#e8e2d2]'
-                  }`}
-                >
-                  {/* Always show gradient for Pro Monthly */}
-                  <div className="absolute w-full h-full left-0 top-0 bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
-                  
-                  {/* Show checkmark only when selected */}
-                  {formData.selectedPlan === 'pro-monthly' && (
-                    <div className="absolute top-[10px] right-[10px] w-6 h-6 z-10">
-                      <CheckCircleIcon />
-                    </div>
-                  )}
-                  
-                  <div className="flex flex-col gap-3 text-left z-10">
-                    <div className="flex gap-2 items-center">
-                      <p className="text-sm font-medium text-[#161410] uppercase tracking-[0.9px]">
-                        PRO MONTHLY
-                      </p>
-                      <span className="bg-[rgba(46,159,111,0.2)] border border-[rgba(46,159,111,0.2)] text-[#1a6548] text-[10px] font-medium px-1.5 py-0.5 rounded leading-3 tracking-[0.3px]">
-                        Popular
-                      </span>
-                    </div>
-                    <div className="flex gap-1 items-end">
-                      <span className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
-                        $19.99
-                      </span>
-                      <span className="text-base font-medium text-[#7f7766] leading-6 pb-0.5">
-                        / month
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3 text-left z-10">
-                    {['150 credits / month', 'Full library access', 'Unused credits roll over', 'Cancel anytime'].map((benefit) => (
-                      <div key={benefit} className="flex gap-2 items-start">
-                        <CheckIcon stroke="#161410" />
-                        <span className="text-sm text-[#161410] leading-5 tracking-[0.1px]">
-                          {benefit}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                {/* PRO YEARLY */}
-                <div
-                  onClick={() => handleInputChange('selectedPlan', 'pro-yearly')}
-                  className={`flex-1 bg-[#f6f2e6] rounded p-8 flex flex-col gap-8 relative overflow-hidden border-2 ${
-                    formData.selectedPlan === 'pro-yearly'
-                      ? 'border-[#161410]'
-                      : 'border-[#e8e2d2]'
-                  }`}
-                >
-                  {/* Show gradient and checkmark only when selected */}
-                  {formData.selectedPlan === 'pro-yearly' && (
-                    <>
-                      <div className="absolute inset-[-2px,-2px,94px,-2px] bg-gradient-to-b from-[#56b88d] via-[#f9d79d] via-50% to-[#f6f2e6] opacity-20 z-0" />
-                      <div className="absolute top-[10px] right-[10px] w-6 h-6 z-10">
-                        <svg viewBox="0 0 24 24" fill="none" className="w-full h-full">
-                          <circle cx="12" cy="12" r="10" fill="#161410"/>
-                          <path d="M7 12L10.5 15.5L17 9" stroke="white" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
-                      </div>
-                    </>
-                  )}
-                  <div className="flex flex-col gap-3 text-left z-10">
-                    <div className="flex gap-2 items-center">
-                      <p className="text-sm font-medium text-[#161410] uppercase tracking-[0.9px]">
-                        PRO YEARLY
-                      </p>
-                      <span className="bg-[rgba(235,141,126,0.3)] border border-[rgba(235,141,126,0.3)] text-[#b3402d] text-[10px] font-medium px-1.5 py-0.5 rounded leading-3 tracking-[0.3px]">
-                        Save up to 17%
-                      </span>
-                    </div>
-                    <div className="flex gap-1 items-end">
-                      <span className="text-[32px] text-[#7f7766] leading-[40px] tracking-[-0.3px] line-through">
-                        $239
-                      </span>
-                      <span className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
-                        $199
-                      </span>
-                      <span className="text-base font-medium text-[#7f7766] leading-6 pb-0.5">
-                        / year
-                      </span>
-                    </div>
-                  </div>
-                  <div className="flex flex-col gap-3 text-left z-10">
-                    {['150 credits / month', 'Full library access', 'Unused credits roll over', 'Cancel anytime'].map((benefit) => (
-                      <div key={benefit} className="flex gap-2 items-start">
-                        <CheckIcon stroke="#161410" />
-                        <span className="text-sm text-[#161410] leading-5 tracking-[0.1px]">
-                          {benefit}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                
+                    );
+                  })
+                )}
               </div>
 
               {/* Buttons and disclaimer */}
@@ -710,21 +613,11 @@ export default function OnboardingPage() {
                   >
                     {isSubmitting 
                       ? 'Completing...' 
-                      : formData.selectedPlan === 'free' 
+                      : isFreeSelection 
                         ? 'Continue' 
                         : 'Start free trial'}
                   </Button>
-                </div>
-                {formData.selectedPlan !== 'free' && (
-                  <p className="text-sm text-[#5e584b] text-center leading-5 tracking-[0.1px]">
-                    No charge today. Cancel anytime during your 3-day trial.
-                  </p>
-                )}
-                {formData.selectedPlan === 'free' && (
-                  <p className="text-sm text-[#5e584b] text-center leading-5 tracking-[0.1px]">
-                    Upgrade anytime to unlock downloads.
-                  </p>
-                )}
+                </div>                
               </div>
             </div>
           )}
