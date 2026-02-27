@@ -12,6 +12,8 @@ export default function DashboardPage() {
   const { subscription, isActive, isTrialing, loading } = useSubscription();
   const [credits, setCredits] = useState<number>(0);
 
+  console.log({ subscription })
+
   // Fetch user credits from customers table
   useEffect(() => {
     const fetchCredits = async () => {
@@ -110,14 +112,6 @@ export default function DashboardPage() {
                       No charge until your trial ends. Cancel anytime.
                     </p>
                   )}
-                </div>
-                <div className="text-right">
-                  <p className="text-2xl font-bold text-foreground">
-                    {subscription.stripe_status === 'trialing' ? '$0' : '$19.99'}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {subscription.stripe_status === 'trialing' ? 'during trial' : 'per month'}
-                  </p>
                 </div>
               </div>
             </div>
