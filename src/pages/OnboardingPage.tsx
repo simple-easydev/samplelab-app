@@ -215,7 +215,7 @@ export default function OnboardingPage() {
 
       {/* Content */}
       <div className="flex-1 flex items-start justify-center px-4">
-        <div className={`w-full ${(step === 3 || step === 4) ? 'max-w-[1376px]' : 'max-w-[676px]'}`}>
+        <div className={`w-full max-w-[676px]`}>
           {/* Step 1: Genre Selection */}
           {step === 1 && (
             <div className="flex flex-col gap-12">
@@ -337,7 +337,7 @@ export default function OnboardingPage() {
               </div>
 
               {/* Feature Cards Grid - Wider container */}
-              <div className="grid grid-cols-4 gap-4 w-full max-w-[1376px]">
+              <div className="grid grid-cols-2 gap-4 w-full">
                 {/* Card 1 */}
                 <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-6 gap-6">
                   <div className="w-16 h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
@@ -364,7 +364,7 @@ export default function OnboardingPage() {
                   </div>
                   <div className="flex flex-col gap-2">
                     <h3 className="text-[20px] font-bold text-[#161410] leading-[28px]">
-                      Royalty-Free & Cleared
+                      No Clearance Headaches
                     </h3>
                     <p className="text-[14px] text-[#5e584b] leading-5">
                       Release anywhere with confidence
@@ -443,7 +443,7 @@ export default function OnboardingPage() {
               </div>
 
               {/* Testimonial Cards */}
-              <div className="grid grid-cols-4 gap-4">
+              <div className="grid grid-cols-2 gap-4">
                 {[
                   {
                     quote: "Finally a sample platform that actually feels curated and thoughtfully selected.",
