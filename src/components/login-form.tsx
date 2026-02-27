@@ -16,7 +16,6 @@ import {
 } from "@/components/ui/form";
 import { GoogleIcon, AppleIcon, FacebookIcon } from "@/components/icons";
 import { createClient } from "@/lib/supabase/client";
-import { checkNeedsOnboarding } from "@/lib/supabase/onboarding";
 
 const loginSchema = z.object({
   email: z.string().min(1, "Email is required").email("Enter a valid email"),
