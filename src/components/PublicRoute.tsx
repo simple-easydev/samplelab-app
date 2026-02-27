@@ -13,11 +13,5 @@ export default function PublicRoute() {
       </div>
     );
   }
-
-  if (session) {
-    // Redirect to onboarding if needed, otherwise to dashboard
-    return <Navigate to={needsOnboarding ? "/onboarding" : "/dashboard"} replace />;
-  }
-
   return <Outlet />;
 }
