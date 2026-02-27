@@ -1,8 +1,8 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Outlet } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 
 export default function PublicRoute() {
-  const { session, isLoading, needsOnboarding } = useAuth();
+  const { isLoading } = useAuth();
 
   if (isLoading) {
     return (
