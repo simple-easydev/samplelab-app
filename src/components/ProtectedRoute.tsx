@@ -1,6 +1,7 @@
 import { Navigate, Outlet, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
 import { Navbar } from '@/components/Navbar';
+import { Footer } from '@/components/Footer';
 
 /**
  * ProtectedRoute Component
@@ -38,6 +39,7 @@ export default function ProtectedRoute() {
       <div className="min-h-screen flex flex-col">
         <Navbar />
         <Outlet />
+        <Footer />
       </div>
     );
   }
@@ -56,6 +58,7 @@ export default function ProtectedRoute() {
     <div className="min-h-screen flex flex-col">
       {showNavbar && <Navbar />}
       <Outlet />
+      {showNavbar && <Footer />}
     </div>
   );
 }
