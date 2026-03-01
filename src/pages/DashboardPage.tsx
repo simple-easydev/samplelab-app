@@ -6,6 +6,31 @@ import { supabase } from '@/lib/supabase/client';
 import { getUserCredits } from '@/lib/supabase/subscriptions';
 import { authManager } from '@/lib/supabase/auth-manager';
 import { DiscoverCarousel } from '@/components/DiscoverCarousel';
+import { DiscoverListColumn } from '@/components/DiscoverListColumn';
+
+const TRENDING_ITEMS = [
+  { rank: 1, name: 'Sample name goes here', creator: 'Creator name' },
+  { rank: 2, name: 'Lo-Fi Keys Loop', creator: 'Beat Lab' },
+  { rank: 3, name: 'Trap Hi-Hat Sequence', creator: 'Sound Factory' },
+  { rank: 4, name: 'Soul Chop 04', creator: 'Vinyl Revival' },
+  { rank: 5, name: 'Synth Pad Texture', creator: 'Synth Wave' },
+];
+
+const NEW_RELEASES_ITEMS = [
+  { rank: 1, name: 'Fresh Drop Vol. 1', creator: 'Beat Lab' },
+  { rank: 2, name: 'Weekend Pack', creator: 'Sound Factory' },
+  { rank: 3, name: 'Midnight Loops', creator: 'Vinyl Revival' },
+  { rank: 4, name: '808 Essentials', creator: 'Synth Wave' },
+  { rank: 5, name: 'Chill Vibes Pack', creator: 'Creator name' },
+];
+
+const CREATORS_ITEMS = [
+  { rank: 1, name: 'Beat Lab', creator: '24 packs' },
+  { rank: 2, name: 'Sound Factory', creator: '18 packs' },
+  { rank: 3, name: 'Vinyl Revival', creator: '31 packs' },
+  { rank: 4, name: 'Synth Wave', creator: '12 packs' },
+  { rank: 5, name: 'Creator name', creator: '8 packs' },
+];
 
 const DASHBOARD_TABS = [
   { id: 'discover', label: 'Discover' },
@@ -102,8 +127,28 @@ export default function DashboardPage() {
         <div className="max-w-6xl mx-auto">
           {/* Discover tab: carousel from Figma slider design */}
           {activeTab === 'discover' && (
-            <div className="mb-8">
+            <div className="mb-8 flex flex-col gap-8">
               <DiscoverCarousel />
+              <div className="flex gap-6 items-start w-full">
+                <DiscoverListColumn
+                  title="Trending samples"
+                  subtitle="The most downloaded samples right now"
+                  items={TRENDING_ITEMS}
+                  ctaLabel="View all Trending samples"
+                />
+                <DiscoverListColumn
+                  title="New releases"
+                  subtitle="Fresh samples added this week"
+                  items={NEW_RELEASES_ITEMS}
+                  ctaLabel="View new releases"
+                />
+                <DiscoverListColumn
+                  title="Top creators"
+                  subtitle="Most downloaded creators this month"
+                  items={CREATORS_ITEMS}
+                  ctaLabel="View all creators"
+                />
+              </div>
             </div>
           )}
 

@@ -28,6 +28,7 @@ export function DiscoverCarousel() {
 
   const goTo = useCallback((index: number) => {
     setCurrent((prev) => {
+      console.log({ prev })
       if (index < 0) return total - 1;
       if (index >= total) return 0;
       return index;
