@@ -7,6 +7,10 @@ import { getUserCredits } from '@/lib/supabase/subscriptions';
 import { authManager } from '@/lib/supabase/auth-manager';
 import { DiscoverCarousel } from '@/components/DiscoverCarousel';
 import { DiscoverListColumn } from '@/components/DiscoverListColumn';
+import { CardCarousel } from '@/components/CardCarousel';
+import { SamplePackCard } from '@/components/SamplePackCard';
+import { CreatorCard } from '@/components/CreatorCard';
+import { GenreCard } from '@/components/GenreCard';
 
 const TRENDING_ITEMS = [
   { rank: 1, name: 'Sample name goes here', creator: 'Creator name' },
@@ -30,6 +34,34 @@ const CREATORS_ITEMS = [
   { rank: 3, name: 'Vinyl Revival', creator: '31 packs' },
   { rank: 4, name: 'Synth Wave', creator: '12 packs' },
   { rank: 5, name: 'Creator name', creator: '8 packs' },
+];
+
+const FEATURED_PACKS = [
+  { title: 'Sample Pack Name Goes Here', creator: 'Creator Name', playCount: '20', genre: 'Hip-Hop' },
+  { title: 'Lo-Fi Essentials Vol. 2', creator: 'Beat Lab', playCount: '30', genre: 'Lo-Fi' },
+  { title: 'Trap Drums & Melodies', creator: 'Sound Factory', playCount: '15', genre: 'Trap', premium: true },
+  { title: 'Soul Chops Collection', creator: 'Vinyl Revival', playCount: '24', genre: 'Soul' },
+  { title: 'Electronic Textures', creator: 'Synth Wave', playCount: '18', genre: 'Electronic' },
+  { title: 'The Jungle', creator: 'Creator Name', playCount: '12', genre: 'Hip-Hop', premium: true },
+];
+
+const FEATURED_CREATORS = [
+  { name: 'Creator Name Goes Here', followersCount: '100', packsCount: '10' },
+  { name: 'Beat Lab', followersCount: '250', packsCount: '24' },
+  { name: 'Sound Factory', followersCount: '180', packsCount: '18' },
+  { name: 'Vinyl Revival', followersCount: '320', packsCount: '31' },
+  { name: 'Synth Wave', followersCount: '95', packsCount: '12' },
+  { name: 'Creator name', followersCount: '64', packsCount: '8' },
+];
+
+const TOP_GENRES = [
+  { name: 'Hip-Hop' },
+  { name: 'Drums' },
+  { name: 'Boom Bap' },
+  { name: 'Lo-Fi' },
+  { name: 'Trap' },
+  { name: 'Drill' },
+  { name: 'Soul' },
 ];
 
 const DASHBOARD_TABS = [
@@ -149,6 +181,33 @@ export default function DashboardPage() {
                   ctaLabel="View all creators"
                 />
               </div>
+              <CardCarousel title="Featured Packs" ctaLabel="View all packs">
+                {FEATURED_PACKS.map((pack) => (
+                  <SamplePackCard
+                    key={pack.title}
+                    title={pack.title}
+                    creator={pack.creator}
+                    playCount={pack.playCount}
+                    genre={pack.genre}
+                    premium={pack.premium}
+                  />
+                ))}
+              </CardCarousel>
+              <CardCarousel title="Featured creators" ctaLabel="View all creators">
+                {FEATURED_CREATORS.map((creator) => (
+                  <CreatorCard
+                    key={creator.name}
+                    name={creator.name}
+                    followersCount={creator.followersCount}
+                    packsCount={creator.packsCount}
+                  />
+                ))}
+              </CardCarousel>
+              <CardCarousel title="Top genres" ctaLabel="View all genres">
+                {TOP_GENRES.map((genre) => (
+                  <GenreCard key={genre.name} name={genre.name} />
+                ))}
+              </CardCarousel>
             </div>
           )}
 
