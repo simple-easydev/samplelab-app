@@ -27,7 +27,7 @@ export function DiscoverCarousel() {
   const total = PLACEHOLDER_SLIDES.length;
 
   const goTo = useCallback((index: number) => {
-    setCurrent((prev) => {
+    setCurrent(() => {
       if (index < 0) return total - 1;
       if (index >= total) return 0;
       return index;
