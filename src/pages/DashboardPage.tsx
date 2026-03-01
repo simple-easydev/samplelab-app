@@ -5,6 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { supabase } from '@/lib/supabase/client';
 import { getUserCredits } from '@/lib/supabase/subscriptions';
 import { authManager } from '@/lib/supabase/auth-manager';
+import { DiscoverCarousel } from '@/components/DiscoverCarousel';
 
 const DASHBOARD_TABS = [
   { id: 'discover', label: 'Discover' },
@@ -99,6 +100,13 @@ export default function DashboardPage() {
         </div>
 
         <div className="max-w-6xl mx-auto">
+          {/* Discover tab: carousel from Figma slider design */}
+          {activeTab === 'discover' && (
+            <div className="mb-8">
+              <DiscoverCarousel />
+            </div>
+          )}
+
           {/* Header with subscription status */}
           <div className="flex items-center justify-between mb-6">
             <h1 className="text-3xl font-bold">Dashboard</h1>
