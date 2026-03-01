@@ -6,10 +6,19 @@ import { supabase } from '@/lib/supabase/client';
 import { getUserCredits } from '@/lib/supabase/subscriptions';
 import { authManager } from '@/lib/supabase/auth-manager';
 
+const DASHBOARD_TABS = [
+  { id: 'discover', label: 'Discover' },
+  { id: 'packs', label: 'Packs' },
+  { id: 'samples', label: 'Samples' },
+  { id: 'creators', label: 'Creators' },
+  { id: 'genres', label: 'Genres' },
+] as const;
+
 export default function DashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { subscription, isActive, isTrialing, loading } = useSubscription();
   const [credits, setCredits] = useState<number>(0);
+  const [activeTab, setActiveTab] = useState<string>(DASHBOARD_TABS[0].id);
 
   // Fetch user credits from customers table
   useEffect(() => {
@@ -66,8 +75,29 @@ export default function DashboardPage() {
   }, [searchParams, setSearchParams]);
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-[#fffbf0]">
+      <div className="px-8 pt-8 pb-32 w-full max-w-full">
+        {/* Tab menu - Figma PrimaryTab / tabs */}
+        <div className="border-b border-[#e8e2d2] flex gap-4 items-center w-full mb-8">
+          {DASHBOARD_TABS.map((tab) => {
+            const isSelected = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => setActiveTab(tab.id)}
+                className={`flex h-12 items-center justify-center px-2 shrink-0 font-medium text-base leading-6 whitespace-nowrap transition-colors ${
+                  isSelected
+                    ? 'border-b-2 border-[#161410] text-[#161410]'
+                    : 'border-b-2 border-transparent text-[#7f7766] hover:text-[#161410]'
+                }`}
+              >
+                {tab.label}
+              </button>
+            );
+          })}
+        </div>
+
         <div className="max-w-6xl mx-auto">
           {/* Header with subscription status */}
           <div className="flex items-center justify-between mb-6">
