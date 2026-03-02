@@ -5,6 +5,7 @@ import { getStripePlans, type PlanTierPublic } from '@/lib/supabase/plans';
 import { PlanCard } from '@/components/PlanCard';
 import { createCheckoutSession, cancelSubscription, upgradeSubscription, reactivateSubscription, invalidateBillingInfoCache } from '@/lib/supabase/subscriptions';
 import { useSubscription } from '@/hooks/useSubscription';
+import { capitalizeFirstLetter } from '@/lib/utils';
 
 type BillingCycle = 'monthly' | 'yearly';
 
@@ -246,7 +247,7 @@ export default function PricingPage() {
                 ? `Upgrade to ${plan.display_name}`
                 : planCredits < currentCredits
                   ? `Downgrade to ${plan.display_name}`
-                  : `Switch to ${plan.display_name} ${planCycleName}`
+                  : `Switch to ${plan.display_name} ${capitalizeFirstLetter(planCycleName)}`
               : 'Start free trial';
 
             return (
