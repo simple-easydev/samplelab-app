@@ -1,9 +1,8 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { CheckIcon } from '@/components/icons';
 import { toast } from 'sonner';
 import { getStripePlans, type PlanTierPublic } from '@/lib/supabase/plans';
+import { PlanCard } from '@/components/PlanCard';
 import { createCheckoutSession, cancelSubscription, upgradeSubscription, reactivateSubscription, invalidateBillingInfoCache } from '@/lib/supabase/subscriptions';
 import { useSubscription } from '@/hooks/useSubscription';
 
@@ -234,15 +233,8 @@ export default function PricingPage() {
       ) : (
         <div className="flex gap-6 mt-12 flex-wrap justify-center max-w-[1142px]">
           {filteredPlans.map((plan) => {
-            const isPopular = plan.is_popular;
             const isCurrentPlan = currentPlan?.id === plan.id;
             const cycleLabel = plan.billing_cycle === 'year' ? '/ year' : '/ month';
-            const isSubmitting = submittingId === plan.id;
-            const features =
-              Array.isArray(plan.features) && plan.features.length > 0
-                ? plan.features
-                : ['Full library access', 'Unused credits roll over', 'Cancel anytime'];
-
             const ctaLabel = currentPlanInAll
               ? ((plan.credits_monthly ?? 0) > (currentPlanInAll.credits_monthly ?? 0)
                   ? `Upgrade to ${plan.display_name}`
@@ -250,114 +242,27 @@ export default function PricingPage() {
               : 'Start free trial';
 
             return (
-              <div
+              <PlanCard
                 key={plan.id}
-                className={`w-[300px] shrink-0 border-2 rounded p-8 flex flex-col gap-8 relative overflow-hidden isolate ${
-                  isCurrentPlan ? 'bg-[#ebe6d9] border-[#161410]' : 'bg-[#f6f2e6] border-[#e8e2d2]'
-                }`}
-              >
-                {/* Current plan banner - Figma: top-right dark banner with white text */}
-                {isCurrentPlan && (
-                  <div className="absolute top-0 right-0 z-20 bg-[#161410] text-[#fffbf0] text-xs font-medium leading-4 py-1.5 px-3 rounded-bl tracking-[0.3px]">
-                    Current plan
-                  </div>
-                )}
-                {isPopular && (
-                  <div
-                    className="absolute inset-0 z-0 opacity-20 pointer-events-none"
-                    style={{
-                      background: 'linear-gradient(to bottom, #56b88d, #f9d79d 50%, #f6f2e6)',
-                    }}
-                  />
-                )}
-
-                <div className="flex flex-col gap-4 relative z-10">
-                  {/* Header: name + price */}
-                  <div className="flex flex-col gap-3">
-                    <div className="flex gap-2 items-center flex-wrap">
-                      <p className="text-[#161410] text-sm font-medium uppercase tracking-[0.9px] leading-5">
-                        {plan.display_name}
-                      </p>
-                      {isPopular && (
-                        <span className="bg-[rgba(46,159,111,0.2)] border border-[rgba(46,159,111,0.2)] text-[#1a6548] text-[10px] font-medium px-1.5 py-0.5 rounded leading-3 tracking-[0.3px]">
-                          Popular
-                        </span>
-                      )}
-                    </div>
-                    <div className="flex gap-1 items-end flex-wrap">
-                      <span className="text-[#161410] text-[40px] font-bold leading-[48px] tracking-[-0.4px]">
-                        ${plan.price}
-                      </span>
-                      <span className="text-[#7f7766] text-base font-medium leading-6 pb-0.5">
-                        {cycleLabel}
-                      </span>
-                    </div>
-                  </div>
-
-                  {/* Credits + benefits */}
-                  <div className="flex flex-col gap-5">
-                    <div className="flex flex-col gap-1">
-                      <p className="text-[#161410] text-base font-medium leading-6">
-                        {plan.credits_monthly ?? 0} credits / month
-                      </p>
-                      <p className="text-[#5e584b] text-xs leading-4 tracking-[0.2px]">
-                        Unused credits roll over
-                      </p>
-                    </div>
-                    <div className="h-px w-full bg-[#e8e2d2]" />
-                    <ul className="flex flex-col gap-3">
-                      {features.map((benefit) => (
-                        <li key={benefit} className="flex gap-2 items-start">
-                          <CheckIcon stroke="#161410" className="shrink-0 mt-0.5 size-5" />
-                          <span className="text-[#161410] text-sm leading-5 tracking-[0.1px]">
-                            {benefit}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </div>
-
-                <div className="mt-auto relative z-10 flex flex-col gap-3">
-                  {!isCurrentPlan && (
-                    <Button
-                      onClick={() => handleSubscribe(plan)}
-                      disabled={isSubmitting}
-                      className={
-                        isPopular
-                          ? 'w-full h-12 rounded-sm font-medium bg-[#161410] text-[#fffbf0] hover:bg-[#2a2620]'
-                          : 'w-full h-12 rounded-sm font-medium bg-transparent border-2 border-[#a49a84] text-[#161410] hover:bg-[#e8e2d2]'
-                      }
-                    >
-                      {isSubmitting ? 'Redirecting…' : ctaLabel}
-                    </Button>
-                  )}
-                  {isCurrentPlan && subscription?.id && !isCanceledAtPeriodEnd && (
-                    <>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      onClick={handleCancelPlan}
-                      disabled={cancelling}
-                      className={`w-full h-10 rounded-sm font-medium text-[#7f7766] hover:text-[#b3402d] hover:bg-transparent ${!cancelling ? 'underline' : ''}`}
-                    >
-                      {cancelling ? 'Cancelling…' : 'Cancel plan'}
-                    </Button>
-                    <p className="text-[#7f7766] text-sm leading-5 text-center tracking-[0.1px]">Takes effect next billing cycle</p>
-                    </>
-                  )}
-                  {isCurrentPlan && subscription?.id && isCanceledAtPeriodEnd && (
-                    <Button
-                      type="button"
-                      onClick={handleReactivatePlan}
-                      disabled={reactivating}
-                      className="w-full h-12 rounded-sm font-medium bg-[#161410] text-[#fffbf0] hover:bg-[#2a2620]"
-                    >
-                      {reactivating ? 'Updating…' : 'Reactivate immediately'}
-                    </Button>
-                  )}
-                </div>
-              </div>
+                plan={plan}
+                isCurrentPlan={isCurrentPlan}
+                cycleLabel={cycleLabel}
+                ctaLabel={ctaLabel}
+                isSubmitting={submittingId === plan.id}
+                onSubscribe={() => handleSubscribe(plan)}
+                onCancelPlan={
+                  isCurrentPlan && subscription?.id && !isCanceledAtPeriodEnd
+                    ? handleCancelPlan
+                    : undefined
+                }
+                cancelPlanLoading={cancelling}
+                onReactivatePlan={
+                  isCurrentPlan && subscription?.id && isCanceledAtPeriodEnd
+                    ? handleReactivatePlan
+                    : undefined
+                }
+                reactivatePlanLoading={reactivating}
+              />
             );
           })}
         </div>
