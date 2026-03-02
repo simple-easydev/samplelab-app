@@ -47,7 +47,7 @@ export default function OnboardingPage() {
   });
 
   useEffect(() => {
-    getStripePlans().then((p) => {
+    getStripePlans({ visible_onboarding: true }).then((p) => {
       setPlans(p);
       setPlansLoading(false);
     });
