@@ -72,14 +72,14 @@ export default function PricingPage() {
       toast.error('This plan is not available for checkout.');
       return;
     }
-    const isUpgrade =
+    const isPlanChange =
       hasSubscription &&
       currentPlanInAll != null &&
-      (plan.credits_monthly ?? 0) > (currentPlanInAll.credits_monthly ?? 0);
+      plan.stripe_price_id !== currentPlanInAll.stripe_price_id;
 
     setSubmittingId(plan.id);
     try {
-      const result = isUpgrade
+      const result = isPlanChange
         ? await upgradeSubscription(priceId)
         : await createCheckoutSession(priceId, true);
       if ('error' in result) {
