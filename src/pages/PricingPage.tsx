@@ -4,15 +4,28 @@ import { Button } from '@/components/ui/button';
 import { CheckIcon } from '@/components/icons';
 import { toast } from 'sonner';
 import { getStripePlans, type PlanTierPublic } from '@/lib/supabase/plans';
-import { createCheckoutSession } from '@/lib/supabase/subscriptions';
+import { createCheckoutSession, cancelSubscription } from '@/lib/supabase/subscriptions';
+import { useSubscription } from '@/hooks/useSubscription';
 
 type BillingCycle = 'monthly' | 'yearly';
+
+function formatRenewalDate(isoDate: string | null): string {
+  if (!isoDate) return '';
+  try {
+    const d = new Date(isoDate);
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+  } catch {
+    return '';
+  }
+}
 
 export default function PricingPage() {
   const [plans, setPlans] = useState<PlanTierPublic[]>([]);
   const [loading, setLoading] = useState(true);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
+  const { subscription, isActive: hasSubscription, loading: subscriptionLoading, refresh: refreshSubscription } = useSubscription();
+  const [cancelling, setCancelling] = useState(false);
 
   useEffect(() => {
     getStripePlans()
@@ -29,12 +42,29 @@ export default function PricingPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const filteredPlans = plans.filter((p) => {
-    const cycle = p.billing_cycle?.toLowerCase() ?? '';
-    const isMonthly = cycle === 'month' || cycle === 'monthly';
-    const isYearly = cycle === 'year' || cycle === 'yearly';
-    return billingCycle === 'monthly' ? isMonthly : isYearly;
-  });
+  const filteredPlans = plans
+    .filter((p) => {
+      const cycle = p.billing_cycle?.toLowerCase() ?? '';
+      const isMonthly = cycle === 'month' || cycle === 'monthly';
+      const isYearly = cycle === 'year' || cycle === 'yearly';
+      return billingCycle === 'monthly' ? isMonthly : isYearly;
+    })
+    .sort((a, b) => (a.credits_monthly ?? 0) - (b.credits_monthly ?? 0));
+
+  const currentPlan = hasSubscription && subscription?.stripe_price_id
+    ? filteredPlans.find((p) => p.stripe_price_id === subscription.stripe_price_id) ?? null
+    : null;
+
+  const currentPlanInAll = hasSubscription && subscription?.stripe_price_id
+    ? plans.find((p) => p.stripe_price_id === subscription.stripe_price_id) ?? null
+    : null;
+
+  const subscriptionBillingCycle =
+    currentPlanInAll?.billing_cycle?.toLowerCase() === 'year' ||
+    currentPlanInAll?.billing_cycle?.toLowerCase() === 'yearly'
+      ? 'yearly'
+      : 'monthly';
+  const renewalDate = formatRenewalDate(subscription?.current_period_end ?? null);
 
   const handleSubscribe = async (plan: PlanTierPublic) => {
     const priceId = plan.stripe_price_id;
@@ -56,17 +86,48 @@ export default function PricingPage() {
     }
   };
 
+  const handleCancelPlan = async () => {
+    if (!subscription?.id) return;
+    setCancelling(true);
+    try {
+      const { success, error } = await cancelSubscription(subscription.id);
+      if (success) {
+        toast.success('Plan will cancel at the end of the billing period.');
+        refreshSubscription();
+      } else {
+        toast.error(error ?? 'Failed to cancel plan');
+      }
+    } catch (e) {
+      toast.error('Something went wrong');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fffbf0] flex flex-col items-center px-8 py-16 md:py-32">
       <div className="w-full max-w-[676px] flex flex-col gap-5 text-center">
-        {/* Overline + Title - Figma pricing header */}
+        {/* Overline + Title - Figma: when subscribed show "You're on the X plan" */}
         <div className="flex flex-col gap-4">
           <p className="text-[#b3402d] text-lg font-semibold uppercase tracking-[0.8px] leading-6">
             Pricing
           </p>
-          <h1 className="text-[#161410] text-[48px] font-bold leading-[56px] tracking-[-0.6px]">
-            Start a 3-day free trial
-          </h1>
+          {!subscriptionLoading && hasSubscription && currentPlanInAll ? (
+            <>
+              <h1 className="text-[#161410] text-[48px] font-bold leading-[56px] tracking-[-0.6px]">
+                You're on the {currentPlanInAll.display_name} plan
+              </h1>
+              {renewalDate && (
+                <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
+                  You're currently on a {subscriptionBillingCycle} billing cycle. Your next renewal is {renewalDate}.
+                </p>
+              )}
+            </>
+          ) : (
+            <h1 className="text-[#161410] text-[48px] font-bold leading-[56px] tracking-[-0.6px]">
+              Start a 3-day free trial
+            </h1>
+          )}
         </div>
         <p className="text-[#5e584b] text-base leading-6">
           You can change or cancel your plan anytime
@@ -134,6 +195,7 @@ export default function PricingPage() {
         <div className="flex gap-6 mt-12 flex-wrap justify-center max-w-[1142px]">
           {filteredPlans.map((plan) => {
             const isPopular = plan.is_popular;
+            const isCurrentPlan = currentPlan?.id === plan.id;
             const cycleLabel = plan.billing_cycle === 'year' ? '/ year' : '/ month';
             const isSubmitting = submittingId === plan.id;
             const features =
@@ -141,11 +203,25 @@ export default function PricingPage() {
                 ? plan.features
                 : ['Full library access', 'Unused credits roll over', 'Cancel anytime'];
 
+            const ctaLabel = hasSubscription && currentPlanInAll
+              ? ((plan.credits_monthly ?? 0) > (currentPlanInAll.credits_monthly ?? 0)
+                  ? `Upgrade to ${plan.display_name}`
+                  : `Downgrade to ${plan.display_name}`)
+              : 'Start free trial';
+
             return (
               <div
                 key={plan.id}
-                className="w-[300px] shrink-0 bg-[#f6f2e6] border-2 border-[#e8e2d2] rounded p-8 flex flex-col gap-8 relative overflow-hidden isolate"
+                className={`w-[300px] shrink-0 border-2 rounded p-8 flex flex-col gap-8 relative overflow-hidden isolate ${
+                  isCurrentPlan ? 'bg-[#ebe6d9] border-[#161410]' : 'bg-[#f6f2e6] border-[#e8e2d2]'
+                }`}
               >
+                {/* Current plan banner - Figma: top-right dark banner with white text */}
+                {isCurrentPlan && (
+                  <div className="absolute top-0 right-0 z-20 bg-[#161410] text-[#fffbf0] text-xs font-medium leading-4 py-1.5 px-3 rounded-bl tracking-[0.3px]">
+                    Current plan
+                  </div>
+                )}
                 {isPopular && (
                   <div
                     className="absolute inset-0 z-0 opacity-20 pointer-events-none"
@@ -202,18 +278,31 @@ export default function PricingPage() {
                   </div>
                 </div>
 
-                <div className="mt-auto relative z-10">
-                  <Button
-                    onClick={() => handleSubscribe(plan)}
-                    disabled={isSubmitting}
-                    className={
-                      isPopular
-                        ? 'w-full h-12 rounded-sm font-medium bg-[#161410] text-[#fffbf0] hover:bg-[#2a2620]'
-                        : 'w-full h-12 rounded-sm font-medium bg-transparent border-2 border-[#a49a84] text-[#161410] hover:bg-[#e8e2d2]'
-                    }
-                  >
-                    {isSubmitting ? 'Redirecting…' : 'Start free trial'}
-                  </Button>
+                <div className="mt-auto relative z-10 flex flex-col gap-3">
+                  {!isCurrentPlan && (
+                    <Button
+                      onClick={() => handleSubscribe(plan)}
+                      disabled={isSubmitting}
+                      className={
+                        isPopular
+                          ? 'w-full h-12 rounded-sm font-medium bg-[#161410] text-[#fffbf0] hover:bg-[#2a2620]'
+                          : 'w-full h-12 rounded-sm font-medium bg-transparent border-2 border-[#a49a84] text-[#161410] hover:bg-[#e8e2d2]'
+                      }
+                    >
+                      {isSubmitting ? 'Redirecting…' : ctaLabel}
+                    </Button>
+                  )}
+                  {isCurrentPlan && subscription?.id && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={handleCancelPlan}
+                      disabled={cancelling}
+                      className="w-full h-10 rounded-sm font-medium text-[#7f7766] hover:text-[#b3402d] hover:bg-transparent"
+                    >
+                      {cancelling ? 'Cancelling…' : 'Cancel plan'}
+                    </Button>
+                  )}
                 </div>
               </div>
             );
