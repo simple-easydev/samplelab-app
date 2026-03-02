@@ -224,33 +224,30 @@ export async function getUserCredits(): Promise<number> {
 }
 
 /**
- * Upgrade existing subscription to a new price (e.g. Starter → Pro).
+ * Change existing subscription to a new price (upgrade or downgrade).
  * Calls upgrade-subscription edge function with { priceId }.
- * Returns redirect URL if successful.
+ * Does not redirect; returns success or error.
  */
-export async function upgradeSubscription(priceId: string): Promise<{ url: string } | { error: string }> {
+export async function upgradeSubscription(priceId: string): Promise<{ success: true } | { error: string }> {
   try {
     const { data: sessionData } = await supabase.auth.getSession();
     if (!sessionData?.session?.access_token) {
-      return { error: 'You must be signed in to upgrade' };
+      return { error: 'You must be signed in to change plan' };
     }
 
-    const { data, error } = await supabase.functions.invoke<{ url?: string }>('upgrade-subscription', {
+    const { error } = await supabase.functions.invoke('upgrade-subscription', {
       method: 'POST',
       body: { priceId },
       headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
     });
 
     if (error) {
-      return { error: error.message || 'Failed to upgrade' };
+      return { error: error.message || 'Failed to change plan' };
     }
-    if (!data?.url) {
-      return { error: 'No redirect URL returned' };
-    }
-    return { url: data.url };
+    return { success: true };
   } catch (error: any) {
-    console.error('Error upgrading subscription:', error);
-    return { error: error.message || 'Failed to upgrade subscription' };
+    console.error('Error changing subscription:', error);
+    return { error: error.message || 'Failed to change subscription' };
   }
 }
 
@@ -278,5 +275,32 @@ export async function cancelSubscription(subscriptionId: string): Promise<{ succ
   } catch (error: any) {
     console.error('Error canceling subscription:', error);
     return { success: false, error: error.message || 'Failed to cancel subscription' };
+  }
+}
+
+/**
+ * Reactivate a subscription that is set to cancel at period end (undo cancel).
+ * Backend should call Stripe to set cancel_at_period_end = false.
+ */
+export async function reactivateSubscription(subscriptionId: string): Promise<{ success: boolean; error?: string }> {
+  try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session?.access_token) {
+      return { success: false, error: 'You must be signed in to reactivate' };
+    }
+
+    const { error } = await supabase.functions.invoke('reactivate-subscription', {
+      method: 'POST',
+      body: { subscriptionId },
+      headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
+    });
+
+    if (error) {
+      return { success: false, error: error.message };
+    }
+    return { success: true };
+  } catch (error: any) {
+    console.error('Error reactivating subscription:', error);
+    return { success: false, error: error.message || 'Failed to reactivate subscription' };
   }
 }

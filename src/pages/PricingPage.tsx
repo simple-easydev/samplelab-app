@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CheckIcon } from '@/components/icons';
 import { toast } from 'sonner';
 import { getStripePlans, type PlanTierPublic } from '@/lib/supabase/plans';
-import { createCheckoutSession, cancelSubscription, upgradeSubscription, invalidateBillingInfoCache } from '@/lib/supabase/subscriptions';
+import { createCheckoutSession, cancelSubscription, upgradeSubscription, reactivateSubscription, invalidateBillingInfoCache } from '@/lib/supabase/subscriptions';
 import { useSubscription } from '@/hooks/useSubscription';
 
 type BillingCycle = 'monthly' | 'yearly';
@@ -24,8 +24,9 @@ export default function PricingPage() {
   const [loading, setLoading] = useState(true);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [billingCycle, setBillingCycle] = useState<BillingCycle>('monthly');
-  const { subscription, isActive: hasSubscription, loading: subscriptionLoading, refresh: refreshSubscription } = useSubscription();
+  const { subscription, loading: subscriptionLoading, refresh: refreshSubscription } = useSubscription();
   const [cancelling, setCancelling] = useState(false);
+  const [reactivating, setReactivating] = useState(false);
 
   useEffect(() => {
     getStripePlans()
@@ -51,12 +52,11 @@ export default function PricingPage() {
     })
     .sort((a, b) => (a.credits_monthly ?? 0) - (b.credits_monthly ?? 0));
 
-  const currentPlan = hasSubscription && subscription?.stripe_price_id
-    ? filteredPlans.find((p) => p.stripe_price_id === subscription.stripe_price_id) ?? null
-    : null;
-
-  const currentPlanInAll = hasSubscription && subscription?.stripe_price_id
+  const currentPlanInAll = subscription?.stripe_price_id
     ? plans.find((p) => p.stripe_price_id === subscription.stripe_price_id) ?? null
+    : null;
+  const currentPlan = currentPlanInAll
+    ? filteredPlans.find((p) => p.stripe_price_id === currentPlanInAll.stripe_price_id) ?? null
     : null;
 
   const subscriptionBillingCycle =
@@ -65,6 +65,8 @@ export default function PricingPage() {
       ? 'yearly'
       : 'monthly';
   const renewalDate = formatRenewalDate(subscription?.current_period_end ?? null);
+  const isCanceledAtPeriodEnd = subscription?.cancel_at_period_end === true;
+  const hasPlanUntilPeriodEnd = subscription != null && currentPlanInAll != null;
 
   const handleSubscribe = async (plan: PlanTierPublic) => {
     const priceId = plan.stripe_price_id;
@@ -73,22 +75,31 @@ export default function PricingPage() {
       return;
     }
     const isPlanChange =
-      hasSubscription &&
       currentPlanInAll != null &&
       plan.stripe_price_id !== currentPlanInAll.stripe_price_id;
 
     setSubmittingId(plan.id);
     try {
-      const result = isPlanChange
-        ? await upgradeSubscription(priceId)
-        : await createCheckoutSession(priceId, true);
-      if ('error' in result) {
-        toast.error(result.error);
-        return;
+      if (isPlanChange) {
+        const result = await upgradeSubscription(priceId);
+        if ('error' in result) {
+          toast.error(result.error);
+          return;
+        }
+        invalidateBillingInfoCache();
+        refreshSubscription();
+        toast.success('Plan updated.');
+      } else {
+        const result = await createCheckoutSession(priceId, true);
+        if ('error' in result) {
+          toast.error(result.error);
+          return;
+        }
+        if (result.url) window.location.assign(result.url);
       }
-      if (result.url) window.location.assign(result.url);
     } catch (e) {
       toast.error('Something went wrong');
+    } finally {
       setSubmittingId(null);
     }
   };
@@ -112,6 +123,25 @@ export default function PricingPage() {
     }
   };
 
+  const handleReactivatePlan = async () => {
+    if (!subscription?.id) return;
+    setReactivating(true);
+    try {
+      const { success, error } = await reactivateSubscription(subscription.id);
+      if (success) {
+        toast.success('Your plan will continue. You will be charged at the next renewal.');
+        invalidateBillingInfoCache();
+        refreshSubscription();
+      } else {
+        toast.error(error ?? 'Failed to keep plan');
+      }
+    } catch (e) {
+      toast.error('Something went wrong');
+    } finally {
+      setReactivating(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-[#fffbf0] flex flex-col items-center px-8 py-16 md:py-32">
       <div className="w-full max-w-[676px] flex flex-col gap-5 text-center">
@@ -120,14 +150,16 @@ export default function PricingPage() {
           <p className="text-[#b3402d] text-lg font-semibold uppercase tracking-[0.8px] leading-6">
             Pricing
           </p>
-          {!subscriptionLoading && hasSubscription && currentPlanInAll ? (
+          {!subscriptionLoading && hasPlanUntilPeriodEnd ? (
             <>
               <h1 className="text-[#161410] text-[48px] font-bold leading-[56px] tracking-[-0.6px]">
-                You're on the {currentPlanInAll.display_name} plan
+                You're on the {currentPlanInAll!.display_name} plan
               </h1>
               {renewalDate && (
                 <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
-                  You're currently on a {subscriptionBillingCycle} billing cycle. Your next renewal is {renewalDate}.
+                  {isCanceledAtPeriodEnd
+                    ? `Your plan is active until ${renewalDate}. It will not renew.`
+                    : `You're currently on a ${subscriptionBillingCycle} billing cycle. Your next renewal is ${renewalDate}.`}
                 </p>
               )}
             </>
@@ -211,7 +243,7 @@ export default function PricingPage() {
                 ? plan.features
                 : ['Full library access', 'Unused credits roll over', 'Cancel anytime'];
 
-            const ctaLabel = hasSubscription && currentPlanInAll
+            const ctaLabel = currentPlanInAll
               ? ((plan.credits_monthly ?? 0) > (currentPlanInAll.credits_monthly ?? 0)
                   ? `Upgrade to ${plan.display_name}`
                   : `Downgrade to ${plan.display_name}`)
@@ -300,7 +332,7 @@ export default function PricingPage() {
                       {isSubmitting ? 'Redirecting…' : ctaLabel}
                     </Button>
                   )}
-                  {isCurrentPlan && subscription?.id && (
+                  {isCurrentPlan && subscription?.id && !isCanceledAtPeriodEnd && (
                     <Button
                       type="button"
                       variant="ghost"
@@ -309,6 +341,16 @@ export default function PricingPage() {
                       className="w-full h-10 rounded-sm font-medium text-[#7f7766] hover:text-[#b3402d] hover:bg-transparent"
                     >
                       {cancelling ? 'Cancelling…' : 'Cancel plan'}
+                    </Button>
+                  )}
+                  {isCurrentPlan && subscription?.id && isCanceledAtPeriodEnd && (
+                    <Button
+                      type="button"
+                      onClick={handleReactivatePlan}
+                      disabled={reactivating}
+                      className="w-full h-12 rounded-sm font-medium bg-[#161410] text-[#fffbf0] hover:bg-[#2a2620]"
+                    >
+                      {reactivating ? 'Updating…' : 'Reactivate immediately'}
                     </Button>
                   )}
                 </div>
