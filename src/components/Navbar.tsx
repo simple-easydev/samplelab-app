@@ -9,7 +9,7 @@ import { useSubscription } from '@/hooks/useSubscription';
 const NAV_LINKS = [
   { label: 'Browse', to: '/dashboard' },
   { label: 'How it works', to: '#' },
-  { label: 'Pricing', to: '/onboarding' },
+  { label: 'Pricing', to: '/pricing' },
   { label: 'About us', to: '#' },
 ];
 

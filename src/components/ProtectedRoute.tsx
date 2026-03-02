@@ -51,14 +51,11 @@ export default function ProtectedRoute() {
   if (!needsOnboarding && location.pathname === '/onboarding') {
     return <Navigate to="/dashboard" replace />;
   }
-
-  const showNavbar = location.pathname === '/dashboard';
-
   return (
     <div className="min-h-screen flex flex-col">
-      {showNavbar && <Navbar />}
+      <Navbar />
       <Outlet />
-      {showNavbar && <Footer />}
+      <Footer />
     </div>
   );
 }
