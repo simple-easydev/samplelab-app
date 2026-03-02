@@ -257,8 +257,15 @@ export async function getUserCredits(): Promise<number> {
  */
 export async function cancelSubscription(subscriptionId: string): Promise<{ success: boolean; error?: string }> {
   try {
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session?.access_token) {
+      console.error("You must be signed in to delete a plan");
+      return { success: false, error: "You must be signed in to delete a plan" };
+    }
+
     const { error } = await supabase.functions.invoke('cancel-subscription', {
       body: { subscriptionId },
+      headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
     });
 
     if (error) {
