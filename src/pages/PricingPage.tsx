@@ -134,7 +134,7 @@ export default function PricingPage() {
                       disabled={isSubmitting}
                       className="w-full h-12 rounded-sm font-medium bg-[#161410] text-white hover:bg-[#2a2620]"
                     >
-                      {isSubmitting ? 'Redirecting…' : 'Subscribe'}
+                      {isSubmitting ? 'Redirecting…' : 'Start free trial'}
                     </Button>
                   </div>
                 </div>
