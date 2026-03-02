@@ -62,7 +62,7 @@ export function Navbar() {
           </Link>
           {isFreePlan ? (
             <TryForFreeButton asChild className="h-10 min-w-[100px]">
-              <Link to="/onboarding">Subscribe</Link>
+              <Link to="/pricing">Subscribe</Link>
             </TryForFreeButton>
           ) : (
             <Link
