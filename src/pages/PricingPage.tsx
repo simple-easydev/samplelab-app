@@ -333,15 +333,18 @@ export default function PricingPage() {
                     </Button>
                   )}
                   {isCurrentPlan && subscription?.id && !isCanceledAtPeriodEnd && (
+                    <>
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={handleCancelPlan}
                       disabled={cancelling}
-                      className="w-full h-10 rounded-sm font-medium text-[#7f7766] hover:text-[#b3402d] hover:bg-transparent"
+                      className={`w-full h-10 rounded-sm font-medium text-[#7f7766] hover:text-[#b3402d] hover:bg-transparent ${!cancelling ? 'underline' : ''}`}
                     >
                       {cancelling ? 'Cancelling…' : 'Cancel plan'}
                     </Button>
+                    <p className="text-[#7f7766] text-sm leading-5 text-center tracking-[0.1px]">Takes effect next billing cycle</p>
+                    </>
                   )}
                   {isCurrentPlan && subscription?.id && isCanceledAtPeriodEnd && (
                     <Button
