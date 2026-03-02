@@ -2,7 +2,9 @@ import { Link } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Search, User } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { TryForFreeButton } from '@/components/ui/try-for-free-button';
 import { getUserCredits } from '@/lib/supabase/subscriptions';
+import { useSubscription } from '@/hooks/useSubscription';
 
 const NAV_LINKS = [
   { label: 'Browse', to: '/dashboard' },
@@ -13,10 +15,14 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const [credits, setCredits] = useState<number | null>(null);
+  const { isActive, loading } = useSubscription();
 
   useEffect(() => {
     getUserCredits().then(setCredits);
   }, []);
+
+  const isFreePlan = loading || !isActive;
+
   return (
     <header className="bg-[#f6f2e6] border-b border-[#e8e2d2] h-20 flex items-center justify-between px-8 w-full shrink-0 z-10">
       <div className="flex gap-8 h-full items-center">
@@ -54,12 +60,18 @@ export function Navbar() {
           >
             <User className="size-5" />
           </Link>
-          <Link
-            to="/dashboard"
-            className="border border-[#a49a84] flex h-10 items-center justify-center px-3 rounded-[2px] text-[#161410] text-sm font-medium tracking-[0.1px] hover:bg-[#e8e2d2] transition-colors"
-          >
-            {credits != null ? `Credits: ${credits}` : 'Credits'}
-          </Link>
+          {isFreePlan ? (
+            <TryForFreeButton asChild className="h-10 min-w-[100px]">
+              <Link to="/onboarding">Subscribe</Link>
+            </TryForFreeButton>
+          ) : (
+            <Link
+              to="/dashboard"
+              className="border border-[#a49a84] flex h-10 items-center justify-center px-3 rounded-[2px] text-[#161410] text-sm font-medium tracking-[0.1px] hover:bg-[#e8e2d2] transition-colors"
+            >
+              {credits != null ? `Credits: ${credits}` : 'Credits'}
+            </Link>
+          )}
         </div>
       </div>
     </header>

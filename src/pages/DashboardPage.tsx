@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useSubscription } from '@/hooks/useSubscription';
+import { getUserCredits } from '@/lib/supabase/subscriptions';
 import { supabase } from '@/lib/supabase/client';
 import { authManager } from '@/lib/supabase/auth-manager';
 import { DiscoverCarousel } from '@/components/DiscoverCarousel';
@@ -70,14 +71,111 @@ const DASHBOARD_TABS = [
   { id: 'genres', label: 'Genres' },
 ] as const;
 
+function DashboardTabs({
+  activeTab,
+  setActiveTab,
+}: {
+  activeTab: string;
+  setActiveTab: (id: string) => void;
+}) {
+  return (
+    <div className="border-b border-[#e8e2d2] flex gap-4 items-center w-full mb-8">
+      {DASHBOARD_TABS.map((tab) => {
+        const isSelected = activeTab === tab.id;
+        return (
+          <button
+            key={tab.id}
+            type="button"
+            onClick={() => setActiveTab(tab.id)}
+            className={`flex h-12 items-center justify-center px-2 shrink-0 font-medium text-base leading-6 whitespace-nowrap transition-colors ${
+              isSelected
+                ? 'border-b-2 border-[#161410] text-[#161410]'
+                : 'border-b-2 border-transparent text-[#7f7766] hover:text-[#161410]'
+            }`}
+          >
+            {tab.label}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
+function DiscoverTabContent() {
+  return (
+    <div className="mb-8 flex flex-col gap-8">
+      <DiscoverCarousel />
+      <div className="flex gap-6 items-start w-full">
+        <DiscoverListColumn
+          title="Trending samples"
+          subtitle="The most downloaded samples right now"
+          items={TRENDING_ITEMS}
+          ctaLabel="View all Trending samples"
+        />
+        <DiscoverListColumn
+          title="New releases"
+          subtitle="Fresh samples added this week"
+          items={NEW_RELEASES_ITEMS}
+          ctaLabel="View new releases"
+        />
+        <DiscoverListColumn
+          title="Top creators"
+          subtitle="Most downloaded creators this month"
+          items={CREATORS_ITEMS}
+          ctaLabel="View all creators"
+        />
+      </div>
+      <CardCarousel title="Featured Packs" ctaLabel="View all packs">
+        {FEATURED_PACKS.map((pack) => (
+          <SamplePackCard
+            key={pack.title}
+            title={pack.title}
+            creator={pack.creator}
+            playCount={pack.playCount}
+            genre={pack.genre}
+            premium={pack.premium}
+          />
+        ))}
+      </CardCarousel>
+      <CardCarousel title="Featured creators" ctaLabel="View all creators">
+        {FEATURED_CREATORS.map((creator) => (
+          <CreatorCard
+            key={creator.name}
+            name={creator.name}
+            followersCount={creator.followersCount}
+            packsCount={creator.packsCount}
+          />
+        ))}
+      </CardCarousel>
+      <CardCarousel title="Top genres" ctaLabel="View all genres">
+        {TOP_GENRES.map((genre) => (
+          <GenreCard key={genre.name} name={genre.name} />
+        ))}
+      </CardCarousel>
+    </div>
+  );
+}
+
 export default function DashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { isActive, isTrialing, loading } = useSubscription();
   const [activeTab, setActiveTab] = useState<string>(DASHBOARD_TABS[0].id);
+  const [credits, setCredits] = useState<number | null>(null);
 
   useEffect(() => {
     console.log({ loading, isActive })
   }, [loading, isActive, isTrialing]);
+
+  useEffect(() => {
+    if (!isActive) return;
+    let cancelled = false;
+    getUserCredits().then((n) => {
+      if (!cancelled) setCredits(n);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [isActive]);
 
   useEffect(() => {
     // Check if returning from Stripe checkout
@@ -119,82 +217,28 @@ export default function DashboardPage() {
   return (
     <div className="min-h-screen bg-[#fffbf0]">
       <div className="px-8 pt-8 pb-32 w-full max-w-full">
-        {/* Tab menu - Figma PrimaryTab / tabs */}
-        <div className="border-b border-[#e8e2d2] flex gap-4 items-center w-full mb-8">
-          {DASHBOARD_TABS.map((tab) => {
-            const isSelected = activeTab === tab.id;
-            return (
-              <button
-                key={tab.id}
-                type="button"
-                onClick={() => setActiveTab(tab.id)}
-                className={`flex h-12 items-center justify-center px-2 shrink-0 font-medium text-base leading-6 whitespace-nowrap transition-colors ${
-                  isSelected
-                    ? 'border-b-2 border-[#161410] text-[#161410]'
-                    : 'border-b-2 border-transparent text-[#7f7766] hover:text-[#161410]'
-                }`}
-              >
-                {tab.label}
-              </button>
-            );
-          })}
-        </div>
-
-        <div className="max-w-6xl mx-auto">
-          {/* Discover tab: carousel from Figma slider design */}
-          {activeTab === 'discover' && (
-            <div className="mb-8 flex flex-col gap-8">
-              <DiscoverCarousel />
-              <div className="flex gap-6 items-start w-full">
-                <DiscoverListColumn
-                  title="Trending samples"
-                  subtitle="The most downloaded samples right now"
-                  items={TRENDING_ITEMS}
-                  ctaLabel="View all Trending samples"
-                />
-                <DiscoverListColumn
-                  title="New releases"
-                  subtitle="Fresh samples added this week"
-                  items={NEW_RELEASES_ITEMS}
-                  ctaLabel="View new releases"
-                />
-                <DiscoverListColumn
-                  title="Top creators"
-                  subtitle="Most downloaded creators this month"
-                  items={CREATORS_ITEMS}
-                  ctaLabel="View all creators"
-                />
+        {loading ? (
+          <div className="max-w-6xl mx-auto py-12 flex items-center justify-center text-[#7f7766]">
+            Loading…
+          </div>
+        ) : (
+          <>
+            {isActive && (
+              <div className="max-w-6xl mx-auto mb-8 rounded-lg bg-[#161410] px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+                <p className="text-[#e8e2d2] text-base font-medium">
+                  Welcome back. You have full access to the library.
+                </p>
+                <p className="text-[#e8e2d2] text-sm">
+                  Credits: <span className="font-semibold text-white">{credits ?? '—'}</span>
+                </p>
               </div>
-              <CardCarousel title="Featured Packs" ctaLabel="View all packs">
-                {FEATURED_PACKS.map((pack) => (
-                  <SamplePackCard
-                    key={pack.title}
-                    title={pack.title}
-                    creator={pack.creator}
-                    playCount={pack.playCount}
-                    genre={pack.genre}
-                    premium={pack.premium}
-                  />
-                ))}
-              </CardCarousel>
-              <CardCarousel title="Featured creators" ctaLabel="View all creators">
-                {FEATURED_CREATORS.map((creator) => (
-                  <CreatorCard
-                    key={creator.name}
-                    name={creator.name}
-                    followersCount={creator.followersCount}
-                    packsCount={creator.packsCount}
-                  />
-                ))}
-              </CardCarousel>
-              <CardCarousel title="Top genres" ctaLabel="View all genres">
-                {TOP_GENRES.map((genre) => (
-                  <GenreCard key={genre.name} name={genre.name} />
-                ))}
-              </CardCarousel>
+            )}
+            <DashboardTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+            <div className="max-w-6xl mx-auto">
+              {activeTab === 'discover' && <DiscoverTabContent />}
             </div>
-          )}
-        </div>
+          </>
+        )}
       </div>
     </div>
   );
