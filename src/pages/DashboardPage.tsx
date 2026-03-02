@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useSubscription } from '@/hooks/useSubscription';
-import { getUserCredits } from '@/lib/supabase/subscriptions';
+import { getUserCredits, invalidateBillingInfoCache } from '@/lib/supabase/subscriptions';
 import { supabase } from '@/lib/supabase/client';
 import { authManager } from '@/lib/supabase/auth-manager';
 import { DiscoverCarousel } from '@/components/DiscoverCarousel';
@@ -158,7 +158,7 @@ function DiscoverTabContent() {
 
 export default function DashboardPage() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { isActive, isTrialing, loading } = useSubscription();
+  const { isActive, isTrialing, loading, refresh: refreshSubscription } = useSubscription();
   const [activeTab, setActiveTab] = useState<string>(DASHBOARD_TABS[0].id);
   const [credits, setCredits] = useState<number | null>(null);
 
@@ -200,8 +200,8 @@ export default function DashboardPage() {
 
 
           await authManager.refreshUserData();
-
-          
+          invalidateBillingInfoCache();
+          refreshSubscription();
         } catch (error) {
           console.error('Error in handlePaymentSuccess:', error);
         }
@@ -212,7 +212,7 @@ export default function DashboardPage() {
         setSearchParams({}, { replace: true });
       });
     }
-  }, [searchParams, setSearchParams]);
+  }, [searchParams, setSearchParams, refreshSubscription]);
 
   return (
     <div className="min-h-screen bg-[#fffbf0]">

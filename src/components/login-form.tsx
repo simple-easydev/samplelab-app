@@ -57,7 +57,6 @@ export function LoginForm() {
     setGoogleError(null);
     setIsLoadingGoogle(true);
     const supabase = createClient();
-    // Only use window inside the click handler (client-only) to avoid hydration mismatch
     const redirectTo = `${window.location.origin}/auth/callback`;
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider: "google",

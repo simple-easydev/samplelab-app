@@ -35,78 +35,75 @@ export interface Subscription {
   trial_end: string | null;
 }
 
+/** RPC response shape from get_my_billing_info */
+export interface BillingInfoResponse {
+  customer: { id: string; credit_balance: number; [key: string]: unknown } | null;
+  subscription: Subscription | null;
+}
+
+let billingInfoCache: { userId: string; data: BillingInfoResponse } | null = null;
+let billingInfoPromise: Promise<BillingInfoResponse> | null = null;
+
 /**
- * Get the current user's customer_id
+ * Fetch customer + subscription in one RPC call. Cached per user; in-flight requests deduplicated.
+ * Requires authenticated session. Call once per session (or when needed); result is cached.
  */
-async function getCustomerId(): Promise<string | null> {
-  try {
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      console.log('❌ getCustomerId: No user found');
-      return null;
-    }
+export async function getBillingInfo(): Promise<BillingInfoResponse> {
+  const { data: { session } } = await supabase.auth.getSession();
+  const userId = session?.user?.id;
 
-    console.log('🔍 getCustomerId: Looking up customer for user:', user.id);
-
-    // Query the customers table to get customer_id for this user
-    const { data, error } = await supabase
-      .from('customers')
-      .select('id')
-      .eq('user_id', user.id)
-      .single();
-
-    if (error) {
-      console.error('❌ getCustomerId: Error fetching customer_id:', error);
-      return null;
-    }
-
-    if (!data?.id) {
-      console.log('❌ getCustomerId: No customer record found for user:', user.id);
-      return null;
-    }
-
-    console.log('✅ getCustomerId: Found customer:', data.id);
-    return data.id;
-  } catch (error) {
-    console.error('❌ getCustomerId: Exception:', error);
-    return null;
+  if (!userId) {
+    billingInfoCache = null;
+    billingInfoPromise = null;
+    return { customer: null, subscription: null };
   }
+
+  if (billingInfoCache?.userId === userId) {
+    return billingInfoCache.data;
+  }
+
+  if (billingInfoPromise) {
+    return billingInfoPromise;
+  }
+
+  billingInfoPromise = (async () => {
+    try {
+      const { data, error } = await supabase.rpc('get_my_billing_info');
+      if (error) {
+        console.error('getBillingInfo RPC error:', error);
+        return { customer: null, subscription: null };
+      }
+      const result: BillingInfoResponse = {
+        customer: data?.customer ?? null,
+        subscription: data?.subscription ?? null,
+      };
+      billingInfoCache = { userId, data: result };
+      return result;
+    } finally {
+      billingInfoPromise = null;
+    }
+  })();
+
+  return billingInfoPromise;
+}
+
+/** Clear billing info cache (e.g. after checkout, cancel, or upgrade so next read refetches). */
+export function invalidateBillingInfoCache(): void {
+  billingInfoCache = null;
+  billingInfoPromise = null;
+}
+
+async function getCustomerId(): Promise<string | null> {
+  const { customer } = await getBillingInfo();
+  return customer?.id ?? null;
 }
 
 /**
- * Get the current user's active subscription
+ * Get the current user's active subscription (from single get_my_billing_info RPC, cached).
  */
 export async function getUserSubscription(): Promise<Subscription | null> {
-  try {
-    const customerId = await getCustomerId();
-    
-    if (!customerId) {
-      return null;
-    }
-
-    const { data, error } = await supabase
-      .from('subscriptions')
-      .select('*')
-      .eq('customer_id', customerId)
-      .in('stripe_status', ['active', 'trialing'])
-      .order('created_at', { ascending: false })
-      .limit(1)
-      .single();
-
-    if (error) {
-      if (error.code === 'PGRST116') {
-        // No subscription found
-        return null;
-      }
-      throw error;
-    }
-
-    return data;
-  } catch (error) {
-    console.error('Error fetching subscription:', error);
-    return null;
-  }
+  const { subscription } = await getBillingInfo();
+  return subscription ?? null;
 }
 
 /**
@@ -151,8 +148,9 @@ export async function createCheckoutSession(
     console.log('Use trial:', isTrial);
     console.log(isTrial ? '→ 3-day free trial (no charge)' : '→ Immediate charge + 50 bonus credits');
     
-    const { data: { user } } = await supabase.auth.getUser();
-    
+    const { data: { session } } = await supabase.auth.getSession();
+    const user = session?.user;
+
     if (!user) {
       console.error('❌ User not authenticated');
       return { error: 'User not authenticated' };
@@ -160,7 +158,7 @@ export async function createCheckoutSession(
 
     console.log('✅ User authenticated:', user.id);
 
-    // Get customer_id for this user
+    // Get customer_id for this user (getCustomerId uses getSession, no extra auth call)
     const customerId = await getCustomerId();
     
     if (!customerId) {
@@ -218,37 +216,41 @@ export async function createCheckoutSession(
 }
 
 /**
- * Get user's remaining credits from customers.credit_balance
+ * Get user's remaining credits (from single get_my_billing_info RPC, cached).
  */
 export async function getUserCredits(): Promise<number> {
+  const { customer } = await getBillingInfo();
+  return customer?.credit_balance ?? 0;
+}
+
+/**
+ * Upgrade existing subscription to a new price (e.g. Starter → Pro).
+ * Calls upgrade-subscription edge function with { priceId }.
+ * Returns redirect URL if successful.
+ */
+export async function upgradeSubscription(priceId: string): Promise<{ url: string } | { error: string }> {
   try {
-    const customerId = await getCustomerId();
-    
-    if (!customerId) {
-      console.log('❌ getUserCredits: No customer_id found');
-      return 0;
+    const { data: sessionData } = await supabase.auth.getSession();
+    if (!sessionData?.session?.access_token) {
+      return { error: 'You must be signed in to upgrade' };
     }
 
-    console.log('🔍 getUserCredits: Fetching credit_balance for customer:', customerId);
-
-    // Query customers table for credit_balance
-    const { data, error } = await supabase
-      .from('customers')
-      .select('credit_balance')
-      .eq('id', customerId)
-      .single();
+    const { data, error } = await supabase.functions.invoke<{ url?: string }>('upgrade-subscription', {
+      method: 'POST',
+      body: { priceId },
+      headers: { Authorization: `Bearer ${sessionData.session.access_token}` },
+    });
 
     if (error) {
-      console.error('❌ getUserCredits: Error fetching credits:', error);
-      return 0;
+      return { error: error.message || 'Failed to upgrade' };
     }
-
-    const credits = data?.credit_balance ?? 0;
-    console.log('✅ getUserCredits: Found credits:', credits);
-    return credits;
-  } catch (error) {
-    console.error('❌ getUserCredits: Exception:', error);
-    return 0;
+    if (!data?.url) {
+      return { error: 'No redirect URL returned' };
+    }
+    return { url: data.url };
+  } catch (error: any) {
+    console.error('Error upgrading subscription:', error);
+    return { error: error.message || 'Failed to upgrade subscription' };
   }
 }
 

@@ -4,7 +4,7 @@ import { Button } from '@/components/ui/button';
 import { CheckIcon } from '@/components/icons';
 import { toast } from 'sonner';
 import { getStripePlans, type PlanTierPublic } from '@/lib/supabase/plans';
-import { createCheckoutSession, cancelSubscription } from '@/lib/supabase/subscriptions';
+import { createCheckoutSession, cancelSubscription, upgradeSubscription, invalidateBillingInfoCache } from '@/lib/supabase/subscriptions';
 import { useSubscription } from '@/hooks/useSubscription';
 
 type BillingCycle = 'monthly' | 'yearly';
@@ -72,9 +72,16 @@ export default function PricingPage() {
       toast.error('This plan is not available for checkout.');
       return;
     }
+    const isUpgrade =
+      hasSubscription &&
+      currentPlanInAll != null &&
+      (plan.credits_monthly ?? 0) > (currentPlanInAll.credits_monthly ?? 0);
+
     setSubmittingId(plan.id);
     try {
-      const result = await createCheckoutSession(priceId, true);
+      const result = isUpgrade
+        ? await upgradeSubscription(priceId)
+        : await createCheckoutSession(priceId, true);
       if ('error' in result) {
         toast.error(result.error);
         return;
@@ -93,6 +100,7 @@ export default function PricingPage() {
       const { success, error } = await cancelSubscription(subscription.id);
       if (success) {
         toast.success('Plan will cancel at the end of the billing period.');
+        invalidateBillingInfoCache();
         refreshSubscription();
       } else {
         toast.error(error ?? 'Failed to cancel plan');

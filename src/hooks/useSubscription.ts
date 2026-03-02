@@ -1,14 +1,8 @@
 import { useEffect, useState } from 'react';
-import { 
-  getUserSubscription, 
-  hasActiveSubscription, 
-  isInTrialPeriod,
-  type Subscription 
-} from '@/lib/supabase/subscriptions';
-import { supabase } from '@/lib/supabase/client';
+import { getUserSubscription, type Subscription } from '@/lib/supabase/subscriptions';
 
 /**
- * Hook to manage subscription state
+ * Hook to manage subscription state (fetched on mount and via refresh()).
  */
 export function useSubscription() {
   const [subscription, setSubscription] = useState<Subscription | null>(null);
@@ -19,11 +13,14 @@ export function useSubscription() {
   const fetchSubscription = async () => {
     setLoading(true);
     try {
-      const [sub, active, trialing] = await Promise.all([
-        getUserSubscription(),
-        hasActiveSubscription(),
-        isInTrialPeriod(),
-      ]);
+      const sub = await getUserSubscription();
+      const active =
+        sub !== null &&
+        (sub.stripe_status === 'active' || sub.stripe_status === 'trialing');
+      const trialing =
+        sub?.stripe_status === 'trialing' &&
+        !!sub.trial_end &&
+        new Date(sub.trial_end) > new Date();
 
       setSubscription(sub);
       setIsActive(active);
@@ -37,27 +34,6 @@ export function useSubscription() {
 
   useEffect(() => {
     fetchSubscription();
-
-    // Subscribe to subscription changes via realtime
-    const channel = supabase
-      .channel('subscription-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'subscriptions',
-        },
-        (payload) => {
-          console.log('Subscription changed:', payload);
-          fetchSubscription();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   return {

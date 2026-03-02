@@ -15,7 +15,8 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const [credits, setCredits] = useState<number | null>(null);
-  const { isActive, loading } = useSubscription();
+  const { isActive, loading, subscription } = useSubscription();
+  console.log({ subscription})
 
   useEffect(() => {
     getUserCredits().then(setCredits);
