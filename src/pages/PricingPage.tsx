@@ -115,7 +115,7 @@ export default function PricingPage() {
           {[1, 2, 3].map((i) => (
             <div
               key={i}
-              className="w-[365px] bg-[#f6f2e6] rounded border-2 border-[#e8e2d2] p-8 min-h-[400px] flex items-center justify-center"
+              className="w-[300px] bg-[#f6f2e6] rounded border-2 border-[#e8e2d2] p-8 min-h-[400px] flex items-center justify-center"
             >
               <span className="text-sm text-[#5e584b]">Loading…</span>
             </div>
@@ -144,7 +144,7 @@ export default function PricingPage() {
             return (
               <div
                 key={plan.id}
-                className="w-[365px] shrink-0 bg-[#f6f2e6] border-2 border-[#e8e2d2] rounded p-8 flex flex-col gap-8 relative overflow-hidden isolate"
+                className="w-[300px] shrink-0 bg-[#f6f2e6] border-2 border-[#e8e2d2] rounded p-8 flex flex-col gap-8 relative overflow-hidden isolate"
               >
                 {isPopular && (
                   <div
