@@ -235,10 +235,18 @@ export default function PricingPage() {
           {filteredPlans.map((plan) => {
             const isCurrentPlan = currentPlan?.id === plan.id;
             const cycleLabel = plan.billing_cycle === 'year' ? '/ year' : '/ month';
+            const planCycleName =
+              plan.billing_cycle?.toLowerCase() === 'year' || plan.billing_cycle?.toLowerCase() === 'yearly'
+                ? 'yearly'
+                : 'monthly';
+            const planCredits = plan.credits_monthly ?? 0;
+            const currentCredits = currentPlanInAll?.credits_monthly ?? 0;
             const ctaLabel = currentPlanInAll
-              ? ((plan.credits_monthly ?? 0) > (currentPlanInAll.credits_monthly ?? 0)
-                  ? `Upgrade to ${plan.display_name}`
-                  : `Downgrade to ${plan.display_name}`)
+              ? planCredits > currentCredits
+                ? `Upgrade to ${plan.display_name}`
+                : planCredits < currentCredits
+                  ? `Downgrade to ${plan.display_name}`
+                  : `Switch to ${plan.display_name} ${planCycleName}`
               : 'Start free trial';
 
             return (
