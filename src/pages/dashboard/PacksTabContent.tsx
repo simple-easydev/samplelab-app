@@ -102,6 +102,19 @@ export function PacksTabContent() {
     setCreatorDropdownOpen(false);
   };
 
+  const handleClearAllFilters = () => {
+    setSortId('newest');
+    setSelectedGenres(new Set());
+    setGenreSearch('');
+    setSelectedKeywords(new Set());
+    setKeywordSearch('');
+    setAccessId('all');
+    setLicenseId('all');
+    setSelectedCreators(new Set());
+    setCreatorSearch('');
+    setReleasedId('all');
+  };
+
   return (
     <div className="mb-8 flex flex-col gap-8">
       <div className="flex flex-wrap items-center justify-between gap-4 w-full">
@@ -323,6 +336,7 @@ export function PacksTabContent() {
 
           <button
             type="button"
+            onClick={handleClearAllFilters}
             className="text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] underline hover:no-underline shrink-0"
           >
             Clear Filters
