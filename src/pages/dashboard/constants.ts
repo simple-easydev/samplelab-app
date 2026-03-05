@@ -72,3 +72,19 @@ export const TOP_GENRES = [
   { name: 'Drill' },
   { name: 'Soul' },
 ];
+
+/** Keyword options for packs filter – Figma 782-56255 */
+export const KEYWORDS_OPTIONS = [
+  { name: 'Drums' },
+  { name: 'Bass' },
+  { name: 'Melody' },
+  { name: 'Vocals' },
+  { name: 'Loops' },
+  { name: 'One-shots' },
+  { name: '808' },
+  { name: 'Keys' },
+  { name: 'Strings' },
+  { name: 'Brass' },
+  { name: 'FX' },
+  { name: 'Percussion' },
+];

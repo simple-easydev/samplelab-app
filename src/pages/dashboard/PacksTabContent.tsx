@@ -4,7 +4,7 @@ import { Input } from '@/components/ui/input';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Check } from 'lucide-react';
 import { FilterBarDropdown } from '@/components/FilterBarDropdown';
-import { TOP_GENRES } from './constants';
+import { TOP_GENRES, KEYWORDS_OPTIONS } from './constants';
 
 const PACK_FILTERS = [
   { id: 'genre', label: 'Genre' },
@@ -30,17 +30,34 @@ export function PacksTabContent() {
   const [genreDropdownOpen, setGenreDropdownOpen] = useState(false);
   const [selectedGenres, setSelectedGenres] = useState<Set<string>>(new Set());
   const [genreSearch, setGenreSearch] = useState('');
+  const [keywordsDropdownOpen, setKeywordsDropdownOpen] = useState(false);
+  const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
+  const [keywordSearch, setKeywordSearch] = useState('');
 
   const filteredGenres = useMemo(() => {
     const q = genreSearch.trim().toLowerCase();
     return q ? TOP_GENRES.filter((g) => g.name.toLowerCase().includes(q)) : TOP_GENRES;
   }, [genreSearch]);
 
+  const filteredKeywords = useMemo(() => {
+    const q = keywordSearch.trim().toLowerCase();
+    return q ? KEYWORDS_OPTIONS.filter((k) => k.name.toLowerCase().includes(q)) : KEYWORDS_OPTIONS;
+  }, [keywordSearch]);
+
   const toggleGenre = (genre: string) => {
     setSelectedGenres((prev) => {
       const next = new Set(prev);
       if (next.has(genre)) next.delete(genre);
       else next.add(genre);
+      return next;
+    });
+  };
+
+  const toggleKeyword = (keyword: string) => {
+    setSelectedKeywords((prev) => {
+      const next = new Set(prev);
+      if (next.has(keyword)) next.delete(keyword);
+      else next.add(keyword);
       return next;
     });
   };
@@ -52,6 +69,15 @@ export function PacksTabContent() {
 
   const handleGenreApply = () => {
     setGenreDropdownOpen(false);
+  };
+
+  const handleKeywordsClear = () => {
+    setSelectedKeywords(new Set());
+    setKeywordSearch('');
+  };
+
+  const handleKeywordsApply = () => {
+    setKeywordsDropdownOpen(false);
   };
 
   return (
@@ -121,11 +147,51 @@ export function PacksTabContent() {
               </FilterBarDropdown.Content>
             </FilterBarDropdown>
 
-            {/* Other filters (Keywords, Access, License, Creator, Released) – same trigger style, placeholder content for now */}
-            {PACK_FILTERS.slice(1).map((filter, index) => (
+            {/* Keywords – Figma 782-56255: search, checkboxes, Clear/Apply */}
+            <FilterBarDropdown open={keywordsDropdownOpen} onOpenChange={setKeywordsDropdownOpen}>
+              <FilterBarDropdown.Trigger
+                position="middle"
+                label="Keywords"
+                badge={selectedKeywords.size}
+                ariaLabel="Filter by keywords"
+              />
+              <FilterBarDropdown.Content width={280}>
+                <FilterBarDropdown.Search
+                  value={keywordSearch}
+                  onChange={setKeywordSearch}
+                  placeholder="Search keywords"
+                  ariaLabel="Search keywords"
+                />
+                <FilterBarDropdown.List>
+                  {filteredKeywords.length === 0 ? (
+                    <div className="text-center py-5 px-4 text-[#b0ab9f] text-sm">
+                      No keywords found
+                    </div>
+                  ) : (
+                    filteredKeywords.map((keyword) => (
+                      <FilterBarDropdown.CheckboxItem
+                        key={keyword.name}
+                        label={keyword.name}
+                        checked={selectedKeywords.has(keyword.name)}
+                        onToggle={() => toggleKeyword(keyword.name)}
+                      />
+                    ))
+                  )}
+                </FilterBarDropdown.List>
+                <FilterBarDropdown.Footer
+                  onClear={handleKeywordsClear}
+                  onApply={handleKeywordsApply}
+                  clearLabel="Clear"
+                  applyLabel="Apply"
+                />
+              </FilterBarDropdown.Content>
+            </FilterBarDropdown>
+
+            {/* Other filters (Access, License, Creator, Released) – placeholder for now */}
+            {PACK_FILTERS.slice(2).map((filter, index) => (
               <FilterBarDropdown key={filter.id}>
                 <FilterBarDropdown.Trigger
-                  position={index === PACK_FILTERS.length - 2 ? 'right' : 'middle'}
+                  position={index === PACK_FILTERS.length - 3 ? 'right' : 'middle'}
                   label={filter.label}
                   ariaLabel={`Filter by ${filter.label.toLowerCase()}`}
                 />
