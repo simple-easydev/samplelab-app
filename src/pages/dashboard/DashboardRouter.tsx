@@ -5,17 +5,14 @@ import { invalidateBillingInfoCache } from '@/lib/supabase/subscriptions';
 import { supabase } from '@/lib/supabase/client';
 import { authManager } from '@/lib/supabase/auth-manager';
 import DashboardPage from './DashboardPage';
-import SubscribedDashboardPage from './SubscribedDashboardPage';
 
 /**
- * Renders the appropriate dashboard based on subscription status:
- * - Subscribed (active or trialing) → SubscribedDashboardPage
- * - Unsubscribed → DashboardPage (browse view)
- * Also handles Stripe checkout return (session_id) and refreshes billing/subscription.
+ * Renders the dashboard for all users. Handles Stripe checkout return (session_id)
+ * and refreshes billing/subscription.
  */
 export default function DashboardRouter() {
   const [searchParams, setSearchParams] = useSearchParams();
-  const { isActive, loading, refresh: refreshSubscription } = useSubscription();
+  const { loading, refresh: refreshSubscription } = useSubscription();
 
   useEffect(() => {
     const sessionId = searchParams.get('session_id');
@@ -49,5 +46,5 @@ export default function DashboardRouter() {
     );
   }
 
-  return isActive ? <SubscribedDashboardPage /> : <DashboardPage />;
+  return <DashboardPage />;
 }
