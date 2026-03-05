@@ -5,6 +5,7 @@
 import { useState, useMemo } from 'react';
 import { ChevronsUpDown, Search, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { Slider } from '@/components/ui/slider';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { FilterBarDropdown } from '@/components/FilterBarDropdown';
 import {
@@ -13,7 +14,6 @@ import {
   SAMPLE_INSTRUMENT_OPTIONS,
   SAMPLE_TYPE_OPTIONS,
   SAMPLE_STEMS_OPTIONS,
-  SAMPLE_BPM_OPTIONS,
   KEY_FILTER_FLAT_KEYS,
   KEY_FILTER_SHARP_KEYS,
   KEY_QUALITY_OPTIONS,
@@ -43,7 +43,11 @@ export function SamplesFilterBar() {
   const [keyTab, setKeyTab] = useState<'flat' | 'sharp'>('flat');
   const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
   const [keyQuality, setKeyQuality] = useState<(typeof KEY_QUALITY_OPTIONS)[number]['id']>('all');
-  const [bpmId, setBpmId] = useState<(typeof SAMPLE_BPM_OPTIONS)[number]['id']>('all');
+  const [bpmDropdownOpen, setBpmDropdownOpen] = useState(false);
+  const [bpmTab, setBpmTab] = useState<'range' | 'exact'>('range');
+  const [bpmRangeMin, setBpmRangeMin] = useState(0);
+  const [bpmRangeMax, setBpmRangeMax] = useState(240);
+  const [bpmExact, setBpmExact] = useState('');
 
   const filteredGenres = useMemo(() => {
     const q = genreSearch.trim().toLowerCase();
@@ -94,6 +98,14 @@ export function SamplesFilterBar() {
 
   const handleKeyApply = () => setKeyDropdownOpen(false);
 
+  const handleBpmClear = () => {
+    setBpmRangeMin(0);
+    setBpmRangeMax(240);
+    setBpmExact('');
+  };
+
+  const handleBpmApply = () => setBpmDropdownOpen(false);
+
   const handleClearAllFilters = () => {
     setSortId('newest');
     setSelectedGenres(new Set());
@@ -105,8 +117,16 @@ export function SamplesFilterBar() {
     setStemsId('all');
     setSelectedKeys(new Set());
     setKeyQuality('all');
-    setBpmId('all');
+    handleBpmClear();
   };
+
+  const BPM_MIN = 0;
+  const BPM_MAX = 240;
+
+  const bpmHasActiveFilter =
+    bpmTab === 'range'
+      ? bpmRangeMin > BPM_MIN || bpmRangeMax < BPM_MAX
+      : bpmExact.trim() !== '';
 
   const toggleKey = (keyName: string) => {
     setSelectedKeys((prev) => {
@@ -438,25 +458,83 @@ export function SamplesFilterBar() {
             </FilterBarDropdown.Content>
           </FilterBarDropdown>
 
-          <FilterBarDropdown>
+          <FilterBarDropdown open={bpmDropdownOpen} onOpenChange={setBpmDropdownOpen}>
             <FilterBarDropdown.Trigger
               position="right"
               label="BPM"
+              badge={bpmHasActiveFilter ? 1 : undefined}
               ariaLabel="Filter by BPM"
             />
-            <FilterBarDropdown.Content width={160} className="py-1">
-              {SAMPLE_BPM_OPTIONS.map((option) => (
-                <DropdownMenuItem
-                  key={option.id}
-                  onClick={() => setBpmId(option.id)}
-                  className="flex items-center justify-between"
+            <FilterBarDropdown.Content width={320} className="p-0 flex flex-col overflow-hidden">
+              {/* Tabs – Figma 812-71060, 812-71096 */}
+              <div className="flex border-b border-[#e8e2d2]" role="tablist" aria-label="BPM filter type">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={bpmTab === 'range'}
+                  onClick={() => setBpmTab('range')}
+                  className={bpmTab === 'range'
+                    ? 'flex-1 h-12 flex items-center justify-center px-2 border-b-2 border-[#161410] text-[#161410] text-base font-medium leading-6'
+                    : 'flex-1 h-12 flex items-center justify-center px-2 text-[#5e584b] text-base font-medium leading-6'}
                 >
-                  {option.label}
-                  {bpmId === option.id && (
-                    <Check className="size-4 shrink-0 text-[#161410]" aria-hidden />
-                  )}
-                </DropdownMenuItem>
-              ))}
+                  Range
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={bpmTab === 'exact'}
+                  onClick={() => setBpmTab('exact')}
+                  className={bpmTab === 'exact'
+                    ? 'flex-1 h-12 flex items-center justify-center px-2 border-b-2 border-[#161410] text-[#161410] text-base font-medium leading-6'
+                    : 'flex-1 h-12 flex items-center justify-center px-2 text-[#5e584b] text-base font-medium leading-6'}
+                >
+                  Exact
+                </button>
+              </div>
+              <div className="border-b border-[#e8e2d2] px-8 py-8">
+                {bpmTab === 'range' ? (
+                  /* Range tab – shadcn Slider, Figma 812-71060 */
+                  <div className="h-12 flex items-center gap-3 w-full">
+                    <span className="text-sm text-[#161410] tracking-[0.1px] shrink-0 w-6 tabular-nums" aria-hidden>
+                      {bpmRangeMin}
+                    </span>
+                    <Slider
+                      value={[bpmRangeMin, bpmRangeMax]}
+                      onValueChange={(v) => {
+                        setBpmRangeMin(v[0] ?? BPM_MIN);
+                        setBpmRangeMax(v[1] ?? BPM_MAX);
+                      }}
+                      min={BPM_MIN}
+                      max={BPM_MAX}
+                      step={1}
+                      className="flex-1 min-w-0 [&_[data-slot=slider-track]]:bg-[#e8e2d2] [&_[data-slot=slider-track]]:h-1 [&_[data-slot=slider-range]]:bg-[#161410] [&_[data-slot=slider-thumb]]:border-2 [&_[data-slot=slider-thumb]]:border-[#161410] [&_[data-slot=slider-thumb]]:bg-white"
+                    />
+                    <span className="text-sm text-[#161410] tracking-[0.1px] shrink-0 w-8 tabular-nums text-right" aria-hidden>
+                      {bpmRangeMax}
+                    </span>
+                  </div>
+                ) : (
+                  /* Exact tab – number input, Figma 812-71096 */
+                  <div className="flex flex-col gap-2">
+                    <Input
+                      type="number"
+                      min={BPM_MIN}
+                      max={BPM_MAX}
+                      placeholder="0 - 203"
+                      value={bpmExact}
+                      onChange={(e) => setBpmExact(e.target.value)}
+                      className="h-12 rounded-[2px] border-[#d6ceb8] text-sm text-[#161410] placeholder:text-[#7f7766] tracking-[0.1px]"
+                      aria-label="Exact BPM value"
+                    />
+                  </div>
+                )}
+              </div>
+              <FilterBarDropdown.Footer
+                onClear={handleBpmClear}
+                onApply={handleBpmApply}
+                clearLabel="Clear"
+                applyLabel="Apply"
+              />
             </FilterBarDropdown.Content>
           </FilterBarDropdown>
         </div>
