@@ -194,6 +194,24 @@ export const SAMPLE_KEY_OPTIONS = [
   { id: 'b', label: 'B' },
 ] as const;
 
+/** Key filter panel – Figma 812-69672, 812-70161. Flat keys: [left column, right column]. */
+export const KEY_FILTER_FLAT_KEYS: readonly [readonly string[], readonly string[]] = [
+  ['Db', 'Eb', 'C', 'D', 'E'],
+  ['Gb', 'Ab', 'Bb', 'F', 'G', 'A', 'B'],
+];
+
+/** Key filter panel – Sharp keys: [left column, right column]. */
+export const KEY_FILTER_SHARP_KEYS: readonly [readonly string[], readonly string[]] = [
+  ['C#', 'D#', 'C', 'D', 'E'],
+  ['F#', 'G#', 'A#', 'F', 'G', 'A', 'B'],
+];
+
+export const KEY_QUALITY_OPTIONS = [
+  { id: 'all', label: 'All' },
+  { id: 'major', label: 'Major' },
+  { id: 'minor', label: 'Minor' },
+] as const;
+
 export const SAMPLE_BPM_OPTIONS = [
   { id: 'all', label: 'All' },
   { id: '60-90', label: '60–90 BPM' },

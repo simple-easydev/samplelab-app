@@ -13,8 +13,10 @@ import {
   SAMPLE_INSTRUMENT_OPTIONS,
   SAMPLE_TYPE_OPTIONS,
   SAMPLE_STEMS_OPTIONS,
-  SAMPLE_KEY_OPTIONS,
   SAMPLE_BPM_OPTIONS,
+  KEY_FILTER_FLAT_KEYS,
+  KEY_FILTER_SHARP_KEYS,
+  KEY_QUALITY_OPTIONS,
 } from './constants';
 
 const SORT_OPTIONS = [
@@ -37,7 +39,10 @@ export function SamplesFilterBar() {
   const [instrumentId, setInstrumentId] = useState<(typeof SAMPLE_INSTRUMENT_OPTIONS)[number]['id']>('all');
   const [typeId, setTypeId] = useState<(typeof SAMPLE_TYPE_OPTIONS)[number]['id']>('all');
   const [stemsId, setStemsId] = useState<(typeof SAMPLE_STEMS_OPTIONS)[number]['id']>('all');
-  const [keyId, setKeyId] = useState<(typeof SAMPLE_KEY_OPTIONS)[number]['id']>('all');
+  const [keyDropdownOpen, setKeyDropdownOpen] = useState(false);
+  const [keyTab, setKeyTab] = useState<'flat' | 'sharp'>('flat');
+  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
+  const [keyQuality, setKeyQuality] = useState<(typeof KEY_QUALITY_OPTIONS)[number]['id']>('all');
   const [bpmId, setBpmId] = useState<(typeof SAMPLE_BPM_OPTIONS)[number]['id']>('all');
 
   const filteredGenres = useMemo(() => {
@@ -82,6 +87,13 @@ export function SamplesFilterBar() {
 
   const handleKeywordsApply = () => setKeywordsDropdownOpen(false);
 
+  const handleKeyClear = () => {
+    setSelectedKeys(new Set());
+    setKeyQuality('all');
+  };
+
+  const handleKeyApply = () => setKeyDropdownOpen(false);
+
   const handleClearAllFilters = () => {
     setSortId('newest');
     setSelectedGenres(new Set());
@@ -91,8 +103,18 @@ export function SamplesFilterBar() {
     setInstrumentId('all');
     setTypeId('all');
     setStemsId('all');
-    setKeyId('all');
+    setSelectedKeys(new Set());
+    setKeyQuality('all');
     setBpmId('all');
+  };
+
+  const toggleKey = (keyName: string) => {
+    setSelectedKeys((prev) => {
+      const next = new Set(prev);
+      if (next.has(keyName)) next.delete(keyName);
+      else next.add(keyName);
+      return next;
+    });
   };
 
   return (
@@ -263,25 +285,156 @@ export function SamplesFilterBar() {
             </FilterBarDropdown.Content>
           </FilterBarDropdown>
 
-          <FilterBarDropdown>
+          <FilterBarDropdown open={keyDropdownOpen} onOpenChange={setKeyDropdownOpen}>
             <FilterBarDropdown.Trigger
               position="middle"
               label="Key"
+              badge={selectedKeys.size > 0 ? selectedKeys.size : undefined}
               ariaLabel="Filter by key"
             />
-            <FilterBarDropdown.Content width={120} className="py-1">
-              {SAMPLE_KEY_OPTIONS.map((option) => (
-                <DropdownMenuItem
-                  key={option.id}
-                  onClick={() => setKeyId(option.id)}
-                  className="flex items-center justify-between"
+            <FilterBarDropdown.Content width={360} className="p-0 flex flex-col overflow-hidden">
+              {/* Tabs – Figma 812-69672, 812-70161 */}
+              <div className="flex border-b border-[#e8e2d2]" role="tablist" aria-label="Key type">
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={keyTab === 'flat'}
+                  onClick={() => setKeyTab('flat')}
+                  className={keyTab === 'flat'
+                    ? 'flex-1 h-12 flex items-center justify-center px-2 border-b-2 border-[#161410] text-[#161410] text-base font-medium leading-6'
+                    : 'flex-1 h-12 flex items-center justify-center px-2 text-[#7f7766] text-base font-medium leading-6'}
                 >
-                  {option.label}
-                  {keyId === option.id && (
-                    <Check className="size-4 shrink-0 text-[#161410]" aria-hidden />
-                  )}
-                </DropdownMenuItem>
-              ))}
+                  Flat keys
+                </button>
+                <button
+                  type="button"
+                  role="tab"
+                  aria-selected={keyTab === 'sharp'}
+                  onClick={() => setKeyTab('sharp')}
+                  className={keyTab === 'sharp'
+                    ? 'flex-1 h-12 flex items-center justify-center px-2 border-b-2 border-[#161410] text-[#161410] text-base font-medium leading-6'
+                    : 'flex-1 h-12 flex items-center justify-center px-2 text-[#7f7766] text-base font-medium leading-6'}
+                >
+                  Sharp keys
+                </button>
+              </div>
+              {/* Key grid + radio + footer */}
+              <div className="flex flex-col gap-6 px-7 py-6">
+                <div className="flex gap-1">
+                  {(keyTab === 'flat' ? KEY_FILTER_FLAT_KEYS : KEY_FILTER_SHARP_KEYS).map((column, colIdx) => (
+                    <div key={colIdx} className={colIdx === 0 ? 'flex flex-col gap-1 w-[128px]' : 'flex flex-col gap-1'}>
+                      {colIdx === 0 ? (
+                        <>
+                          <div className="flex gap-1">
+                            {column.slice(0, 2).map((keyName) => {
+                              const selected = selectedKeys.has(keyName);
+                              return (
+                                <button
+                                  key={keyName}
+                                  type="button"
+                                  onClick={() => toggleKey(keyName)}
+                                  className={`shrink-0 size-10 flex items-center justify-center rounded-[2px] border text-sm font-medium tracking-[0.1px] transition-colors
+                                    ${selected
+                                      ? 'bg-[#e8e2d2] border-[#161410] text-[#161410]'
+                                      : 'border-[#d6ceb8] bg-transparent text-[#5e584b] hover:bg-[#faf9f6]'}`}
+                                >
+                                  {keyName}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <div className="flex gap-1">
+                            {column.slice(2, 5).map((keyName) => {
+                              const selected = selectedKeys.has(keyName);
+                              return (
+                                <button
+                                  key={keyName}
+                                  type="button"
+                                  onClick={() => toggleKey(keyName)}
+                                  className={`shrink-0 size-10 flex items-center justify-center rounded-[2px] border text-sm font-medium tracking-[0.1px] transition-colors
+                                    ${selected
+                                      ? 'bg-[#e8e2d2] border-[#161410] text-[#161410]'
+                                      : 'border-[#d6ceb8] bg-transparent text-[#5e584b] hover:bg-[#faf9f6]'}`}
+                                >
+                                  {keyName}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <div className="flex gap-1">
+                            {column.slice(0, 3).map((keyName) => {
+                              const selected = selectedKeys.has(keyName);
+                              return (
+                                <button
+                                  key={keyName}
+                                  type="button"
+                                  onClick={() => toggleKey(keyName)}
+                                  className={`shrink-0 size-10 flex items-center justify-center rounded-[2px] border text-sm font-medium tracking-[0.1px] transition-colors
+                                    ${selected
+                                      ? 'bg-[#e8e2d2] border-[#161410] text-[#161410]'
+                                      : 'border-[#d6ceb8] bg-transparent text-[#5e584b] hover:bg-[#faf9f6]'}`}
+                                >
+                                  {keyName}
+                                </button>
+                              );
+                            })}
+                          </div>
+                          <div className="flex gap-1">
+                            {column.slice(3, 7).map((keyName) => {
+                              const selected = selectedKeys.has(keyName);
+                              return (
+                                <button
+                                  key={keyName}
+                                  type="button"
+                                  onClick={() => toggleKey(keyName)}
+                                  className={`shrink-0 size-10 flex items-center justify-center rounded-[2px] border text-sm font-medium tracking-[0.1px] transition-colors
+                                    ${selected
+                                      ? 'bg-[#e8e2d2] border-[#161410] text-[#161410]'
+                                      : 'border-[#d6ceb8] bg-transparent text-[#5e584b] hover:bg-[#faf9f6]'}`}
+                                >
+                                  {keyName}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                {/* All / Major / Minor – radio row */}
+                <div className="flex gap-6 items-center justify-center" role="radiogroup" aria-label="Key quality">
+                  {KEY_QUALITY_OPTIONS.map((opt) => {
+                    const selected = keyQuality === opt.id;
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        role="radio"
+                        aria-checked={selected}
+                        onClick={() => setKeyQuality(opt.id)}
+                        className="flex items-center gap-1.5 text-sm font-medium text-[#161410] tracking-[0.1px]"
+                      >
+                        <span
+                          className={`size-5 rounded-full shrink-0 flex items-center justify-center transition-colors
+                            ${selected ? 'bg-[#161410]' : 'border-[1.5px] border-[#c8c4bb] bg-transparent'}`}
+                          aria-hidden
+                        />
+                        {opt.label}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+              <FilterBarDropdown.Footer
+                onClear={handleKeyClear}
+                onApply={handleKeyApply}
+                clearLabel="Clear"
+                applyLabel="Apply"
+              />
             </FilterBarDropdown.Content>
           </FilterBarDropdown>
 
