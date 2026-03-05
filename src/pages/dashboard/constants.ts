@@ -116,6 +116,28 @@ export const TOP_GENRES = [
   { name: 'Soul' },
 ];
 
+/** Genres tab – Figma 821-60314. Sort options (Curated, A-Z) and search. */
+export const GENRES_SORT_OPTIONS = [
+  { id: 'curated', label: 'Curated' },
+  { id: 'a-z', label: 'A-Z' },
+] as const;
+
+/** Genres tab grid – 12 genre cards with optional cover image URLs (Figma 821-60314). */
+export const GENRES_GRID_ITEMS: { name: string; imageUrl?: string }[] = [
+  { name: 'Hip-Hop', imageUrl: 'https://www.figma.com/api/mcp/asset/bab8dd3d-fc08-40fb-8f4c-6fbe60a6629c' },
+  { name: 'Drums', imageUrl: 'https://www.figma.com/api/mcp/asset/99ddc2aa-3986-42df-84c0-8e162ab61421' },
+  { name: 'Boom Bap', imageUrl: 'https://www.figma.com/api/mcp/asset/2377509e-a6e6-481e-9806-7e4f668ee63f' },
+  { name: 'Lo-Fi', imageUrl: 'https://www.figma.com/api/mcp/asset/ee37be58-2eca-4528-9f74-c816ffb84379' },
+  { name: 'Trap', imageUrl: 'https://www.figma.com/api/mcp/asset/7a9be4fa-440d-4bc6-9ab7-34b93078216f' },
+  { name: 'Drill', imageUrl: 'https://www.figma.com/api/mcp/asset/cf91e861-4419-4822-8f73-b2c868eda849' },
+  { name: 'Soul Chops', imageUrl: 'https://www.figma.com/api/mcp/asset/342b6a95-a6f9-4a35-8a06-595cbba36913' },
+  { name: 'Jazz Rap', imageUrl: 'https://www.figma.com/api/mcp/asset/d71625e3-0b78-4a1e-956b-819009686268' },
+  { name: 'West Coast', imageUrl: 'https://www.figma.com/api/mcp/asset/40d323fc-aab2-40be-8de3-a922593f964c' },
+  { name: 'Experimental', imageUrl: 'https://www.figma.com/api/mcp/asset/837588a5-fa96-471d-9c91-ecc619b08685' },
+  { name: 'Latin', imageUrl: 'https://www.figma.com/api/mcp/asset/080c71d5-3d49-4f0a-b168-8aa334752cbf' },
+  { name: 'Afrobeat', imageUrl: 'https://www.figma.com/api/mcp/asset/360b9b3c-4cae-4e1b-ba89-6f44a9567a44' },
+];
+
 /** Access options for packs filter – single select */
 export const ACCESS_OPTIONS = [
   { id: 'all', label: 'All' },
