@@ -41,7 +41,9 @@ export function SamplePackCard({
   onShare,
 }: SamplePackCardProps) {
   return (
-    <article className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col gap-2 overflow-hidden pb-4 shrink-0 w-[209px] min-h-[345px]">
+    <article
+      className="group bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col gap-2 overflow-hidden pb-4 shrink-0 w-[209px] min-h-[345px] transition-[border-color,box-shadow] duration-200 hover:border-[#d6ceb8] hover:shadow-[0px_2px_6px_0px_rgba(0,0,0,0.06),0px_6px_18px_0px_rgba(0,0,0,0.1)]"
+    >
       {/* Cover */}
       <div className="flex flex-col h-[209px] p-2 w-full shrink-0 relative">
         <div className="bg-[#dde1e6] flex-1 min-h-0 overflow-hidden rounded-[2px] w-full relative">
@@ -54,6 +56,16 @@ export function SamplePackCard({
           ) : (
             <div className="absolute inset-0 bg-[#e8e2d2]" aria-hidden />
           )}
+          {/* Hover overlay + play (Figma 778-52064 hover) */}
+          <div
+            className="absolute inset-0 bg-[#161410] opacity-0 transition-opacity duration-200 group-hover:opacity-50"
+            aria-hidden
+          />
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none">
+            <div className="flex size-14 items-center justify-center rounded-full bg-[#161410]/80 border border-[#e8e2d2]/20">
+              <Play className="size-7 text-white fill-white shrink-0" aria-hidden />
+            </div>
+          </div>
         </div>
         {premium && (
           <div className="absolute top-[10px] right-[10px] bg-[#f3c16c] border border-[#eaaa3e] flex items-center justify-center h-5 px-1.5 rounded-md">
@@ -106,7 +118,7 @@ export function SamplePackCard({
             >
               <button
                 type="button"
-                className="size-6 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors data-[state=open]:bg-[#e8e2d2]"
+                className="size-6 flex items-center justify-center rounded-[2px] text-[#161410] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#e8e2d2] data-[state=open]:opacity-100 data-[state=open]:bg-[#e8e2d2]"
               >
                 <MoreHorizontal className="size-4" />
               </button>
