@@ -8,7 +8,7 @@ import {
   SamplesTabContent,
   CreatorsTabContent,
   GenresTabContent,
-} from '@/pages/DashboardTabContent';
+} from './DashboardTabContent';
 
 function SubscribedTabs({
   activeTab,
@@ -65,7 +65,7 @@ export default function SubscribedDashboardPage() {
             </p>
             {isTrialing && (
               <p className="text-[#e8e2d2] text-sm mt-1 opacity-90">
-                You’re on a free trial. Subscribe to keep access after it ends.
+                You're on a free trial. Subscribe to keep access after it ends.
               </p>
             )}
           </div>

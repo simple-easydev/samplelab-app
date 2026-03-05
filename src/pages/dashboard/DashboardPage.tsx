@@ -6,7 +6,7 @@ import {
   SamplesTabContent,
   CreatorsTabContent,
   GenresTabContent,
-} from '@/pages/DashboardTabContent';
+} from './DashboardTabContent';
 
 function DashboardTabs({
   activeTab,
