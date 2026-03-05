@@ -145,3 +145,74 @@ export const KEYWORDS_OPTIONS = [
   { name: 'FX' },
   { name: 'Percussion' },
 ];
+
+/** Sample row data for Samples tab list – Figma 812-47888 */
+export interface SampleListItem {
+  name: string;
+  creator: string;
+  duration: string;
+  genre?: string;
+  tags?: string[];
+  license?: string;
+  premium?: boolean;
+  bpm?: string;
+  key?: string;
+  imageUrl?: string;
+}
+
+/** Sample tab filter options – Figma 812-47896 */
+export const SAMPLE_INSTRUMENT_OPTIONS = [
+  { id: 'all', label: 'All' },
+  { id: 'keys', label: 'Keys' },
+  { id: 'drums', label: 'Drums' },
+  { id: 'bass', label: 'Bass' },
+  { id: 'strings', label: 'Strings' },
+  { id: 'brass', label: 'Brass' },
+  { id: 'vocals', label: 'Vocals' },
+] as const;
+
+export const SAMPLE_TYPE_OPTIONS = [
+  { id: 'all', label: 'All' },
+  { id: 'loop', label: 'Loop' },
+  { id: 'one-shot', label: 'One-shot' },
+] as const;
+
+export const SAMPLE_STEMS_OPTIONS = [
+  { id: 'all', label: 'All' },
+  { id: 'yes', label: 'Stems' },
+  { id: 'no', label: 'No stems' },
+] as const;
+
+export const SAMPLE_KEY_OPTIONS = [
+  { id: 'all', label: 'All' },
+  { id: 'c', label: 'C' },
+  { id: 'd', label: 'D' },
+  { id: 'e', label: 'E' },
+  { id: 'f', label: 'F' },
+  { id: 'g', label: 'G' },
+  { id: 'a', label: 'A' },
+  { id: 'b', label: 'B' },
+] as const;
+
+export const SAMPLE_BPM_OPTIONS = [
+  { id: 'all', label: 'All' },
+  { id: '60-90', label: '60–90 BPM' },
+  { id: '90-120', label: '90–120 BPM' },
+  { id: '120-140', label: '120–140 BPM' },
+  { id: '140+', label: '140+ BPM' },
+] as const;
+
+export const SAMPLES_LIST: SampleListItem[] = [
+  { name: 'Sample name goes here', creator: 'Creator name', duration: '0:34', genre: 'Hip-Hop', tags: ['Loop', 'Stems'], license: 'Royalty-Free', bpm: '120 BPM', key: 'F Minor' },
+  { name: 'Lo-Fi Keys Loop', creator: 'Beat Lab', duration: '0:28', genre: 'Lo-Fi', tags: ['Loop'], license: 'Royalty-Free', bpm: '92 BPM', key: 'C Major' },
+  { name: 'Trap Hi-Hat Sequence', creator: 'Sound Factory', duration: '0:16', genre: 'Trap', tags: ['One-shots'], license: 'Royalty-Free', premium: true, bpm: '140 BPM', key: 'A Minor' },
+  { name: 'Soul Chop 04', creator: 'Vinyl Revival', duration: '0:42', genre: 'Soul', tags: ['Loop', 'Stems'], license: 'Royalty-Free', bpm: '88 BPM', key: 'E Minor' },
+  { name: 'Synth Pad Texture', creator: 'Synth Wave', duration: '0:55', genre: 'Electronic', tags: ['Loop'], bpm: '110 BPM', key: 'D Major' },
+  { name: '808 Bass Hit', creator: 'Creator Name', duration: '0:02', genre: 'Hip-Hop', tags: ['One-shots'], license: 'Royalty-Free', bpm: '120 BPM', key: 'F Minor' },
+  { name: 'Midnight Loops', creator: 'Vinyl Revival', duration: '0:32', genre: 'Lo-Fi', tags: ['Loop'], license: 'Royalty-Free', premium: true, bpm: '85 BPM', key: 'G Minor' },
+  { name: 'Drill Snare', creator: 'Sound Factory', duration: '0:01', genre: 'Drill', tags: ['One-shots'], bpm: '140 BPM', key: 'B Minor' },
+  { name: 'Jazz Piano Chop', creator: 'Vinyl Revival', duration: '0:18', genre: 'Jazz Rap', tags: ['Loop', 'Stems'], license: 'Royalty-Free', bpm: '94 BPM', key: 'A Major' },
+  { name: 'Analog Keys', creator: 'Synth Wave', duration: '0:24', genre: 'Lo-Fi', tags: ['Loop'], bpm: '90 BPM', key: 'C Minor' },
+  { name: 'Street Vocal Chop', creator: 'Creator Name', duration: '0:08', genre: 'Hip-Hop', tags: ['Vocals'], license: 'Royalty-Free', premium: true, bpm: '95 BPM', key: 'E Minor' },
+  { name: 'Soulful Stems', creator: 'Beat Lab', duration: '0:38', genre: 'Soul', tags: ['Stems'], license: 'Royalty-Free', bpm: '82 BPM', key: 'F Major' },
+];
