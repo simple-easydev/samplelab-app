@@ -27,7 +27,7 @@ export function CreatorsTabContent() {
   }, [searchQuery, sortId]);
 
   return (
-    <div className="mb-8 flex flex-col gap-8">
+    <div className="mb-8 flex flex-col gap-8 relative">
       {!isActive && <AccessGate />}
 
       <div className="flex flex-col gap-8">
