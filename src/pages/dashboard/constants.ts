@@ -82,6 +82,30 @@ export const FEATURED_CREATORS = [
   { name: 'Creator name', followersCount: '64', packsCount: '8' },
 ];
 
+/** Creators tab sort options – Figma 812-85001 (Trending, Popular, Recent, A-Z). */
+export const CREATORS_SORT_OPTIONS = [
+  { id: 'trending', label: 'Trending' },
+  { id: 'popular', label: 'Popular' },
+  { id: 'recent', label: 'Recent' },
+  { id: 'a-z', label: 'A-Z' },
+] as const;
+
+/** Creators tab grid – extended list for grid view (Figma 812-85001). */
+export const CREATORS_GRID_ITEMS = [
+  ...FEATURED_CREATORS,
+  { name: 'Nightshift Audio', followersCount: '420', packsCount: '15' },
+  { name: 'Concrete Theory', followersCount: '180', packsCount: '9' },
+  { name: 'Low End Bureau', followersCount: '310', packsCount: '22' },
+  { name: 'Dusty Tape Club', followersCount: '95', packsCount: '7' },
+  { name: 'Midnight Circuit', followersCount: '200', packsCount: '14' },
+  { name: 'Analog Habit', followersCount: '150', packsCount: '11' },
+  { name: 'Beat Lab', followersCount: '250', packsCount: '24' },
+  { name: 'Sound Factory', followersCount: '180', packsCount: '18' },
+  { name: 'Vinyl Revival', followersCount: '320', packsCount: '31' },
+  { name: 'Synth Wave', followersCount: '95', packsCount: '12' },
+  { name: 'Creator Name Goes Here', followersCount: '100', packsCount: '10' },
+];
+
 export const TOP_GENRES = [
   { name: 'Hip-Hop' },
   { name: 'Drums' },
