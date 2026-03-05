@@ -73,6 +73,44 @@ export const TOP_GENRES = [
   { name: 'Soul' },
 ];
 
+/** Access options for packs filter – single select */
+export const ACCESS_OPTIONS = [
+  { id: 'all', label: 'All' },
+  { id: 'regular', label: 'Regular' },
+  { id: 'premium', label: 'Premium' },
+] as const;
+
+/** License options for packs filter – single select; clearanceGuaranteed has badge icon */
+export const LICENSE_OPTIONS = [
+  { id: 'all', label: 'All' },
+  { id: 'royalty-free', label: 'Royalty-Free' },
+  { id: 'clearance-guaranteed', label: 'Clearance Guaranteed' },
+] as const;
+
+/** Creator options for packs filter – multi-select with search */
+export const CREATOR_FILTER_OPTIONS = [
+  { name: 'Nightshift Audio' },
+  { name: 'Concrete Theory' },
+  { name: 'Low End Bureau' },
+  { name: 'Dusty Tape Club' },
+  { name: 'Midnight Circuit' },
+  { name: 'Analog Habit' },
+  { name: 'Beat Lab' },
+  { name: 'Sound Factory' },
+  { name: 'Vinyl Revival' },
+  { name: 'Synth Wave' },
+];
+
+/** Released (time) options for packs filter – single select */
+export const RELEASED_OPTIONS = [
+  { id: 'all', label: 'All time' },
+  { id: '7d', label: 'Last 7 days' },
+  { id: '30d', label: 'Last 30 days' },
+  { id: '3m', label: 'Last 3 month' },
+  { id: '6m', label: 'Last 6 month' },
+  { id: '1y', label: 'Last year' },
+] as const;
+
 /** Keyword options for packs filter – Figma 782-56255 */
 export const KEYWORDS_OPTIONS = [
   { name: 'Drums' },

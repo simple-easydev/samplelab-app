@@ -4,16 +4,7 @@ import { Input } from '@/components/ui/input';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { Check } from 'lucide-react';
 import { FilterBarDropdown } from '@/components/FilterBarDropdown';
-import { TOP_GENRES, KEYWORDS_OPTIONS } from './constants';
-
-const PACK_FILTERS = [
-  { id: 'genre', label: 'Genre' },
-  { id: 'keywords', label: 'Keywords' },
-  { id: 'access', label: 'Access' },
-  { id: 'license', label: 'License' },
-  { id: 'creator', label: 'Creator' },
-  { id: 'released', label: 'Released' },
-] as const;
+import { TOP_GENRES, KEYWORDS_OPTIONS, ACCESS_OPTIONS, LICENSE_OPTIONS, CREATOR_FILTER_OPTIONS, RELEASED_OPTIONS } from './constants';
 
 /** Sort options for packs – Figma 778-55100 */
 const SORT_OPTIONS = [
@@ -33,6 +24,12 @@ export function PacksTabContent() {
   const [keywordsDropdownOpen, setKeywordsDropdownOpen] = useState(false);
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
   const [keywordSearch, setKeywordSearch] = useState('');
+  const [accessId, setAccessId] = useState<(typeof ACCESS_OPTIONS)[number]['id']>('all');
+  const [licenseId, setLicenseId] = useState<(typeof LICENSE_OPTIONS)[number]['id']>('all');
+  const [creatorDropdownOpen, setCreatorDropdownOpen] = useState(false);
+  const [selectedCreators, setSelectedCreators] = useState<Set<string>>(new Set());
+  const [creatorSearch, setCreatorSearch] = useState('');
+  const [releasedId, setReleasedId] = useState<(typeof RELEASED_OPTIONS)[number]['id']>('all');
 
   const filteredGenres = useMemo(() => {
     const q = genreSearch.trim().toLowerCase();
@@ -43,6 +40,13 @@ export function PacksTabContent() {
     const q = keywordSearch.trim().toLowerCase();
     return q ? KEYWORDS_OPTIONS.filter((k) => k.name.toLowerCase().includes(q)) : KEYWORDS_OPTIONS;
   }, [keywordSearch]);
+
+  const filteredCreators = useMemo(() => {
+    const q = creatorSearch.trim().toLowerCase();
+    return q
+      ? CREATOR_FILTER_OPTIONS.filter((c) => c.name.toLowerCase().includes(q))
+      : CREATOR_FILTER_OPTIONS;
+  }, [creatorSearch]);
 
   const toggleGenre = (genre: string) => {
     setSelectedGenres((prev) => {
@@ -78,6 +82,24 @@ export function PacksTabContent() {
 
   const handleKeywordsApply = () => {
     setKeywordsDropdownOpen(false);
+  };
+
+  const toggleCreator = (creator: string) => {
+    setSelectedCreators((prev) => {
+      const next = new Set(prev);
+      if (next.has(creator)) next.delete(creator);
+      else next.add(creator);
+      return next;
+    });
+  };
+
+  const handleCreatorsClear = () => {
+    setSelectedCreators(new Set());
+    setCreatorSearch('');
+  };
+
+  const handleCreatorsApply = () => {
+    setCreatorDropdownOpen(false);
   };
 
   return (
@@ -187,23 +209,116 @@ export function PacksTabContent() {
               </FilterBarDropdown.Content>
             </FilterBarDropdown>
 
-            {/* Other filters (Access, License, Creator, Released) – placeholder for now */}
-            {PACK_FILTERS.slice(2).map((filter, index) => (
-              <FilterBarDropdown key={filter.id}>
-                <FilterBarDropdown.Trigger
-                  position={index === PACK_FILTERS.length - 3 ? 'right' : 'middle'}
-                  label={filter.label}
-                  ariaLabel={`Filter by ${filter.label.toLowerCase()}`}
+            {/* Access – single select: All, Regular, Premium */}
+            <FilterBarDropdown>
+              <FilterBarDropdown.Trigger
+                position="middle"
+                label="Access"
+                ariaLabel="Filter by access"
+              />
+              <FilterBarDropdown.Content width={180} className="py-1">
+                {ACCESS_OPTIONS.map((option) => (
+                  <DropdownMenuItem
+                    key={option.id}
+                    onClick={() => setAccessId(option.id)}
+                    className="flex items-center justify-between"
+                  >
+                    {option.label}
+                    {accessId === option.id && (
+                      <Check className="size-4 shrink-0 text-[#161410]" aria-hidden />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </FilterBarDropdown.Content>
+            </FilterBarDropdown>
+
+            {/* License – single select: All, Royalty-Free, Clearance Guaranteed (with badge icon) */}
+            <FilterBarDropdown>
+              <FilterBarDropdown.Trigger
+                position="middle"
+                label="License"
+                ariaLabel="Filter by license"
+              />
+              <FilterBarDropdown.Content width={200} className="py-1">
+                {LICENSE_OPTIONS.map((option) => (
+                  <DropdownMenuItem
+                    key={option.id}
+                    onClick={() => setLicenseId(option.id)}
+                    className="flex items-center justify-between gap-2"
+                  >
+                    <span>{option.label}</span>
+                    <span className="flex items-center gap-1.5 shrink-0">
+                      {licenseId === option.id && (
+                        <Check className="size-4 text-[#161410]" aria-hidden />
+                      )}
+                    </span>
+                  </DropdownMenuItem>
+                ))}
+              </FilterBarDropdown.Content>
+            </FilterBarDropdown>
+
+            {/* Creator – search, multi-select checkboxes, Clear/Apply */}
+            <FilterBarDropdown open={creatorDropdownOpen} onOpenChange={setCreatorDropdownOpen}>
+              <FilterBarDropdown.Trigger
+                position="middle"
+                label="Creator"
+                badge={selectedCreators.size}
+                ariaLabel="Filter by creator"
+              />
+              <FilterBarDropdown.Content width={280}>
+                <FilterBarDropdown.Search
+                  value={creatorSearch}
+                  onChange={setCreatorSearch}
+                  placeholder="Search creator"
+                  ariaLabel="Search creator"
                 />
-                <FilterBarDropdown.Content width={280}>
-                  <FilterBarDropdown.List>
+                <FilterBarDropdown.List>
+                  {filteredCreators.length === 0 ? (
                     <div className="text-center py-5 px-4 text-[#b0ab9f] text-sm">
-                      {filter.label} options – coming soon
+                      No creators found
                     </div>
-                  </FilterBarDropdown.List>
-                </FilterBarDropdown.Content>
-              </FilterBarDropdown>
-            ))}
+                  ) : (
+                    filteredCreators.map((creator) => (
+                      <FilterBarDropdown.CheckboxItem
+                        key={creator.name}
+                        label={creator.name}
+                        checked={selectedCreators.has(creator.name)}
+                        onToggle={() => toggleCreator(creator.name)}
+                      />
+                    ))
+                  )}
+                </FilterBarDropdown.List>
+                <FilterBarDropdown.Footer
+                  onClear={handleCreatorsClear}
+                  onApply={handleCreatorsApply}
+                  clearLabel="Clear"
+                  applyLabel="Apply"
+                />
+              </FilterBarDropdown.Content>
+            </FilterBarDropdown>
+
+            {/* Released – single select: All time, Last 7 days, etc. */}
+            <FilterBarDropdown>
+              <FilterBarDropdown.Trigger
+                position="right"
+                label="Released"
+                ariaLabel="Filter by release date"
+              />
+              <FilterBarDropdown.Content width={180} className="py-1">
+                {RELEASED_OPTIONS.map((option) => (
+                  <DropdownMenuItem
+                    key={option.id}
+                    onClick={() => setReleasedId(option.id)}
+                    className="flex items-center justify-between"
+                  >
+                    {option.label}
+                    {releasedId === option.id && (
+                      <Check className="size-4 shrink-0 text-[#161410]" aria-hidden />
+                    )}
+                  </DropdownMenuItem>
+                ))}
+              </FilterBarDropdown.Content>
+            </FilterBarDropdown>
           </div>
 
           <button
