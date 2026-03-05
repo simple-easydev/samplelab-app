@@ -199,63 +199,77 @@ function SoundWave({
   );
 }
 
+/** Grid column widths so every row has the same column layout (grid system). */
+const ROW_GRID_COLUMNS = 'minmax(0, 280px) minmax(260px, 340px) minmax(160px, 1fr) 140px';
+
 function SimilarSampleRow({ item }: { item: SimilarSampleItem }) {
   return (
     <div className="bg-[#f6f2e6] border-b border-[#e8e2d2] last:border-b-0 flex flex-col items-stretch p-4 w-full">
-      <div className="flex items-center justify-between gap-4 w-full flex-wrap">
-        <div className="flex gap-6 md:gap-12 items-center min-w-0 flex-1">
-            <div className="flex gap-6 items-center min-w-0 shrink-0">
-            <div className="flex gap-4 h-14 items-center min-w-0 max-w-[280px] sm:max-w-[320px] flex-1">
-              <div className="bg-white rounded-sm size-14 shrink-0 overflow-hidden border border-[#e8e2d2]">
-                {item.imageUrl ? (
-                  <img
-                    src={item.imageUrl}
-                    alt=""
-                    className="size-full object-cover"
-                  />
-                ) : (
-                  <div className="size-full bg-[#e8e2d2]" aria-hidden />
-                )}
-              </div>
-              <div className="flex flex-col gap-1 min-w-0 flex-1 justify-center">
-                <p className="text-[#161410] text-sm font-bold leading-5 truncate tracking-[0.1px]">
-                  {item.name}
-                </p>
-                <p className="text-[#5e584b] text-xs leading-4 truncate tracking-[0.2px]">
-                  {item.creator}
-                </p>
-              </div>
-            </div>
-            <div className="hidden sm:flex items-center gap-2 w-full max-w-[340px] shrink-0">
-              <SoundWave duration={item.duration} progress={item.progress ?? 0} timeDisplay="passed" className="h-10 shrink-0 flex-1 min-w-0" />
-            </div>
+      <div
+        className="grid w-full gap-4 items-center"
+        style={{ gridTemplateColumns: ROW_GRID_COLUMNS }}
+      >
+        {/* Column 1: Thumbnail + sample name + creator */}
+        <div className="flex gap-4 h-14 items-center min-w-0">
+          <div className="bg-white rounded-sm size-14 shrink-0 overflow-hidden border border-[#e8e2d2]">
+            {item.imageUrl ? (
+              <img
+                src={item.imageUrl}
+                alt=""
+                className="size-full object-cover"
+              />
+            ) : (
+              <div className="size-full bg-[#e8e2d2]" aria-hidden />
+            )}
           </div>
-          <div className="flex flex-col gap-2 items-start justify-center shrink-0">
-            <div className="flex flex-wrap gap-2 items-center">
-              {item.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-[#e8e2d2] border border-[#d6ceb8] rounded-md h-5 px-1.5 inline-flex items-center justify-center text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-            <div className="flex flex-wrap gap-2 items-center">
-              {item.royaltyFree !== false && (
-                <span className="bg-[#e8e2d2] border border-[#d6ceb8] rounded-md h-5 px-1.5 inline-flex items-center justify-center text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]">
-                  Royalty-Free
-                </span>
-              )}
-              {item.premium && (
-                <span className="bg-[#f3c16c] border border-[#eaaa3e] rounded-md h-5 px-1.5 inline-flex items-center justify-center gap-0.5 text-[#161410]">
-                  <Crown className="size-3 shrink-0" aria-hidden />
-                </span>
-              )}
-            </div>
+          <div className="flex flex-col gap-1 min-w-0 flex-1 justify-center">
+            <p className="text-[#161410] text-sm font-bold leading-5 truncate tracking-[0.1px]">
+              {item.name}
+            </p>
+            <p className="text-[#5e584b] text-xs leading-4 truncate tracking-[0.2px]">
+              {item.creator}
+            </p>
           </div>
         </div>
-        <div className="flex items-center gap-2 shrink-0 sm:w-[140px] justify-end">
+
+        {/* Column 2: Waveform + time */}
+        <div className="hidden sm:flex items-center gap-2 min-w-0 w-full">
+          <SoundWave
+            duration={item.duration}
+            progress={item.progress ?? 0}
+            timeDisplay="passed"
+            className="h-10 shrink-0 flex-1 min-w-0"
+          />
+        </div>
+
+        {/* Column 3: Tags */}
+        <div className="flex flex-col gap-2 items-start justify-center min-w-0">
+          <div className="flex flex-wrap gap-2 items-center">
+            {item.tags.map((tag) => (
+              <span
+                key={tag}
+                className="bg-[#e8e2d2] border border-[#d6ceb8] rounded-md h-5 px-1.5 inline-flex items-center justify-center text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]"
+              >
+                {tag}
+              </span>
+            ))}
+          </div>
+          <div className="flex flex-wrap gap-2 items-center">
+            {item.royaltyFree !== false && (
+              <span className="bg-[#e8e2d2] border border-[#d6ceb8] rounded-md h-5 px-1.5 inline-flex items-center justify-center text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]">
+                Royalty-Free
+              </span>
+            )}
+            {item.premium && (
+              <span className="bg-[#f3c16c] border border-[#eaaa3e] rounded-md h-5 px-1.5 inline-flex items-center justify-center gap-0.5 text-[#161410]">
+                <Crown className="size-3 shrink-0" aria-hidden />
+              </span>
+            )}
+          </div>
+        </div>
+
+        {/* Column 4: BPM • Key */}
+        <div className="flex items-center gap-2 justify-end min-w-[140px]">
           {item.bpm != null && (
             <>
               <span className="text-[#5e584b] text-xs leading-4 tracking-[0.2px]">
