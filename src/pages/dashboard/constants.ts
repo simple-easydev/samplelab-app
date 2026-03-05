@@ -43,6 +43,25 @@ export const FEATURED_PACKS = [
   { title: 'The Jungle', creator: 'Creator Name', playCount: '12', genre: 'Hip-Hop', premium: true },
 ];
 
+/** 18 packs for Packs tab grid view – Figma 756-50536 */
+export const PACKS_GRID_ITEMS = [
+  { title: 'Sample Pack Name Goes Here', creator: 'Creator Name', playCount: '20', genre: 'Hip-Hop' },
+  { title: 'Lo-Fi Essentials Vol. 2', creator: 'Beat Lab', playCount: '30', genre: 'Lo-Fi' },
+  { title: 'Trap Drums & Melodies', creator: 'Sound Factory', playCount: '15', genre: 'Trap', premium: true },
+  { title: 'Soul Chops Collection', creator: 'Vinyl Revival', playCount: '24', genre: 'Soul' },
+  { title: 'Electronic Textures', creator: 'Synth Wave', playCount: '18', genre: 'Electronic' },
+  { title: 'The Jungle', creator: 'Creator Name', playCount: '12', genre: 'Hip-Hop', premium: true },
+  { title: 'Midnight Loops', creator: 'Vinyl Revival', playCount: '22', genre: 'Lo-Fi' },
+  { title: '808 Essentials', creator: 'Synth Wave', playCount: '19', genre: 'Trap' },
+  { title: 'Chill Vibes Pack', creator: 'Creator name', playCount: '14', genre: 'R&B' },
+  { title: 'Boom Bap Classics', creator: 'Beat Lab', playCount: '28', genre: 'Boom Bap', premium: true },
+  { title: 'Drill Patterns', creator: 'Sound Factory', playCount: '11', genre: 'Drill' },
+  { title: 'Jazz Rap Samples', creator: 'Vinyl Revival', playCount: '16', genre: 'Jazz Rap' },
+  { title: 'Analog Keys', creator: 'Synth Wave', playCount: '25', genre: 'Lo-Fi' },
+  { title: 'Street Beats', creator: 'Creator Name', playCount: '31', genre: 'Hip-Hop' },
+  { title: 'Soulful Chops', creator: 'Beat Lab', playCount: '17', genre: 'Soul' }
+];
+
 export const LIKED_PACK_NAME = 'Sample Pack Name';
 
 export const SIMILAR_PACKS_TO_LIKES = [
