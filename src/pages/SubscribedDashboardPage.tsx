@@ -53,6 +53,18 @@ const FEATURED_PACKS = [
   { title: 'The Jungle', creator: 'Creator Name', playCount: '12', genre: 'Hip-Hop', premium: true },
 ];
 
+/** Pack name used for "Because you liked '…'" section (e.g. from user's likes); can be wired to real data later */
+const LIKED_PACK_NAME = 'Sample Pack Name';
+
+const SIMILAR_PACKS_TO_LIKES = [
+  { title: 'Sample Pack Name Goes Here', creator: 'Creator Name', playCount: '30', genre: 'Hip-Hop' },
+  { title: 'Lo-Fi Essentials Vol. 2', creator: 'Beat Lab', playCount: '30', genre: 'Lo-Fi' },
+  { title: 'Trap Drums & Melodies', creator: 'Sound Factory', playCount: '15', genre: 'Trap', premium: true },
+  { title: 'Soul Chops Collection', creator: 'Vinyl Revival', playCount: '24', genre: 'Soul' },
+  { title: 'Electronic Textures', creator: 'Synth Wave', playCount: '18', genre: 'Electronic' },
+  { title: 'The Jungle', creator: 'Creator Name', playCount: '12', genre: 'Hip-Hop', premium: true },
+];
+
 const FEATURED_CREATORS = [
   { name: 'Creator Name Goes Here', followersCount: '100', packsCount: '10' },
   { name: 'Beat Lab', followersCount: '250', packsCount: '24' },
@@ -128,6 +140,24 @@ function DiscoverTabContent() {
         />
       </div>
       <SimilarSamplesSection />
+
+      {/* Similar packs to your likes – same carousel as Featured Packs (Figma 789-41477) */}
+      <CardCarousel
+        title={`Because you liked "${LIKED_PACK_NAME}"`}
+        subtitle="Updated daily"
+      >
+        {SIMILAR_PACKS_TO_LIKES.map((pack) => (
+          <SamplePackCard
+            key={pack.title}
+            title={pack.title}
+            creator={pack.creator}
+            playCount={pack.playCount}
+            genre={pack.genre}
+            premium={pack.premium}
+          />
+        ))}
+      </CardCarousel>
+
       {/* featured packs */}
       <CardCarousel title="Featured Packs" ctaLabel="View all packs">
         {FEATURED_PACKS.map((pack) => (
