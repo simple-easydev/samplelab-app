@@ -91,7 +91,7 @@ const FilterBarDropdownTrigger = React.forwardRef<HTMLButtonElement, FilterBarDr
           <>
             {label != null && <span>{label}</span>}
             {badge != null && badge > 0 && (
-              <span className="flex items-center justify-center size-5 rounded-[2px] bg-[#161410] text-white text-[11px] font-medium">
+              <span className="flex items-center justify-center size-5 rounded-[10px] bg-[#161410] text-white text-[11px] font-medium">
                 {badge}
               </span>
             )}
