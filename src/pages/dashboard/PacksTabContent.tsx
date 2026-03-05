@@ -1,10 +1,14 @@
 import { PacksFilterBar } from './PacksFilterBar';
 import { SamplePackCard } from '@/components/SamplePackCard';
+import { AccessGate } from '@/components/AccessGate';
+import { useSubscription } from '@/hooks/useSubscription';
 import { PACKS_GRID_ITEMS } from './constants';
 
 export function PacksTabContent() {
-  return (
-    <div className="mb-8 flex flex-col gap-8">
+  const { isActive } = useSubscription();
+
+  const content = (
+    <>
       <PacksFilterBar />
       {/* Grid of 18 sample pack cards – Figma 756-50536 */}
       <section className="w-full" aria-label="Sample packs">
@@ -21,6 +25,19 @@ export function PacksTabContent() {
           ))}
         </div>
       </section>
+    </>
+  );
+
+  if (isActive) {
+    return <div className="mb-8 flex flex-col gap-8">{content}</div>;
+  }
+
+  return (
+    <div className="relative mb-8 max-h-[calc(100vh-14rem)] overflow-hidden">
+      <div className="flex flex-col gap-8 pb-24">
+        {content}
+      </div>
+      <AccessGate />
     </div>
   );
 }

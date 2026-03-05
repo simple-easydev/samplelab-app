@@ -1,8 +1,15 @@
 /**
  * Reusable sample pack card from Figma (node 812-51974) – Featured Packs section.
  * Cover image, optional Premium badge, overline, title, creator, tag pills.
+ * More options button opens context menu – Figma 778-54253.
  */
-import { Play, MoreHorizontal, Music2 } from 'lucide-react';
+import { Play, MoreHorizontal, Music2, Heart, Download, User, Share2 } from 'lucide-react';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export interface SamplePackCardProps {
   title: string;
@@ -14,6 +21,11 @@ export interface SamplePackCardProps {
   premium?: boolean;
   /** Optional image URL; placeholder used if not provided */
   imageUrl?: string;
+  /** Optional callbacks for context menu actions */
+  onAddToFavorites?: () => void;
+  onGetPack?: () => void;
+  onViewCreator?: () => void;
+  onShare?: () => void;
 }
 
 export function SamplePackCard({
@@ -23,6 +35,10 @@ export function SamplePackCard({
   genre,
   premium = false,
   imageUrl,
+  onAddToFavorites,
+  onGetPack,
+  onViewCreator,
+  onShare,
 }: SamplePackCardProps) {
   return (
     <article className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col gap-2 overflow-hidden pb-4 shrink-0 w-[209px] min-h-[345px]">
@@ -83,13 +99,65 @@ export function SamplePackCard({
               </div>
             )}
           </div>
-          <button
-            type="button"
-            className="size-6 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors"
-            aria-label="More options"
-          >
-            <MoreHorizontal className="size-4" />
-          </button>
+          <DropdownMenu>
+            <DropdownMenuTrigger
+              asChild
+              aria-label="More options"
+            >
+              <button
+                type="button"
+                className="size-6 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors data-[state=open]:bg-[#e8e2d2]"
+              >
+                <MoreHorizontal className="size-4" />
+              </button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent
+              align="end"
+              sideOffset={4}
+              className="min-w-[180px] rounded-[2px] border border-[#d6ceb8] bg-white py-1 shadow-[0px_6px_20px_rgba(0,0,0,0.14),0px_1px_3px_rgba(0,0,0,0.08)]"
+            >
+              <DropdownMenuItem
+                className="flex h-10 cursor-pointer items-center gap-1.5 px-3 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]"
+                onSelect={(e) => {
+                  e.preventDefault();
+                  onAddToFavorites?.();
+                }}
+              >
+                <Heart className="size-5 shrink-0" aria-hidden />
+                Add to favorites
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="flex h-10 cursor-pointer items-center gap-1.5 px-3 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]"
+                onSelect={(e) => {
+                  e.preventDefault();
+                  onGetPack?.();
+                }}
+              >
+                <Download className="size-5 shrink-0" aria-hidden />
+                Get pack
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="flex h-10 cursor-pointer items-center gap-1.5 px-3 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]"
+                onSelect={(e) => {
+                  e.preventDefault();
+                  onViewCreator?.();
+                }}
+              >
+                <User className="size-5 shrink-0" aria-hidden />
+                View creator
+              </DropdownMenuItem>
+              <DropdownMenuItem
+                className="flex h-10 cursor-pointer items-center gap-1.5 px-3 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]"
+                onSelect={(e) => {
+                  e.preventDefault();
+                  onShare?.();
+                }}
+              >
+                <Share2 className="size-5 shrink-0" aria-hidden />
+                Share
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
         </div>
       </div>
     </article>
