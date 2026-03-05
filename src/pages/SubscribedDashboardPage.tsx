@@ -1,10 +1,24 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { Link } from 'react-router-dom';
+import { useSubscription } from '@/hooks/useSubscription';
+import { getUserCredits } from '@/lib/supabase/subscriptions';
 import { DiscoverCarousel } from '@/components/DiscoverCarousel';
 import { DiscoverListColumn } from '@/components/DiscoverListColumn';
+import { SimilarSamplesSection } from '@/components/SimilarSamplesSection';
 import { CardCarousel } from '@/components/CardCarousel';
 import { SamplePackCard } from '@/components/SamplePackCard';
 import { CreatorCard } from '@/components/CreatorCard';
 import { GenreCard } from '@/components/GenreCard';
+import { Download, Music2, Library } from 'lucide-react';
+
+const SUBSCRIBED_TABS = [
+  { id: 'discover', label: 'Discover' },
+  { id: 'library', label: 'Your library' },
+  { id: 'packs', label: 'Packs' },
+  { id: 'samples', label: 'Samples' },
+  { id: 'creators', label: 'Creators' },
+  { id: 'genres', label: 'Genres' },
+] as const;
 
 const TRENDING_ITEMS = [
   { rank: 1, name: 'Sample name goes here', creator: 'Creator name' },
@@ -58,15 +72,7 @@ const TOP_GENRES = [
   { name: 'Soul' },
 ];
 
-const DASHBOARD_TABS = [
-  { id: 'discover', label: 'Discover' },
-  { id: 'packs', label: 'Packs' },
-  { id: 'samples', label: 'Samples' },
-  { id: 'creators', label: 'Creators' },
-  { id: 'genres', label: 'Genres' },
-] as const;
-
-function DashboardTabs({
+function SubscribedTabs({
   activeTab,
   setActiveTab,
 }: {
@@ -75,7 +81,7 @@ function DashboardTabs({
 }) {
   return (
     <div className="border-b border-[#e8e2d2] flex gap-4 items-center w-full mb-8">
-      {DASHBOARD_TABS.map((tab) => {
+      {SUBSCRIBED_TABS.map((tab) => {
         const isSelected = activeTab === tab.id;
         return (
           <button
@@ -100,6 +106,7 @@ function DiscoverTabContent() {
   return (
     <div className="mb-8 flex flex-col gap-8">
       <DiscoverCarousel />
+      {/* discovered samples and creators */}
       <div className="flex gap-6 items-start w-full">
         <DiscoverListColumn
           title="Trending samples"
@@ -120,6 +127,8 @@ function DiscoverTabContent() {
           ctaLabel="View all creators"
         />
       </div>
+      <SimilarSamplesSection />
+      {/* featured packs */}
       <CardCarousel title="Featured Packs" ctaLabel="View all packs">
         {FEATURED_PACKS.map((pack) => (
           <SamplePackCard
@@ -151,18 +160,100 @@ function DiscoverTabContent() {
   );
 }
 
-/**
- * Dashboard view for unsubscribed users: browse and discover content with CTAs to subscribe.
- */
-export default function DashboardPage() {
-  const [activeTab, setActiveTab] = useState<string>(DASHBOARD_TABS[0].id);
+function LibraryTabContent() {
+  return (
+    <div className="mb-8 flex flex-col gap-8">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="rounded-xl border border-[#e8e2d2] bg-white/60 p-6 flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-[#161410]/10 p-3">
+              <Download className="size-6 text-[#161410]" />
+            </div>
+            <h3 className="font-semibold text-[#161410]">Downloads</h3>
+          </div>
+          <p className="text-sm text-[#7f7766]">Samples and packs you’ve downloaded. Access them anytime.</p>
+          <Link to="#" className="text-sm font-medium text-[#161410] hover:underline mt-auto">View downloads →</Link>
+        </div>
+        <div className="rounded-xl border border-[#e8e2d2] bg-white/60 p-6 flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-[#161410]/10 p-3">
+              <Music2 className="size-6 text-[#161410]" />
+            </div>
+            <h3 className="font-semibold text-[#161410]">Recent plays</h3>
+          </div>
+          <p className="text-sm text-[#7f7766]">Continue where you left off. Your recently played content.</p>
+          <Link to="#" className="text-sm font-medium text-[#161410] hover:underline mt-auto">View recent →</Link>
+        </div>
+        <div className="rounded-xl border border-[#e8e2d2] bg-white/60 p-6 flex flex-col gap-3">
+          <div className="flex items-center gap-3">
+            <div className="rounded-lg bg-[#161410]/10 p-3">
+              <Library className="size-6 text-[#161410]" />
+            </div>
+            <h3 className="font-semibold text-[#161410]">Saved</h3>
+          </div>
+          <p className="text-sm text-[#7f7766]">Favorites and saved packs. Build your personal collection.</p>
+          <Link to="#" className="text-sm font-medium text-[#161410] hover:underline mt-auto">View saved →</Link>
+        </div>
+      </div>
+      <CardCarousel title="Recently added to your library" ctaLabel="View all">
+        {FEATURED_PACKS.slice(0, 4).map((pack) => (
+          <SamplePackCard
+            key={pack.title}
+            title={pack.title}
+            creator={pack.creator}
+            playCount={pack.playCount}
+            genre={pack.genre}
+            premium={pack.premium}
+          />
+        ))}
+      </CardCarousel>
+    </div>
+  );
+}
+
+export default function SubscribedDashboardPage() {
+  const { isTrialing } = useSubscription();
+  const [activeTab, setActiveTab] = useState<string>(SUBSCRIBED_TABS[0].id);
+  const [credits, setCredits] = useState<number | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    getUserCredits().then((n) => {
+      if (!cancelled) setCredits(n);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#fffbf0]">
       <div className="px-8 pt-8 pb-32 w-full max-w-full">
-        <DashboardTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+        <div className="max-w-6xl mx-auto mb-8 rounded-lg bg-[#161410] px-6 py-4 flex flex-wrap items-center justify-between gap-4">
+          <div>
+            <p className="text-[#e8e2d2] text-base font-medium">
+              Welcome back. You have full access to the library.
+            </p>
+            {isTrialing && (
+              <p className="text-[#e8e2d2] text-sm mt-1 opacity-90">
+                You’re on a free trial. Subscribe to keep access after it ends.
+              </p>
+            )}
+          </div>
+          <p className="text-[#e8e2d2] text-sm">
+            Credits: <span className="font-semibold text-white">{credits ?? '—'}</span>
+          </p>
+        </div>
+
+        <SubscribedTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+
         <div className="max-w-6xl mx-auto">
           {activeTab === 'discover' && <DiscoverTabContent />}
+          {activeTab === 'library' && <LibraryTabContent />}
+          {activeTab === 'packs' && <DiscoverTabContent />}
+          {activeTab === 'samples' && <DiscoverTabContent />}
+          {activeTab === 'creators' && <DiscoverTabContent />}
+          {activeTab === 'genres' && <DiscoverTabContent />}
         </div>
       </div>
     </div>
