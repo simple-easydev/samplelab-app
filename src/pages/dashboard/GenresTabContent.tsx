@@ -4,14 +4,11 @@
  */
 import { useState, useMemo } from 'react';
 import { Search } from 'lucide-react';
-import { AccessGate } from '@/components/AccessGate';
 import { GenreCard } from '@/components/GenreCard';
 import { Input } from '@/components/ui/input';
-import { useSubscription } from '@/hooks/useSubscription';
 import { GENRES_SORT_OPTIONS, GENRES_GRID_ITEMS } from './constants';
 
 export function GenresTabContent() {
-  const { isActive } = useSubscription();
   const [sortId, setSortId] = useState<string>('curated');
   const [searchQuery, setSearchQuery] = useState('');
 
