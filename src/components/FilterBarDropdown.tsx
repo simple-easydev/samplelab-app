@@ -78,7 +78,8 @@ const FilterBarDropdownTrigger = React.forwardRef<HTMLButtonElement, FilterBarDr
         ref={ref}
         type="button"
         className={cn(
-          'border border-[#a49a84] bg-transparent text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] hover:bg-[#161410]/5 transition-colors',
+          'group border border-[#a49a84] bg-transparent text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] hover:bg-[#161410]/5 transition-colors',
+          'data-[state=open]:border-[#161410] data-[state=open]:bg-[#E8E2D2]',
           triggerPositionClasses[position],
           className
         )}
@@ -94,7 +95,7 @@ const FilterBarDropdownTrigger = React.forwardRef<HTMLButtonElement, FilterBarDr
                 {badge}
               </span>
             )}
-            <ChevronDown className="size-5 shrink-0 text-[#161410]" aria-hidden />
+            <ChevronDown className="size-5 shrink-0 text-[#161410] transition-transform duration-200 group-data-[state=open]:rotate-180" aria-hidden />
           </>
         )}
       </button>
