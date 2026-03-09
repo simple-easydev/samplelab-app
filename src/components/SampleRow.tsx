@@ -132,9 +132,50 @@ const ROW_GRID_COLUMNS = 'minmax(0, 280px) minmax(260px, 340px) minmax(160px, 1f
 
 export interface SampleRowProps {
   item: SimilarSampleItem;
+  /** When "compact", only thumbnail + name + creator (and optional rank) are shown. Default "full". */
+  variant?: 'full' | 'compact';
+  /** Optional rank number; shown as leading column when variant is "compact". */
+  rank?: number;
 }
 
-export function SampleRow({ item }: SampleRowProps) {
+export function SampleRow({ item, variant = 'full', rank }: SampleRowProps) {
+  const primaryBlock = (
+    <div className="flex gap-4 h-14 items-center min-w-0">
+      {variant === 'compact' && rank != null && (
+        <span className="text-[#161410] text-base font-medium leading-6 text-center w-4 shrink-0">
+          {rank}
+        </span>
+      )}
+      <div className="bg-white rounded-sm size-14 shrink-0 overflow-hidden border border-[#e8e2d2]">
+        {item.imageUrl ? (
+          <img
+            src={item.imageUrl}
+            alt=""
+            className="size-full object-cover"
+          />
+        ) : (
+          <div className="size-full bg-[#e8e2d2]" aria-hidden />
+        )}
+      </div>
+      <div className="flex flex-col gap-1 min-w-0 flex-1 justify-center">
+        <p className="text-[#161410] text-sm font-bold leading-5 truncate tracking-[0.1px]">
+          {item.name}
+        </p>
+        <p className="text-[#5e584b] text-xs leading-4 truncate tracking-[0.2px]">
+          {item.creator}
+        </p>
+      </div>
+    </div>
+  );
+
+  if (variant === 'compact') {
+    return (
+      <div className="bg-[#f6f2e6] border-b border-[#e8e2d2] last:border-b-0 flex gap-4 items-center p-4 w-full">
+        {primaryBlock}
+      </div>
+    );
+  }
+
   return (
     <div className="bg-[#f6f2e6] border-b border-[#e8e2d2] last:border-b-0 flex flex-col items-stretch p-4 w-full">
       <div
@@ -142,27 +183,7 @@ export function SampleRow({ item }: SampleRowProps) {
         style={{ gridTemplateColumns: ROW_GRID_COLUMNS }}
       >
         {/* Column 1: Thumbnail + sample name + creator */}
-        <div className="flex gap-4 h-14 items-center min-w-0">
-          <div className="bg-white rounded-sm size-14 shrink-0 overflow-hidden border border-[#e8e2d2]">
-            {item.imageUrl ? (
-              <img
-                src={item.imageUrl}
-                alt=""
-                className="size-full object-cover"
-              />
-            ) : (
-              <div className="size-full bg-[#e8e2d2]" aria-hidden />
-            )}
-          </div>
-          <div className="flex flex-col gap-1 min-w-0 flex-1 justify-center">
-            <p className="text-[#161410] text-sm font-bold leading-5 truncate tracking-[0.1px]">
-              {item.name}
-            </p>
-            <p className="text-[#5e584b] text-xs leading-4 truncate tracking-[0.2px]">
-              {item.creator}
-            </p>
-          </div>
-        </div>
+        <div className="min-w-0">{primaryBlock}</div>
 
         {/* Column 2: Waveform + time */}
         <div className="hidden sm:flex items-center gap-2 min-w-0 w-full">
