@@ -15,7 +15,8 @@ export function PacksTabContent() {
         <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(209px,1fr))]">
           {PACKS_GRID_ITEMS.map((pack) => (
             <SamplePackCard
-              key={`${pack.title}-${pack.creator}`}
+              key={pack.id}
+              packId={pack.id}
               title={pack.title}
               creator={pack.creator}
               playCount={pack.playCount}

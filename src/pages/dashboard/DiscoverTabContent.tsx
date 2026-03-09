@@ -55,7 +55,8 @@ export function DiscoverTabContent({ variant = 'default' }: DiscoverTabContentPr
         >
           {SIMILAR_PACKS_TO_LIKES.map((pack) => (
             <SamplePackCard
-              key={pack.title}
+              key={pack.id}
+              packId={pack.id}
               title={pack.title}
               creator={pack.creator}
               playCount={pack.playCount}
@@ -68,7 +69,8 @@ export function DiscoverTabContent({ variant = 'default' }: DiscoverTabContentPr
       <CardCarousel title="Featured Packs" ctaLabel="View all packs">
         {FEATURED_PACKS.map((pack) => (
           <SamplePackCard
-            key={pack.title}
+            key={pack.id}
+            packId={pack.id}
             title={pack.title}
             creator={pack.creator}
             playCount={pack.playCount}

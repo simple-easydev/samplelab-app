@@ -169,7 +169,8 @@ export default function SearchResultPage() {
             <CardCarousel title="Packs" ctaLabel="View more" onCtaClick={() => navigate(tabUrl('packs'))}>
               {FEATURED_PACKS.map((pack) => (
                 <SamplePackCard
-                  key={pack.title}
+                  key={pack.id}
+                  packId={pack.id}
                   title={pack.title}
                   creator={pack.creator}
                   playCount={pack.playCount}

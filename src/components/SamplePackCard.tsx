@@ -2,7 +2,9 @@
  * Reusable sample pack card from Figma (node 812-51974) – Featured Packs section.
  * Cover image, optional Premium badge, overline, title, creator, tag pills.
  * More options button opens context menu – Figma 778-54253.
+ * When packId is set, clicking the card navigates to the pack detail page.
  */
+import { useNavigate } from 'react-router-dom';
 import { Play, MoreHorizontal, Music2, Heart, Download, User, Share2 } from 'lucide-react';
 import {
   DropdownMenu,
@@ -14,6 +16,8 @@ import {
 export interface SamplePackCardProps {
   title: string;
   creator: string;
+  /** When set, clicking the card navigates to /dashboard/packs/:packId */
+  packId?: string;
   /** e.g. play count "20" */
   playCount?: string;
   /** e.g. "Hip-Hop" */
@@ -31,6 +35,7 @@ export interface SamplePackCardProps {
 export function SamplePackCard({
   title,
   creator,
+  packId,
   playCount,
   genre,
   premium = false,
@@ -40,9 +45,31 @@ export function SamplePackCard({
   onViewCreator,
   onShare,
 }: SamplePackCardProps) {
+  const navigate = useNavigate();
+
+  const handleCardClick = (e: React.MouseEvent) => {
+    if (!packId) return;
+    const target = e.target as HTMLElement;
+    if (target.closest('[data-dropdown-trigger]') || target.closest('button')) return;
+    navigate(`/dashboard/packs/${packId}`);
+  };
+
   return (
     <article
-      className="group bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col gap-2 overflow-hidden pb-4 shrink-0 w-[209px] min-h-[345px] transition-[border-color,box-shadow] duration-200 hover:border-[#d6ceb8] hover:shadow-[0px_2px_6px_0px_rgba(0,0,0,0.06),0px_6px_18px_0px_rgba(0,0,0,0.1)]"
+      role={packId ? 'button' : undefined}
+      tabIndex={packId ? 0 : undefined}
+      onClick={packId ? handleCardClick : undefined}
+      onKeyDown={
+        packId
+          ? (e) => {
+              if (e.key === 'Enter' || e.key === ' ') {
+                e.preventDefault();
+                navigate(`/dashboard/packs/${packId}`);
+              }
+            }
+          : undefined
+      }
+      className={`group bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col gap-2 overflow-hidden pb-4 shrink-0 w-[209px] min-h-[345px] transition-[border-color,box-shadow] duration-200 hover:border-[#d6ceb8] hover:shadow-[0px_2px_6px_0px_rgba(0,0,0,0.06),0px_6px_18px_0px_rgba(0,0,0,0.1)] ${packId ? 'cursor-pointer' : 'cursor-default'}`}
     >
       {/* Cover */}
       <div className="flex flex-col h-[209px] p-2 w-full shrink-0 relative">
@@ -115,9 +142,11 @@ export function SamplePackCard({
             <DropdownMenuTrigger
               asChild
               aria-label="More options"
+              data-dropdown-trigger
             >
               <button
                 type="button"
+                onClick={(e) => e.stopPropagation()}
                 className="size-6 flex items-center justify-center rounded-[2px] text-[#161410] opacity-0 group-hover:opacity-100 transition-opacity hover:bg-[#e8e2d2] data-[state=open]:opacity-100 data-[state=open]:bg-[#e8e2d2]"
               >
                 <MoreHorizontal className="size-4" />

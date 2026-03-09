@@ -34,44 +34,66 @@ export const CREATORS_ITEMS = [
   { rank: 5, name: 'Creator name', creator: '8 packs' },
 ];
 
-export const FEATURED_PACKS = [
-  { title: 'Sample Pack Name Goes Here', creator: 'Creator Name', playCount: '20', genre: 'Hip-Hop' },
-  { title: 'Lo-Fi Essentials Vol. 2', creator: 'Beat Lab', playCount: '30', genre: 'Lo-Fi' },
-  { title: 'Trap Drums & Melodies', creator: 'Sound Factory', playCount: '15', genre: 'Trap', premium: true },
-  { title: 'Soul Chops Collection', creator: 'Vinyl Revival', playCount: '24', genre: 'Soul' },
-  { title: 'Electronic Textures', creator: 'Synth Wave', playCount: '18', genre: 'Electronic' },
-  { title: 'The Jungle', creator: 'Creator Name', playCount: '12', genre: 'Hip-Hop', premium: true },
+/** Slug for pack URL (e.g. "sample-pack-name-goes-here") */
+export function packTitleToId(title: string): string {
+  return title
+    .toLowerCase()
+    .replace(/[&]/g, 'and')
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+export interface PackItem {
+  id: string;
+  title: string;
+  creator: string;
+  playCount?: string;
+  genre?: string;
+  premium?: boolean;
+}
+
+export const FEATURED_PACKS: PackItem[] = [
+  { id: 'sample-pack-name-goes-here', title: 'Sample Pack Name Goes Here', creator: 'Creator Name', playCount: '20', genre: 'Hip-Hop' },
+  { id: 'lo-fi-essentials-vol-2', title: 'Lo-Fi Essentials Vol. 2', creator: 'Beat Lab', playCount: '30', genre: 'Lo-Fi' },
+  { id: 'trap-drums-melodies', title: 'Trap Drums & Melodies', creator: 'Sound Factory', playCount: '15', genre: 'Trap', premium: true },
+  { id: 'soul-chops-collection', title: 'Soul Chops Collection', creator: 'Vinyl Revival', playCount: '24', genre: 'Soul' },
+  { id: 'electronic-textures', title: 'Electronic Textures', creator: 'Synth Wave', playCount: '18', genre: 'Electronic' },
+  { id: 'the-jungle', title: 'The Jungle', creator: 'Creator Name', playCount: '12', genre: 'Hip-Hop', premium: true },
 ];
 
 /** 18 packs for Packs tab grid view – Figma 756-50536 */
-export const PACKS_GRID_ITEMS = [
-  { title: 'Sample Pack Name Goes Here', creator: 'Creator Name', playCount: '20', genre: 'Hip-Hop' },
-  { title: 'Lo-Fi Essentials Vol. 2', creator: 'Beat Lab', playCount: '30', genre: 'Lo-Fi' },
-  { title: 'Trap Drums & Melodies', creator: 'Sound Factory', playCount: '15', genre: 'Trap', premium: true },
-  { title: 'Soul Chops Collection', creator: 'Vinyl Revival', playCount: '24', genre: 'Soul' },
-  { title: 'Electronic Textures', creator: 'Synth Wave', playCount: '18', genre: 'Electronic' },
-  { title: 'The Jungle', creator: 'Creator Name', playCount: '12', genre: 'Hip-Hop', premium: true },
-  { title: 'Midnight Loops', creator: 'Vinyl Revival', playCount: '22', genre: 'Lo-Fi' },
-  { title: '808 Essentials', creator: 'Synth Wave', playCount: '19', genre: 'Trap' },
-  { title: 'Chill Vibes Pack', creator: 'Creator name', playCount: '14', genre: 'R&B' },
-  { title: 'Boom Bap Classics', creator: 'Beat Lab', playCount: '28', genre: 'Boom Bap', premium: true },
-  { title: 'Drill Patterns', creator: 'Sound Factory', playCount: '11', genre: 'Drill' },
-  { title: 'Jazz Rap Samples', creator: 'Vinyl Revival', playCount: '16', genre: 'Jazz Rap' },
-  { title: 'Analog Keys', creator: 'Synth Wave', playCount: '25', genre: 'Lo-Fi' },
-  { title: 'Street Beats', creator: 'Creator Name', playCount: '31', genre: 'Hip-Hop' },
-  { title: 'Soulful Chops', creator: 'Beat Lab', playCount: '17', genre: 'Soul' }
+export const PACKS_GRID_ITEMS: PackItem[] = [
+  { id: 'sample-pack-name-goes-here', title: 'Sample Pack Name Goes Here', creator: 'Creator Name', playCount: '20', genre: 'Hip-Hop' },
+  { id: 'lo-fi-essentials-vol-2', title: 'Lo-Fi Essentials Vol. 2', creator: 'Beat Lab', playCount: '30', genre: 'Lo-Fi' },
+  { id: 'trap-drums-melodies', title: 'Trap Drums & Melodies', creator: 'Sound Factory', playCount: '15', genre: 'Trap', premium: true },
+  { id: 'soul-chops-collection', title: 'Soul Chops Collection', creator: 'Vinyl Revival', playCount: '24', genre: 'Soul' },
+  { id: 'electronic-textures', title: 'Electronic Textures', creator: 'Synth Wave', playCount: '18', genre: 'Electronic' },
+  { id: 'the-jungle', title: 'The Jungle', creator: 'Creator Name', playCount: '12', genre: 'Hip-Hop', premium: true },
+  { id: 'midnight-loops', title: 'Midnight Loops', creator: 'Vinyl Revival', playCount: '22', genre: 'Lo-Fi' },
+  { id: '808-essentials', title: '808 Essentials', creator: 'Synth Wave', playCount: '19', genre: 'Trap' },
+  { id: 'chill-vibes-pack', title: 'Chill Vibes Pack', creator: 'Creator name', playCount: '14', genre: 'R&B' },
+  { id: 'boom-bap-classics', title: 'Boom Bap Classics', creator: 'Beat Lab', playCount: '28', genre: 'Boom Bap', premium: true },
+  { id: 'drill-patterns', title: 'Drill Patterns', creator: 'Sound Factory', playCount: '11', genre: 'Drill' },
+  { id: 'jazz-rap-samples', title: 'Jazz Rap Samples', creator: 'Vinyl Revival', playCount: '16', genre: 'Jazz Rap' },
+  { id: 'analog-keys', title: 'Analog Keys', creator: 'Synth Wave', playCount: '25', genre: 'Lo-Fi' },
+  { id: 'street-beats', title: 'Street Beats', creator: 'Creator Name', playCount: '31', genre: 'Hip-Hop' },
+  { id: 'soulful-chops', title: 'Soulful Chops', creator: 'Beat Lab', playCount: '17', genre: 'Soul' },
 ];
 
 export const LIKED_PACK_NAME = 'Sample Pack Name';
 
-export const SIMILAR_PACKS_TO_LIKES = [
-  { title: 'Sample Pack Name Goes Here', creator: 'Creator Name', playCount: '30', genre: 'Hip-Hop' },
-  { title: 'Lo-Fi Essentials Vol. 2', creator: 'Beat Lab', playCount: '30', genre: 'Lo-Fi' },
-  { title: 'Trap Drums & Melodies', creator: 'Sound Factory', playCount: '15', genre: 'Trap', premium: true },
-  { title: 'Soul Chops Collection', creator: 'Vinyl Revival', playCount: '24', genre: 'Soul' },
-  { title: 'Electronic Textures', creator: 'Synth Wave', playCount: '18', genre: 'Electronic' },
-  { title: 'The Jungle', creator: 'Creator Name', playCount: '12', genre: 'Hip-Hop', premium: true },
+export const SIMILAR_PACKS_TO_LIKES: PackItem[] = [
+  { id: 'sample-pack-name-goes-here', title: 'Sample Pack Name Goes Here', creator: 'Creator Name', playCount: '30', genre: 'Hip-Hop' },
+  { id: 'lo-fi-essentials-vol-2', title: 'Lo-Fi Essentials Vol. 2', creator: 'Beat Lab', playCount: '30', genre: 'Lo-Fi' },
+  { id: 'trap-drums-melodies', title: 'Trap Drums & Melodies', creator: 'Sound Factory', playCount: '15', genre: 'Trap', premium: true },
+  { id: 'soul-chops-collection', title: 'Soul Chops Collection', creator: 'Vinyl Revival', playCount: '24', genre: 'Soul' },
+  { id: 'electronic-textures', title: 'Electronic Textures', creator: 'Synth Wave', playCount: '18', genre: 'Electronic' },
+  { id: 'the-jungle', title: 'The Jungle', creator: 'Creator Name', playCount: '12', genre: 'Hip-Hop', premium: true },
 ];
+
+export function getPackById(packId: string): PackItem | undefined {
+  return PACKS_GRID_ITEMS.find((p) => p.id === packId);
+}
 
 export const FEATURED_CREATORS = [
   { name: 'Creator Name Goes Here', followersCount: '100', packsCount: '10' },
