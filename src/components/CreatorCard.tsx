@@ -2,6 +2,7 @@
  * Reusable creator card from Figma (node 812-51974) – Featured creators section.
  * Circular avatar, "Creator" overline, name, tag pills (e.g. followers, packs).
  */
+import { Link } from 'react-router-dom';
 import { Play, FolderOpen } from 'lucide-react';
 
 export interface CreatorCardProps {
@@ -12,6 +13,8 @@ export interface CreatorCardProps {
   packsCount?: string;
   /** Optional avatar image URL; placeholder used if not provided */
   imageUrl?: string;
+  /** Optional slug for creator detail link (e.g. "creator-name"). When set, card links to /dashboard/creators/:slug */
+  creatorSlug?: string;
 }
 
 export function CreatorCard({
@@ -19,11 +22,10 @@ export function CreatorCard({
   followersCount,
   packsCount,
   imageUrl,
+  creatorSlug,
 }: CreatorCardProps) {
-  return (
-    <article
-      className="bg-[#f6f2e6] border border-[#e8e2d2] rounded-[4px] flex flex-col gap-2 overflow-hidden pb-4 shrink-0 w-[209px] min-h-[325px] items-center transition-[border-color,box-shadow] hover:border-[#d6ceb8] hover:shadow-[0_6px_18px_0_rgba(0,0,0,0.10),0_2px_6px_0_rgba(0,0,0,0.06)]"
-    >
+  const cardContent = (
+    <>
       {/* Circular photo */}
       <div className="flex flex-col h-[209px] p-2 w-full shrink-0 items-center justify-center">
         <div className="bg-[#dde1e6] overflow-hidden rounded-full w-full aspect-square max-w-[193px] relative">
@@ -71,6 +73,23 @@ export function CreatorCard({
           )}
         </div>
       </div>
-    </article>
+    </>
   );
+
+  const className =
+    'bg-[#f6f2e6] border border-[#e8e2d2] rounded-[4px] flex flex-col gap-2 overflow-hidden pb-4 shrink-0 w-[209px] min-h-[325px] items-center transition-[border-color,box-shadow] hover:border-[#d6ceb8] hover:shadow-[0_6px_18px_0_rgba(0,0,0,0.10),0_2px_6px_0_rgba(0,0,0,0.06)]';
+
+  if (creatorSlug != null && creatorSlug !== '') {
+    return (
+      <Link
+        to={`/dashboard/creators/${creatorSlug}`}
+        className={className}
+        aria-label={`View ${name} profile`}
+      >
+        {cardContent}
+      </Link>
+    );
+  }
+
+  return <article className={className}>{cardContent}</article>;
 }

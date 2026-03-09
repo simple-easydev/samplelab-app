@@ -112,6 +112,14 @@ export const CREATORS_SORT_OPTIONS = [
   { id: 'a-z', label: 'A-Z' },
 ] as const;
 
+/** Slug for creator URL (e.g. "creator-name") – used for creator detail route. */
+export function creatorNameToSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
 /** Creators tab grid – extended list for grid view (Figma 812-85001). */
 export const CREATORS_GRID_ITEMS = [
   ...FEATURED_CREATORS,
@@ -127,6 +135,24 @@ export const CREATORS_GRID_ITEMS = [
   { name: 'Synth Wave', followersCount: '95', packsCount: '12' },
   { name: 'Creator Name Goes Here', followersCount: '100', packsCount: '10' },
 ];
+
+/** Resolve creator by URL slug; returns undefined if not found. */
+export function getCreatorBySlug(slug: string): {
+  name: string;
+  followersCount: string;
+  packsCount: string;
+  samplesCount: number;
+} | undefined {
+  const creator = CREATORS_GRID_ITEMS.find((c) => creatorNameToSlug(c.name) === slug);
+  if (!creator) return undefined;
+  const packsNum = parseInt(creator.packsCount.replace(/\D/g, ''), 10) || 0;
+  return {
+    name: creator.name,
+    followersCount: creator.followersCount,
+    packsCount: creator.packsCount,
+    samplesCount: packsNum * 10,
+  };
+}
 
 export const TOP_GENRES = [
   { name: 'Hip-Hop' },

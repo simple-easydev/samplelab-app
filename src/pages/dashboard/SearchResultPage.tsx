@@ -17,6 +17,7 @@ import {
   GENRES_GRID_ITEMS,
   TRENDING_ITEMS,
   NEW_RELEASES_ITEMS,
+  creatorNameToSlug,
 } from './constants';
 import { AccessGate } from '@/components/AccessGate';
 
@@ -190,6 +191,7 @@ export default function SearchResultPage() {
                   name={creator.name}
                   followersCount={creator.followersCount}
                   packsCount={creator.packsCount}
+                  creatorSlug={creatorNameToSlug(creator.name)}
                 />
               ))}
             </CardCarousel>

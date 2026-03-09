@@ -7,6 +7,7 @@ import { authManager } from '@/lib/supabase/auth-manager';
 import DashboardPage from './DashboardPage';
 import SearchResultPage from './SearchResultPage';
 import PackDetailPage from './PackDetailPage';
+import CreatorDetailPage from './CreatorDetailPage';
 import { DASHBOARD_TABS } from './DashboardTabContent';
 
 type DashboardTabId = (typeof DASHBOARD_TABS)[number]['id'];
@@ -85,6 +86,9 @@ export default function DashboardRouter() {
 
       {/* /dashboard/packs/:packId — sample pack detail page */}
       <Route path="packs/:packId" element={<PackDetailPage />} />
+
+      {/* /dashboard/creators/:creatorId — creator detail page */}
+      <Route path="creators/:creatorId" element={<CreatorDetailPage />} />
 
       {/* /dashboard/:tabName — tab content, optional ?q= & ?genre= etc. */}
       <Route

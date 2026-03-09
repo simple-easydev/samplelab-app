@@ -11,7 +11,7 @@ import { CreatorCard } from '@/components/CreatorCard';
 import { Input } from '@/components/ui/input';
 import { SearchQueryChip } from '@/components/SearchQueryChip';
 import { useSubscription } from '@/hooks/useSubscription';
-import { CREATORS_SORT_OPTIONS, CREATORS_GRID_ITEMS } from './constants';
+import { CREATORS_SORT_OPTIONS, CREATORS_GRID_ITEMS, creatorNameToSlug } from './constants';
 
 export function CreatorsTabContent() {
   const { isActive } = useSubscription();
@@ -93,6 +93,7 @@ export function CreatorsTabContent() {
               name={creator.name}
               followersCount={creator.followersCount}
               packsCount={creator.packsCount}
+              creatorSlug={creatorNameToSlug(creator.name)}
             />
           ))}
         </div>
