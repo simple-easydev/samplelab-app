@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Crown } from 'lucide-react';
+import { Crown, Play, Heart, Download, MoreVertical } from 'lucide-react';
 
 export interface SimilarSampleItem {
   id: string;
@@ -63,6 +63,8 @@ export interface SoundWaveProps {
   progress?: number;
   /** Show elapsed time (e.g. "0:12") or remaining time (e.g. "0:22"). Default "remaining". */
   timeDisplay?: SoundWaveTimeDisplay;
+  /** When true, waveform bars use darker colors (hover/active state). */
+  emphasized?: boolean;
   className?: string;
 }
 
@@ -70,6 +72,7 @@ function SoundWave({
   duration,
   progress: progressProp = 0,
   timeDisplay = 'remaining',
+  emphasized = false,
   className,
 }: SoundWaveProps) {
   const durationSec = parseDurationToSeconds(duration);
@@ -89,6 +92,9 @@ function SoundWave({
     timeDisplay === 'passed'
       ? formatTime(Math.min(elapsed, durationSec))
       : formatTime(Math.max(0, durationSec - elapsed));
+
+  const playedColor = emphasized ? '#161410' : '#d6ceb8';
+  const unplayedColor = emphasized ? 'rgba(22, 20, 16, 0.35)' : 'rgba(214, 206, 184, 0.35)';
 
   return (
     <div
@@ -111,7 +117,7 @@ function SoundWave({
                 className="flex-1 min-w-[2px] max-w-[4.5px] rounded-full transition-colors duration-150 ease-out border-0 cursor-pointer p-0"
                 style={{
                   height: `${val * 100}%`,
-                  background: played ? '#d6ceb8' : 'rgba(214, 206, 184, 0.35)',
+                  background: played ? playedColor : unplayedColor,
                 }}
                 aria-hidden
               />
@@ -139,58 +145,117 @@ export interface SampleRowProps {
 }
 
 export function SampleRow({ item, variant = 'full', rank }: SampleRowProps) {
-  const primaryBlock = (
-    <div className="flex gap-4 h-14 items-center min-w-0">
-      {variant === 'compact' && rank != null && (
-        <span className="text-[#161410] text-base font-medium leading-6 text-center w-4 shrink-0">
-          {rank}
-        </span>
-      )}
-      <div className="bg-white rounded-sm size-14 shrink-0 overflow-hidden border border-[#e8e2d2]">
-        {item.imageUrl ? (
-          <img
-            src={item.imageUrl}
-            alt=""
-            className="size-full object-cover"
-          />
-        ) : (
-          <div className="size-full bg-[#e8e2d2]" aria-hidden />
-        )}
-      </div>
-      <div className="flex flex-col gap-1 min-w-0 flex-1 justify-center">
-        <p className="text-[#161410] text-sm font-bold leading-5 truncate tracking-[0.1px]">
-          {item.name}
-        </p>
-        <p className="text-[#5e584b] text-xs leading-4 truncate tracking-[0.2px]">
-          {item.creator}
-        </p>
-      </div>
-    </div>
-  );
+  const [fullRowHovered, setFullRowHovered] = useState(false);
 
   if (variant === 'compact') {
     return (
-      <div className="bg-[#f6f2e6] border-b border-[#e8e2d2] last:border-b-0 flex gap-4 items-center p-4 w-full">
-        {primaryBlock}
+      <div className="group bg-[#f6f2e6] border-b border-[#e8e2d2] last:border-b-0 flex gap-4 items-center p-4 w-full transition-[background-color] duration-200 hover:bg-[#FFFBF0]">
+        {rank != null && (
+          <span className="text-[#161410] text-base font-medium leading-6 text-center w-4 shrink-0">
+            {rank}
+          </span>
+        )}
+        {/* Thumbnail with hover overlay + play button (Figma 804-32679) */}
+        <div className="relative size-14 shrink-0 rounded-sm overflow-hidden border border-[#e8e2d2] bg-white">
+          {item.imageUrl ? (
+            <img
+              src={item.imageUrl}
+              alt=""
+              className="absolute inset-0 size-full object-cover"
+            />
+          ) : (
+            <div className="absolute inset-0 bg-[#e8e2d2]" aria-hidden />
+          )}
+          <div
+            className="absolute inset-0 bg-[#161410] opacity-0 transition-opacity duration-200 group-hover:opacity-50"
+            aria-hidden
+          />
+          <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none">
+            <div className="flex size-10 items-center justify-center rounded-full bg-[#161410]/80 border border-[#e8e2d2]/20">
+              <Play className="size-5 text-[#fffbf0] fill-[#fffbf0] shrink-0" aria-hidden />
+            </div>
+          </div>
+        </div>
+        <div className="flex flex-col gap-1 min-w-0 flex-1 justify-center">
+          <p className="text-[#161410] text-sm font-bold leading-5 truncate tracking-[0.1px]">
+            {item.name}
+          </p>
+          <p className="text-[#5e584b] text-xs leading-4 truncate tracking-[0.2px]">
+            {item.creator}
+          </p>
+        </div>
+        {/* Like + Download icons (visible on hover) */}
+        <div className="flex gap-1 items-center shrink-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <button
+            type="button"
+            onClick={(e) => e.stopPropagation()}
+            className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors"
+            aria-label="Add to favorites"
+          >
+            <Heart className="size-5" />
+          </button>
+          <button
+            type="button"
+            onClick={(e) => e.stopPropagation()}
+            className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors"
+            aria-label="Download"
+          >
+            <Download className="size-5" />
+          </button>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="bg-[#f6f2e6] border-b border-[#e8e2d2] last:border-b-0 flex flex-col items-stretch p-4 w-full">
+    <div
+      className="group bg-[#f6f2e6] border-b border-[#e8e2d2] last:border-b-0 flex flex-col items-stretch p-4 w-full transition-[background-color] duration-200 hover:bg-[#e8e2d2]/60"
+      onMouseEnter={() => setFullRowHovered(true)}
+      onMouseLeave={() => setFullRowHovered(false)}
+    >
       <div
         className="grid w-full gap-4 items-center"
         style={{ gridTemplateColumns: ROW_GRID_COLUMNS }}
       >
-        {/* Column 1: Thumbnail + sample name + creator */}
-        <div className="min-w-0">{primaryBlock}</div>
+        {/* Column 1: Thumbnail (with hover play overlay) + sample name + creator – Figma 804-36336 */}
+        <div className="flex gap-4 h-14 items-center min-w-0">
+          <div className="relative size-14 shrink-0 rounded-sm overflow-hidden border border-[#e8e2d2] bg-white">
+            {item.imageUrl ? (
+              <img
+                src={item.imageUrl}
+                alt=""
+                className="absolute inset-0 size-full object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-[#e8e2d2]" aria-hidden />
+            )}
+            <div
+              className="absolute inset-0 bg-[#161410] opacity-0 transition-opacity duration-200 group-hover:opacity-50"
+              aria-hidden
+            />
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none">
+              <div className="flex size-10 items-center justify-center rounded-full bg-[#161410]/80 border border-[#e8e2d2]/20">
+                <Play className="size-5 text-[#fffbf0] fill-[#fffbf0] shrink-0" aria-hidden />
+              </div>
+            </div>
+          </div>
+          <div className="flex flex-col gap-1 min-w-0 flex-1 justify-center">
+            <p className="text-[#161410] text-sm font-bold leading-5 truncate tracking-[0.1px]">
+              {item.name}
+            </p>
+            <p className="text-[#5e584b] text-xs leading-4 truncate tracking-[0.2px]">
+              {item.creator}
+            </p>
+          </div>
+        </div>
 
-        {/* Column 2: Waveform + time */}
+        {/* Column 2: Waveform + time (darker on hover) */}
         <div className="hidden sm:flex items-center gap-2 min-w-0 w-full">
           <SoundWave
             duration={item.duration}
             progress={item.progress ?? 0}
             timeDisplay="passed"
+            emphasized={fullRowHovered}
             className="h-10 shrink-0 flex-1 min-w-0"
           />
         </div>
@@ -221,10 +286,10 @@ export function SampleRow({ item, variant = 'full', rank }: SampleRowProps) {
           </div>
         </div>
 
-        {/* Column 4: BPM • Key */}
-        <div className="flex items-center gap-2 justify-end min-w-[140px]">
+        {/* Column 4: BPM • Key + action icons (visible on hover) */}
+        <div className="flex items-center gap-3 justify-end min-w-[140px]">
           {item.bpm != null && (
-            <>
+            <div className="flex gap-2 items-center shrink-0">
               <span className="text-[#5e584b] text-xs leading-4 tracking-[0.2px]">
                 {item.bpm} BPM
               </span>
@@ -236,8 +301,34 @@ export function SampleRow({ item, variant = 'full', rank }: SampleRowProps) {
                   </span>
                 </>
               )}
-            </>
+            </div>
           )}
+          <div className="flex gap-1 items-center shrink-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+            <button
+              type="button"
+              onClick={(e) => e.stopPropagation()}
+              className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors"
+              aria-label="Add to favorites"
+            >
+              <Heart className="size-5" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => e.stopPropagation()}
+              className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors"
+              aria-label="Download"
+            >
+              <Download className="size-5" />
+            </button>
+            <button
+              type="button"
+              onClick={(e) => e.stopPropagation()}
+              className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors"
+              aria-label="More options"
+            >
+              <MoreVertical className="size-5" />
+            </button>
+          </div>
         </div>
       </div>
       {/* Mobile: show duration under name when waveform is hidden */}
