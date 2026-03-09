@@ -227,7 +227,7 @@ export default function PricingPage() {
           <p className="text-[#7f7766]">
             No {billingCycle === 'monthly' ? 'monthly' : 'yearly'} plans available.
           </p>
-          <Link to="/dashboard" className="mt-4 inline-block text-[#161410] font-medium hover:underline">
+          <Link to="/dashboard/discover" className="mt-4 inline-block text-[#161410] font-medium hover:underline">
             Back to dashboard
           </Link>
         </div>
@@ -279,7 +279,7 @@ export default function PricingPage() {
 
       <div className="mt-12 text-center">
         <Link
-          to="/dashboard"
+          to="/dashboard/discover"
           className="text-sm text-[#7f7766] hover:text-[#161410] transition-colors"
         >
           ← Back to dashboard

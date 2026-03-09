@@ -7,7 +7,7 @@ import { getUserCredits } from '@/lib/supabase/subscriptions';
 import { useSubscription } from '@/hooks/useSubscription';
 
 const NAV_LINKS = [
-  { label: 'Browse', to: '/dashboard' },
+  { label: 'Browse', to: '/dashboard/discover' },
   { label: 'How it works', to: '#' },
   { label: 'Pricing', to: '/pricing' },
   { label: 'About us', to: '#' },
@@ -28,7 +28,7 @@ export function Navbar() {
   return (
     <header className="bg-[#f6f2e6] border-b border-[#e8e2d2] h-20 flex items-center justify-between px-8 w-full shrink-0 z-10">
       <div className="flex gap-8 h-full items-center">
-        <Link to="/dashboard" className="h-12 w-36 overflow-hidden shrink-0 flex items-center" aria-label="The Sample Lab home">
+        <Link to="/dashboard/discover" className="h-12 w-36 overflow-hidden shrink-0 flex items-center" aria-label="The Sample Lab home">
           <img src="/logo.svg" alt="The Sample Lab" className="h-full w-full object-contain" />
         </Link>
         <nav className="flex gap-4 items-center" aria-label="Main">
@@ -51,7 +51,7 @@ export function Navbar() {
         />
         <div className="flex gap-3 items-center">
           <Link
-            to="/dashboard"
+            to="/dashboard/discover"
             className="border border-[#a49a84] flex items-center justify-center size-10 rounded-[2px] shrink-0 text-[#161410] hover:bg-[#e8e2d2] transition-colors"
             aria-label="Account"
           >
@@ -63,7 +63,7 @@ export function Navbar() {
             </TryForFreeButton>
           ) : (
             <Link
-              to="/dashboard"
+              to="/dashboard/discover"
               className="border border-[#a49a84] flex h-10 items-center justify-center px-3 rounded-[2px] text-[#161410] text-sm font-medium tracking-[0.1px] hover:bg-[#e8e2d2] transition-colors"
             >
               {credits != null ? `Credits: ${credits}` : 'Credits'}

@@ -34,7 +34,7 @@ export default function ProtectedRoute() {
     return <Navigate to="/login" state={{ from: location }} replace />;
   }
 
-  if (hasStripeSession && location.pathname === '/dashboard') {
+  if (hasStripeSession && (location.pathname === '/dashboard' || location.pathname.startsWith('/dashboard/'))) {
     return (
       <div className="min-h-screen flex flex-col">
         <Navbar />
@@ -49,7 +49,7 @@ export default function ProtectedRoute() {
   }
 
   if (!needsOnboarding && location.pathname === '/onboarding') {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/dashboard/discover" replace />;
   }
   const showNavbar = location.pathname !== '/onboarding';
 

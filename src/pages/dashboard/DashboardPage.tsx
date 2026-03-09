@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useSubscription } from '@/hooks/useSubscription';
 import { getUserCredits } from '@/lib/supabase/subscriptions';
 import {
@@ -10,12 +11,14 @@ import {
   GenresTabContent,
 } from './DashboardTabContent';
 
+type DashboardTabId = (typeof DASHBOARD_TABS)[number]['id'];
+
 function DashboardTabs({
   activeTab,
-  setActiveTab,
+  onTabChange,
 }: {
-  activeTab: string;
-  setActiveTab: (id: string) => void;
+  activeTab: DashboardTabId;
+  onTabChange: (tabId: DashboardTabId) => void;
 }) {
   return (
     <div className="border-b border-[#e8e2d2] flex gap-4 items-center max-w-6xl mx-auto mb-8">
@@ -25,7 +28,7 @@ function DashboardTabs({
           <button
             key={tab.id}
             type="button"
-            onClick={() => setActiveTab(tab.id)}
+            onClick={() => onTabChange(tab.id)}
             className={`flex h-12 items-center justify-center px-2 shrink-0 font-medium text-base leading-6 whitespace-nowrap transition-colors ${
               isSelected
                 ? 'border-b-2 border-[#161410] text-[#161410]'
@@ -40,14 +43,32 @@ function DashboardTabs({
   );
 }
 
+export interface DashboardPageProps {
+  /** Tab from URL segment (e.g. samples, packs). When set, tab is controlled by route. */
+  tabFromUrl?: DashboardTabId;
+  /** True when path is /dashboard/:tabName/search */
+  isSearch?: boolean;
+}
+
 /**
  * Single dashboard for all users. Same tabs for everyone; subscribed users see
  * welcome/credits banner and personalized discover content (e.g. similar samples).
+ * URL: /dashboard/:tabName and /dashboard/:tabName/search?q=...&genre=...
  */
-export default function DashboardPage() {
+export default function DashboardPage({ tabFromUrl, isSearch = false }: DashboardPageProps) {
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const { isActive, isTrialing } = useSubscription();
-  const [activeTab, setActiveTab] = useState<string>(DASHBOARD_TABS[0].id);
   const [credits, setCredits] = useState<number | null>(null);
+
+  const activeTab: DashboardTabId = tabFromUrl ?? DASHBOARD_TABS[0].id;
+
+  const handleTabChange = (tabId: DashboardTabId) => {
+    const base = `/dashboard/${tabId}`;
+    const path = isSearch ? `${base}/search` : base;
+    const query = searchParams.toString();
+    navigate(query ? `${path}?${query}` : path);
+  };
 
   useEffect(() => {
     if (!isActive) return;
@@ -81,7 +102,7 @@ export default function DashboardPage() {
           </div>
         )}
 
-        <DashboardTabs activeTab={activeTab} setActiveTab={setActiveTab} />
+        <DashboardTabs activeTab={activeTab} onTabChange={handleTabChange} />
         <div className="max-w-6xl mx-auto">
           {activeTab === 'discover' && (
             <DiscoverTabContent variant={isActive ? 'subscribed' : 'default'} />

@@ -14,7 +14,7 @@ export default function PublicRoute() {
   }
 
   if (session) {
-    return <Navigate to="/dashboard" replace />;
+    return <Navigate to="/dashboard/discover" replace />;
   }
 
   return <Outlet />;

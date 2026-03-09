@@ -35,7 +35,7 @@ function App() {
           <Route element={<ProtectedRoute />}>
             <Route path="/onboarding" element={<OnboardingPage />} />
             <Route path="/pricing" element={<PricingPage />} />
-            <Route path="/dashboard" element={<DashboardRouter />} />
+            <Route path="/dashboard/*" element={<DashboardRouter />} />
           </Route>
         </Routes>
         <Toaster position="bottom-right" />

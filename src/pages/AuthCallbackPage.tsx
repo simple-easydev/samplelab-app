@@ -12,7 +12,7 @@ export default function AuthCallbackPage() {
 
     if (session) {
       // Redirect based on onboarding status
-      navigate(needsOnboarding ? '/onboarding' : '/dashboard', { replace: true });
+      navigate(needsOnboarding ? '/onboarding' : '/dashboard/discover', { replace: true });
     } else {
       navigate('/login', { replace: true });
     }

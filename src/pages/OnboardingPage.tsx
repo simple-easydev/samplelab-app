@@ -140,7 +140,7 @@ export default function OnboardingPage() {
 
       if (isFree) {
         toast.success('Welcome! Your profile is set up.');
-        navigate('/dashboard', { replace: true });
+        navigate('/dashboard/discover', { replace: true });
         return;
       }
 

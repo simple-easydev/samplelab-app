@@ -15,7 +15,7 @@ const FOOTER_COLUMNS = [
   {
     heading: 'Product',
     links: [
-      { label: 'Browse', to: '/dashboard' },
+      { label: 'Browse', to: '/dashboard/discover' },
       { label: 'Genres', to: '#' },
       { label: 'Pricing', to: '/onboarding' },
       { label: 'How It Works', to: '#' },

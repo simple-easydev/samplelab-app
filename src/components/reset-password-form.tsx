@@ -69,7 +69,7 @@ export function ResetPasswordForm() {
     
     // Redirect to dashboard after a brief delay to show toast
     setTimeout(() => {
-      navigate("/dashboard");
+      navigate("/dashboard/discover");
     }, 1500);
   }
 

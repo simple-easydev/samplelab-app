@@ -59,8 +59,7 @@ export default function SearchResultPage() {
   const genresRef = useRef<HTMLDivElement>(null);
 
   const clearSearch = () => {
-    setSearchParams({}, { replace: true });
-    navigate('/dashboard');
+    navigate('/dashboard/discover');
   };
 
   const sectionRefs: Record<string, React.RefObject<HTMLDivElement | null> | undefined> = {
@@ -119,7 +118,7 @@ export default function SearchResultPage() {
                   Samples
                 </h2>
                 <Link
-                  to="/dashboard?tab=samples"
+                  to="/dashboard/samples"
                   className="inline-flex items-center gap-1.5 h-10 px-3 rounded-[2px] border border-[#a49a84] text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] hover:bg-[#161410]/5 transition-colors"
                 >
                   View more
@@ -164,7 +163,7 @@ export default function SearchResultPage() {
 
           {/* Packs carousel */}
           <div ref={packsRef} className="mb-8 scroll-mt-4">
-            <CardCarousel title="Packs" ctaLabel="View more" onCtaClick={() => navigate('/dashboard?tab=packs')}>
+            <CardCarousel title="Packs" ctaLabel="View more" onCtaClick={() => navigate('/dashboard/packs')}>
               {FEATURED_PACKS.map((pack) => (
                 <SamplePackCard
                   key={pack.title}
@@ -180,7 +179,7 @@ export default function SearchResultPage() {
 
           {/* Creators carousel */}
           <div ref={creatorsRef} className="mb-8 scroll-mt-4">
-            <CardCarousel title="Creators" ctaLabel="View more" onCtaClick={() => navigate('/dashboard?tab=creators')}>
+            <CardCarousel title="Creators" ctaLabel="View more" onCtaClick={() => navigate('/dashboard/creators')}>
               {FEATURED_CREATORS.map((creator) => (
                 <CreatorCard
                   key={creator.name}
@@ -194,7 +193,7 @@ export default function SearchResultPage() {
 
           {/* Genres carousel */}
           <div ref={genresRef} className="scroll-mt-4">
-          <CardCarousel title="Genres" ctaLabel="View more" onCtaClick={() => navigate('/dashboard?tab=genres')}>
+          <CardCarousel title="Genres" ctaLabel="View more" onCtaClick={() => navigate('/dashboard/genres')}>
             {GENRES_GRID_ITEMS.slice(0, 6).map((genre) => (
               <GenreCard key={genre.name} name={genre.name} imageUrl={genre.imageUrl} />
             ))}
