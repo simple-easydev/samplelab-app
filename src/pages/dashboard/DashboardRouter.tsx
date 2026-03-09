@@ -5,6 +5,7 @@ import { invalidateBillingInfoCache } from '@/lib/supabase/subscriptions';
 import { supabase } from '@/lib/supabase/client';
 import { authManager } from '@/lib/supabase/auth-manager';
 import DashboardPage from './DashboardPage';
+import SearchResultPage from './SearchResultPage';
 
 /**
  * Renders the dashboard for all users. Handles Stripe checkout return (session_id)
@@ -44,6 +45,11 @@ export default function DashboardRouter() {
         <p className="text-[#7f7766]">Loading…</p>
       </div>
     );
+  }
+
+  const searchQuery = searchParams.get('q');
+  if (searchQuery != null && searchQuery.trim() !== '') {
+    return <SearchResultPage />;
   }
 
   return <DashboardPage />;
