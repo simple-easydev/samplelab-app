@@ -1,19 +1,25 @@
 /**
  * Genres tab – Figma 821-60314.
  * Filter bar (Curated, A-Z), Search genres, and grid of GenreCards.
+ * When URL has ?q=..., shows SearchQueryChip instead of the search input.
  */
 import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { GenreCard } from '@/components/GenreCard';
 import { Input } from '@/components/ui/input';
+import { SearchQueryChip } from '@/components/SearchQueryChip';
 import { GENRES_SORT_OPTIONS, GENRES_GRID_ITEMS } from './constants';
 
 export function GenresTabContent() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const qFromUrl = searchParams.get('q') ?? '';
   const [sortId, setSortId] = useState<string>('curated');
   const [searchQuery, setSearchQuery] = useState('');
 
   const filteredGenres = useMemo(() => {
-    const q = searchQuery.trim().toLowerCase();
+    const raw = qFromUrl.trim() || searchQuery.trim();
+    const q = raw.toLowerCase();
     const list = q
       ? GENRES_GRID_ITEMS.filter((g) => g.name.toLowerCase().includes(q))
       : GENRES_GRID_ITEMS;
@@ -21,7 +27,7 @@ export function GenresTabContent() {
       return [...list].sort((a, b) => a.name.localeCompare(b.name));
     }
     return list;
-  }, [searchQuery, sortId]);
+  }, [qFromUrl, searchQuery, sortId]);
 
   return (
     <div className="mb-8 flex flex-col gap-8 relative">
@@ -47,17 +53,31 @@ export function GenresTabContent() {
               );
             })}
           </div>
-          <div className="border border-[#d6ceb8] flex h-10 items-center gap-2 px-3 rounded-xs w-[250px] shrink-0 bg-transparent">
-            <Search className="size-5 shrink-0 text-[#7f7766]" aria-hidden />
-            <Input
-              type="search"
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              placeholder="Search genres"
-              className="border-0 bg-transparent h-auto py-0 text-sm text-[#161410] placeholder:text-[#7f7766] focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none flex-1 min-w-0"
-              aria-label="Search genres"
+          {qFromUrl.trim() ? (
+            <SearchQueryChip
+              query={qFromUrl}
+              resultCount={filteredGenres.length}
+              onClear={() => {
+                setSearchParams((prev) => {
+                  const next = new URLSearchParams(prev);
+                  next.delete('q');
+                  return next;
+                });
+              }}
             />
-          </div>
+          ) : (
+            <div className="border border-[#d6ceb8] flex h-10 items-center gap-2 px-3 rounded-xs w-[250px] shrink-0 bg-transparent">
+              <Search className="size-5 shrink-0 text-[#7f7766]" aria-hidden />
+              <Input
+                type="search"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search genres"
+                className="border-0 bg-transparent h-auto py-0 text-sm text-[#161410] placeholder:text-[#7f7766] focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none flex-1 min-w-0"
+                aria-label="Search genres"
+              />
+            </div>
+          )}
         </div>
 
         {/* Genre cards grid – Figma 821-38787, gap 24px */}

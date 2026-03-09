@@ -1,6 +1,8 @@
 import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { ChevronsUpDown, Search, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
+import { SearchQueryChip } from '@/components/SearchQueryChip';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { FilterBarDropdown } from '@/components/FilterBarDropdown';
 import {
@@ -22,6 +24,8 @@ const SORT_OPTIONS = [
 ] as const;
 
 export function PacksFilterBar() {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const qFromUrl = searchParams.get('q') ?? '';
   const [searchQuery, setSearchQuery] = useState('');
   const [sortId, setSortId] = useState<(typeof SORT_OPTIONS)[number]['id']>('newest');
   const [genreDropdownOpen, setGenreDropdownOpen] = useState(false);
@@ -348,18 +352,31 @@ export function PacksFilterBar() {
         </button>
       </div>
 
-      {/* Search bar */}
-      <div className="border border-[#d6ceb8] flex h-10 items-center gap-2 px-3 rounded-[2px] w-[250px] shrink-0 bg-transparent">
-        <Search className="size-5 shrink-0 text-[#7f7766]" aria-hidden />
-        <Input
-          type="search"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search packs"
-          className="border-0 bg-transparent h-auto py-0 text-sm text-[#161410] placeholder:text-[#7f7766] focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none flex-1 min-w-0"
-          aria-label="Search packs"
+      {qFromUrl.trim() ? (
+        <SearchQueryChip
+          query={qFromUrl}
+          resultCount={1000}
+          onClear={() => {
+            setSearchParams((prev) => {
+              const next = new URLSearchParams(prev);
+              next.delete('q');
+              return next;
+            });
+          }}
         />
-      </div>
+      ) : (
+        <div className="border border-[#d6ceb8] flex h-10 items-center gap-2 px-3 rounded-[2px] w-[250px] shrink-0 bg-transparent">
+          <Search className="size-5 shrink-0 text-[#7f7766]" aria-hidden />
+          <Input
+            type="search"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search packs"
+            className="border-0 bg-transparent h-auto py-0 text-sm text-[#161410] placeholder:text-[#7f7766] focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none flex-1 min-w-0"
+            aria-label="Search packs"
+          />
+        </div>
+      )}
     </div>
   );
 }
