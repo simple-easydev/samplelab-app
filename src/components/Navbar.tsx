@@ -1,7 +1,7 @@
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { Search, User } from 'lucide-react';
-import { Input } from '@/components/ui/input';
+import { User } from 'lucide-react';
+import { SearchBar } from '@/components/SearchBar';
 import { TryForFreeButton } from '@/components/ui/try-for-free-button';
 import { getUserCredits } from '@/lib/supabase/subscriptions';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -15,6 +15,7 @@ const NAV_LINKS = [
 
 export function Navbar() {
   const [credits, setCredits] = useState<number | null>(null);
+  const navigate = useNavigate();
   const { isActive, loading, subscription } = useSubscription();
   console.log({ subscription})
 
@@ -44,15 +45,10 @@ export function Navbar() {
       </div>
 
       <div className="flex gap-6 items-center">
-        <div className="border border-[#d6ceb8] flex h-10 items-center overflow-hidden rounded-[2px] w-[360px] max-w-[360px] bg-transparent px-3">
-          <Search className="size-5 shrink-0 text-[#7f7766] mr-2" aria-hidden />
-          <Input
-            type="search"
-            placeholder="Search packs, samples, and creators"
-            className="border-0 bg-transparent h-auto py-0 text-sm text-[#161410] placeholder:text-[#7f7766] focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none flex-1 min-w-0"
-            aria-label="Search packs, samples, and creators"
-          />
-        </div>
+        <SearchBar
+          onSuggestionSelect={(term) => navigate(`/dashboard?q=${encodeURIComponent(term)}`)}
+          onSearch={(q) => q && navigate(`/dashboard?q=${encodeURIComponent(q)}`)}
+        />
         <div className="flex gap-3 items-center">
           <Link
             to="/dashboard"
