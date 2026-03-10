@@ -190,9 +190,9 @@ export default function OnboardingPage() {
   return (
     <div className="min-h-screen flex flex-col bg-[#fffbf0]">
       {/* Header */}
-      <div className="flex flex-col gap-8 items-center pt-6 pb-16 px-4">
+      <div className="flex flex-col gap-4 sm:gap-8 items-center pt-4 pb-8 sm:pt-6 sm:pb-16 px-4">
         {/* Logo */}
-        <div className="h-12 w-36 relative">
+        <div className="h-10 w-28 sm:h-12 sm:w-36 relative">
           <img
             src="/logo.svg"
             alt="The Sample Lab"
@@ -214,17 +214,17 @@ export default function OnboardingPage() {
       </div>
 
       {/* Content */}
-      <div className="flex-1 flex items-start justify-center px-4">
+      <div className="flex-1 flex items-start justify-center px-4 pb-8 sm:pb-0">
         <div className={`w-full max-w-[676px]`}>
           {/* Step 1: Genre Selection */}
           {step === 1 && (
-            <div className="flex flex-col gap-12">
+            <div className="flex flex-col gap-8 sm:gap-12">
               {/* Title */}
-              <div className="flex flex-col gap-3 text-center">
-                <p className="text-sm font-semibold text-[#b3402d] uppercase tracking-wide">
+              <div className="flex flex-col gap-2 sm:gap-3 text-center">
+                <p className="text-xs sm:text-sm font-semibold text-[#b3402d] uppercase tracking-wide">
                   Welcome to The Sample Lab
                 </p>
-                <h1 className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-tight">
+                <h1 className="text-2xl sm:text-[40px] font-bold text-[#161410] leading-tight sm:leading-[48px] tracking-tight">
                   What genres inspire you?
                 </h1>
                 <p className="text-sm text-[#5e584b] leading-5">
@@ -233,18 +233,18 @@ export default function OnboardingPage() {
               </div>
 
               {/* Genre Selection Grid */}
-              <div className="grid grid-cols-3 gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4">
                 {GENRES.map((genre) => (
                   <button
                     key={genre}
                     onClick={() => handleGenreToggle(genre)}
-                    className={`h-12 px-4 flex items-center justify-center rounded-[2px] border transition-all ${
+                    className={`h-11 sm:h-12 px-3 sm:px-4 flex items-center justify-center rounded-[2px] border transition-all ${
                       formData.genres.includes(genre)
                         ? 'border-[#161410] bg-[#e8e2d2] text-[#161410]'
                         : 'border-[#d6ceb8] bg-transparent text-[#5e584b] hover:border-[#161410]'
                     }`}
                   >
-                    <span className="text-base font-medium">{genre}</span>
+                    <span className="text-sm sm:text-base font-medium truncate">{genre}</span>
                   </button>
                 ))}
               </div>
@@ -253,7 +253,7 @@ export default function OnboardingPage() {
               <Button
                 onClick={handleNext}
                 disabled={formData.genres.length === 0 || isSubmitting}
-                className={`h-14 w-full rounded-sm text-lg font-medium ${
+                className={`h-12 sm:h-14 w-full rounded-sm text-base sm:text-lg font-medium ${
                   formData.genres.length === 0
                     ? 'bg-[#bfb6a1] text-white cursor-not-allowed hover:bg-[#bfb6a1]'
                     : 'bg-[#161410] text-white hover:bg-[#2a2620]'
@@ -266,13 +266,13 @@ export default function OnboardingPage() {
 
           {/* Step 2: Sample Type Selection */}
           {step === 2 && (
-            <div className="flex flex-col gap-12">
+            <div className="flex flex-col gap-8 sm:gap-12">
               {/* Title */}
-              <div className="flex flex-col gap-3 text-center">
-                <p className="text-sm font-semibold text-[#b3402d] uppercase tracking-wide">
+              <div className="flex flex-col gap-2 sm:gap-3 text-center">
+                <p className="text-xs sm:text-sm font-semibold text-[#b3402d] uppercase tracking-wide">
                   Make it yours
                 </p>
-                <h1 className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-tight">
+                <h1 className="text-2xl sm:text-[40px] font-bold text-[#161410] leading-tight sm:leading-[48px] tracking-tight">
                   What do you usually create with?
                 </h1>
                 <p className="text-sm text-[#5e584b] leading-5">
@@ -281,37 +281,37 @@ export default function OnboardingPage() {
               </div>
 
               {/* Sample Type Selection Grid - 2 columns */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {SAMPLE_TYPES.map((type) => (
                   <button
                     key={type}
                     onClick={() => handleSampleTypeToggle(type)}
-                    className={`h-12 px-4 flex items-center justify-center rounded-[2px] border transition-all ${
+                    className={`h-11 sm:h-12 px-4 flex items-center justify-center rounded-[2px] border transition-all text-left sm:text-center ${
                       formData.sampleTypes.includes(type)
                         ? 'border-[#161410] bg-[#e8e2d2] text-[#161410]'
                         : 'border-[#d6ceb8] bg-transparent text-[#5e584b] hover:border-[#161410]'
                     }`}
                   >
-                    <span className="text-base font-medium">{type}</span>
+                    <span className="text-sm sm:text-base font-medium">{type}</span>
                   </button>
                 ))}
               </div>
 
               {/* Buttons */}
-              <div className="flex gap-4">
+              <div className="flex gap-3 sm:gap-4">
                 <Button
                   variant="outline"
                   onClick={() => setStep(1)}
                   disabled={isSubmitting}
-                  className="flex-1 h-14 rounded-sm text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
+                  className="flex-1 h-12 sm:h-14 rounded-sm text-base sm:text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
                 >
-                  <ArrowLeftIcon className="mr-2" />
+                  <ArrowLeftIcon className="mr-2 shrink-0" />
                   Back
                 </Button>
                 <Button
                   onClick={handleNext}
                   disabled={formData.sampleTypes.length === 0 || isSubmitting}
-                  className={`flex-1 h-14 rounded-sm text-lg font-medium ${
+                  className={`flex-1 h-12 sm:h-14 rounded-sm text-base sm:text-lg font-medium ${
                     formData.sampleTypes.length === 0
                       ? 'bg-[#bfb6a1] text-white cursor-not-allowed hover:bg-[#bfb6a1]'
                       : 'bg-[#161410] text-white hover:bg-[#2a2620]'
@@ -325,28 +325,28 @@ export default function OnboardingPage() {
 
           {/* Step 3: Feature Showcase */}
           {step === 3 && (
-            <div className="flex flex-col gap-12 items-center w-full">
+            <div className="flex flex-col gap-8 sm:gap-12 items-center w-full">
               {/* Title */}
-              <div className="flex flex-col gap-3 text-center max-w-[676px]">
-                <p className="text-sm font-semibold text-[#b3402d] uppercase tracking-wide">
+              <div className="flex flex-col gap-2 sm:gap-3 text-center max-w-[676px]">
+                <p className="text-xs sm:text-sm font-semibold text-[#b3402d] uppercase tracking-wide">
                   What you get
                 </p>
-                <h1 className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-tight">
+                <h1 className="text-2xl sm:text-[40px] font-bold text-[#161410] leading-tight sm:leading-[48px] tracking-tight">
                   Everything you need to create without limits
                 </h1>
               </div>
 
               {/* Feature Cards Grid - Wider container */}
-              <div className="grid grid-cols-2 gap-4 w-full">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4 w-full">
                 {/* Card 1 */}
-                <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-6 gap-6">
-                  <div className="w-16 h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
-                    <span className="text-3xl">
+                <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-4 sm:p-6 gap-4 sm:gap-6">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
+                    <span className="text-2xl sm:text-3xl">
                       <MusicRecordIcon />
                     </span>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <h3 className="text-[20px] font-bold text-[#161410] leading-[28px]">
+                    <h3 className="text-base sm:text-[20px] font-bold text-[#161410] leading-snug sm:leading-[28px]">
                       10,000+ curated samples
                     </h3>
                     <p className="text-[14px] text-[#5e584b] leading-5">
@@ -356,14 +356,14 @@ export default function OnboardingPage() {
                 </div>
 
                 {/* Card 2 */}
-                <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-6 gap-6">
-                  <div className="w-16 h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
-                    <span className="text-3xl">
+                <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-4 sm:p-6 gap-4 sm:gap-6">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
+                    <span className="text-2xl sm:text-3xl">
                       <LayerIcon />
                     </span>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <h3 className="text-[20px] font-bold text-[#161410] leading-[28px]">
+                    <h3 className="text-base sm:text-[20px] font-bold text-[#161410] leading-snug sm:leading-[28px]">
                       No Clearance Headaches
                     </h3>
                     <p className="text-[14px] text-[#5e584b] leading-5">
@@ -373,14 +373,14 @@ export default function OnboardingPage() {
                 </div>
 
                 {/* Card 3 */}
-                <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-6 gap-6">
-                  <div className="w-16 h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
-                    <span className="text-3xl">
+                <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-4 sm:p-6 gap-4 sm:gap-6">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
+                    <span className="text-2xl sm:text-3xl">
                       <HeadsetIcon />
                     </span>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <h3 className="text-[20px] font-bold text-[#161410] leading-[28px]">
+                    <h3 className="text-base sm:text-[20px] font-bold text-[#161410] leading-snug sm:leading-[28px]">
                       New sounds every week
                     </h3>
                     <p className="text-[14px] text-[#5e584b] leading-5">
@@ -390,14 +390,14 @@ export default function OnboardingPage() {
                 </div>
 
                 {/* Card 4 */}
-                <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-6 gap-6">
-                  <div className="w-16 h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
-                    <span className="text-3xl">
+                <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col p-4 sm:p-6 gap-4 sm:gap-6">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 bg-[#e8e2d2] border border-[#d6ceb8] rounded flex items-center justify-center shadow-[0px_6px_18px_0px_rgba(0,0,0,0.1),0px_2px_6px_0px_rgba(0,0,0,0.06)]">
+                    <span className="text-2xl sm:text-3xl">
                       <CoinsIcon />
                     </span>
                   </div>
                   <div className="flex flex-col gap-2">
-                    <h3 className="text-[20px] font-bold text-[#161410] leading-[28px]">
+                    <h3 className="text-base sm:text-[20px] font-bold text-[#161410] leading-snug sm:leading-[28px]">
                       Credits roll over
                     </h3>
                     <p className="text-[14px] text-[#5e584b] leading-5">
@@ -408,20 +408,20 @@ export default function OnboardingPage() {
               </div>
 
               {/* Buttons */}
-              <div className="flex gap-4 w-full max-w-[676px]">
+              <div className="flex gap-3 sm:gap-4 w-full max-w-[676px]">
                 <Button
                   variant="outline"
                   onClick={() => setStep(2)}
                   disabled={isSubmitting}
-                  className="flex-1 h-14 rounded-sm text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
+                  className="flex-1 h-12 sm:h-14 rounded-sm text-base sm:text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
                 >
-                  <ArrowLeftIcon className="mr-2" />
+                  <ArrowLeftIcon className="mr-2 shrink-0" />
                   Back
                 </Button>
                 <Button
                   onClick={handleNext}
                   disabled={isSubmitting}
-                  className="flex-1 h-14 rounded-sm text-lg font-medium bg-[#161410] text-white hover:bg-[#2a2620]"
+                  className="flex-1 h-12 sm:h-14 rounded-sm text-base sm:text-lg font-medium bg-[#161410] text-white hover:bg-[#2a2620]"
                 >
                   Continue
                 </Button>
@@ -431,19 +431,19 @@ export default function OnboardingPage() {
 
           {/* Step 4: Testimonials */}
           {step === 4 && (
-            <div className="flex flex-col gap-12">
+            <div className="flex flex-col gap-8 sm:gap-12">
               {/* Title */}
-              <div className="flex flex-col gap-3 text-center">
-                <p className="text-sm font-semibold text-[#b3402d] uppercase tracking-[0.9px]">
+              <div className="flex flex-col gap-2 sm:gap-3 text-center">
+                <p className="text-xs sm:text-sm font-semibold text-[#b3402d] uppercase tracking-[0.9px]">
                   BUILT FOR MODERN PRODUCERS
                 </p>
-                <h1 className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
+                <h1 className="text-2xl sm:text-[40px] font-bold text-[#161410] leading-tight sm:leading-[48px] tracking-[-0.4px]">
                   Used by creators at every level
                 </h1>
               </div>
 
               {/* Testimonial Cards */}
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 {[
                   {
                     quote: "Finally a sample platform that actually feels curated and thoughtfully selected.",
@@ -464,13 +464,13 @@ export default function OnboardingPage() {
                 ].map((testimonial, idx) => (
                   <div
                     key={idx}
-                    className="bg-[#f6f2e6] border border-[#e8e2d2] rounded p-6 flex flex-col gap-5"
+                    className="bg-[#f6f2e6] border border-[#e8e2d2] rounded p-4 sm:p-6 flex flex-col gap-4 sm:gap-5"
                   >
-                    <div className="w-16 h-16 rounded-full bg-[#dde1e6] overflow-hidden">
+                    <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-full bg-[#dde1e6] overflow-hidden shrink-0">
                       <div className="w-full h-full bg-gradient-to-br from-gray-400 to-gray-500" />
                     </div>
-                    <div className="flex flex-col gap-3">
-                      <p className="text-base leading-6 text-[#161410]">
+                    <div className="flex flex-col gap-3 min-w-0">
+                      <p className="text-sm sm:text-base leading-6 text-[#161410]">
                         &ldquo;{testimonial.quote}&rdquo;
                       </p>
                       <p className="text-sm font-bold leading-5 tracking-[0.1px] text-[#161410]">
@@ -482,20 +482,20 @@ export default function OnboardingPage() {
               </div>
 
               {/* Buttons */}
-              <div className="flex gap-4 w-full max-w-[676px] mx-auto">
+              <div className="flex gap-3 sm:gap-4 w-full max-w-[676px] mx-auto">
                 <Button
                   variant="outline"
                   onClick={() => setStep(3)}
                   disabled={isSubmitting}
-                  className="flex-1 h-14 rounded-sm text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
+                  className="flex-1 h-12 sm:h-14 rounded-sm text-base sm:text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
                 >
-                  <ArrowLeftIcon className="mr-2" />
+                  <ArrowLeftIcon className="mr-2 shrink-0" />
                   Back
                 </Button>
                 <Button
                   onClick={handleNext}
                   disabled={isSubmitting}
-                  className="flex-1 h-14 rounded-sm text-lg font-medium bg-[#161410] text-white hover:bg-[#2a2620]"
+                  className="flex-1 h-12 sm:h-14 rounded-sm text-base sm:text-lg font-medium bg-[#161410] text-white hover:bg-[#2a2620]"
                 >
                   Continue
                 </Button>
@@ -504,13 +504,13 @@ export default function OnboardingPage() {
           )}
           {/* Step 5: Pricing Selection */}
           {step === 5 && (
-            <div className="flex flex-col gap-12 items-center">
+            <div className="flex flex-col gap-8 sm:gap-12 items-center w-full">
               {/* Title */}
-              <div className="flex flex-col gap-3 text-center">
-                <p className="text-sm font-semibold text-[#b3402d] uppercase tracking-[0.9px]">
+              <div className="flex flex-col gap-2 sm:gap-3 text-center">
+                <p className="text-xs sm:text-sm font-semibold text-[#b3402d] uppercase tracking-[0.9px]">
                   START CREATING
                 </p>
-                <h1 className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
+                <h1 className="text-2xl sm:text-[40px] font-bold text-[#161410] leading-tight sm:leading-[48px] tracking-[-0.4px]">
                   Choose how you want to start
                 </h1>
                 <p className="text-sm text-[#5e584b] leading-5 tracking-[0.1px]">
@@ -519,10 +519,10 @@ export default function OnboardingPage() {
               </div>
 
               {/* Pricing Cards */}
-              <div className="flex gap-4 w-[910px] flex-wrap">
+              <div className="flex flex-col sm:flex-row gap-4 w-full max-w-[910px] flex-wrap">
                 {/* Paid plans from API */}
                 {plansLoading ? (
-                  <div className="flex-1 min-w-[280px] bg-[#f6f2e6] rounded p-8 border-2 border-[#e8e2d2] flex items-center justify-center min-h-[280px]">
+                  <div className="w-full sm:flex-1 sm:min-w-[280px] bg-[#f6f2e6] rounded p-6 sm:p-8 border-2 border-[#e8e2d2] flex items-center justify-center min-h-[200px] sm:min-h-[280px]">
                     <span className="text-sm text-[#5e584b]">Loading plans…</span>
                   </div>
                 ) : (
@@ -534,7 +534,7 @@ export default function OnboardingPage() {
                       <div
                         key={plan.id}
                         onClick={() => handleInputChange('selectedPlan', plan.id)}
-                        className={`flex-1 min-w-[280px] bg-[#f6f2e6] rounded p-8 flex flex-col gap-8 relative overflow-hidden border-2 ${
+                        className={`w-full sm:flex-1 sm:min-w-[280px] bg-[#f6f2e6] rounded p-5 sm:p-8 flex flex-col gap-6 sm:gap-8 relative overflow-hidden border-2 cursor-pointer ${
                           isSelected ? 'border-[#161410]' : 'border-[#e8e2d2]'
                         }`}
                       >
@@ -564,11 +564,11 @@ export default function OnboardingPage() {
                           </div>
                           <div className="flex gap-1 items-end flex-wrap">
                             {!isFreePlan && plan.original_price != null && plan.original_price > plan.price && (
-                              <span className="text-[32px] text-[#7f7766] leading-[40px] tracking-[-0.3px] line-through">
+                              <span className="text-2xl sm:text-[32px] text-[#7f7766] leading-[40px] tracking-[-0.3px] line-through">
                                 ${plan.original_price}
                               </span>
                             )}
-                            <span className="text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
+                            <span className="text-3xl sm:text-[40px] font-bold text-[#161410] leading-[48px] tracking-[-0.4px]">
                               ${plan.price}
                             </span>
                             {!isFreePlan && (
@@ -596,20 +596,20 @@ export default function OnboardingPage() {
 
               {/* Buttons and disclaimer */}
               <div className="flex flex-col gap-6 w-full max-w-[676px]">
-                <div className="flex gap-4 w-full">
+                <div className="flex gap-3 sm:gap-4 w-full">
                   <Button
                     variant="outline"
                     onClick={() => setStep(4)}
                     disabled={isSubmitting}
-                    className="flex-1 h-14 rounded-sm text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
+                    className="flex-1 h-12 sm:h-14 rounded-sm text-base sm:text-lg font-medium border-[#a49a84] text-[#161410] hover:bg-[#f5f0e5]"
                   >
-                    <ArrowLeftIcon className="mr-2" />
+                    <ArrowLeftIcon className="mr-2 shrink-0" />
                     Back
                   </Button>
                   <Button
                     onClick={handleButtonClick}
                     disabled={isSubmitting}
-                    className="flex-1 h-14 rounded-sm text-lg font-medium bg-[#161410] text-white hover:bg-[#2a2620]"
+                    className="flex-1 h-12 sm:h-14 rounded-sm text-base sm:text-lg font-medium bg-[#161410] text-white hover:bg-[#2a2620]"
                   >
                     {isSubmitting 
                       ? 'Completing...' 
