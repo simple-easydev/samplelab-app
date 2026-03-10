@@ -3,11 +3,6 @@ import { cn } from '@/lib/utils';
 
 export const SETTINGS_TABS = [
   { label: 'Account settings', path: '/dashboard/settings/account' },
-  { label: 'Plans & credits', path: '/dashboard/settings/plans' },
-  { label: 'Billing', path: '/dashboard/settings/billing' },
-  { label: 'Favorites', path: '#' },
-  { label: 'Downloads', path: '#' },
-  { label: 'My Licenses', path: '#' },
 ] as const;
 
 export function SettingsTabs() {
@@ -15,9 +10,7 @@ export function SettingsTabs() {
   return (
     <div className="border-b border-[#e8e2d2] flex gap-4 items-center w-full shrink-0">
       {SETTINGS_TABS.map((tab) => {
-        const isActive =
-          pathname === tab.path ||
-          (tab.path !== '#' && pathname.startsWith(tab.path));
+        const isActive = pathname === tab.path;
         return (
           <Link
             key={tab.label}

@@ -1,15 +1,5 @@
 import { Link } from 'react-router-dom';
-import {
-  User,
-  Settings,
-  Coins,
-  CreditCard,
-  Heart,
-  Download,
-  FileText,
-  HelpCircle,
-  LogOut,
-} from 'lucide-react';
+import { User, Settings, LogOut } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,52 +36,6 @@ export function UserDropdownMenu({ onLogout }: { onLogout?: () => void }) {
             <Link to="/dashboard/settings/account" className="flex items-center gap-1.5 text-[#161410]">
               <Settings className="size-5 shrink-0" />
               Account settings
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild className={MENU_ITEM_CLASS}>
-<Link to="/dashboard/settings/plans" className="flex items-center gap-1.5">
-                    <Coins className="size-5 shrink-0" />
-                    Plans & credits
-                  </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild className={MENU_ITEM_CLASS}>
-<Link to="/dashboard/settings/billing" className="flex items-center gap-1.5">
-                    <CreditCard className="size-5 shrink-0" />
-                    Billing
-                  </Link>
-          </DropdownMenuItem>
-        </div>
-        <div>
-          <DropdownMenuLabel className={SECTION_HEADER_CLASS}>
-            Library
-          </DropdownMenuLabel>
-          <DropdownMenuItem asChild className={MENU_ITEM_CLASS}>
-            <Link to="#" className="flex items-center gap-1.5">
-              <Heart className="size-5 shrink-0" />
-              Favorites
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild className={MENU_ITEM_CLASS}>
-            <Link to="#" className="flex items-center gap-1.5">
-              <Download className="size-5 shrink-0" />
-              Downloads
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild className={MENU_ITEM_CLASS}>
-            <Link to="#" className="flex items-center gap-1.5">
-              <FileText className="size-5 shrink-0" />
-              My licenses
-            </Link>
-          </DropdownMenuItem>
-        </div>
-        <div>
-          <DropdownMenuLabel className={SECTION_HEADER_CLASS}>
-            Support
-          </DropdownMenuLabel>
-          <DropdownMenuItem asChild className={MENU_ITEM_CLASS}>
-            <Link to="#" className="flex items-center gap-1.5">
-              <HelpCircle className="size-5 shrink-0" />
-              Help center
             </Link>
           </DropdownMenuItem>
         </div>

@@ -148,9 +148,11 @@ export interface SampleRowProps {
   variant?: 'full' | 'compact';
   /** Optional rank number; shown as leading column when variant is "compact". */
   rank?: number;
+  /** When true, show filled heart and "Remove from favorites" (e.g. on Favorites page). */
+  isFavorited?: boolean;
 }
 
-export function SampleRow({ item, variant = 'full', rank }: SampleRowProps) {
+export function SampleRow({ item, variant = 'full', rank, isFavorited = false }: SampleRowProps) {
   const [fullRowHovered, setFullRowHovered] = useState(false);
 
   if (variant === 'compact') {
@@ -196,9 +198,9 @@ export function SampleRow({ item, variant = 'full', rank }: SampleRowProps) {
             type="button"
             onClick={(e) => e.stopPropagation()}
             className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors"
-            aria-label="Add to favorites"
+            aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
           >
-            <Heart className="size-5" />
+            <Heart className={`size-5 ${isFavorited ? 'fill-current' : ''}`} />
           </button>
           <button
             type="button"
@@ -314,9 +316,9 @@ export function SampleRow({ item, variant = 'full', rank }: SampleRowProps) {
               type="button"
               onClick={(e) => e.stopPropagation()}
               className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors"
-              aria-label="Add to favorites"
+              aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
             >
-              <Heart className="size-5" />
+              <Heart className={`size-5 ${isFavorited ? 'fill-current' : ''}`} />
             </button>
             <button
               type="button"
