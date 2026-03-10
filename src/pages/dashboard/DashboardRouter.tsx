@@ -11,6 +11,7 @@ import CreatorDetailPage from './CreatorDetailPage';
 import GenreDetailPage from './GenreDetailPage';
 import AccountSettingsPage from './AccountSettingsPage';
 import PlansAndCreditsPage from './PlansAndCreditsPage';
+import BillingPage from './BillingPage';
 import { DASHBOARD_TABS } from './DashboardTabContent';
 
 type DashboardTabId = (typeof DASHBOARD_TABS)[number]['id'];
@@ -101,6 +102,9 @@ export default function DashboardRouter() {
 
       {/* /dashboard/settings/plans — plans & credits page */}
       <Route path="settings/plans" element={<PlansAndCreditsPage />} />
+
+      {/* /dashboard/settings/billing — billing page */}
+      <Route path="settings/billing" element={<BillingPage />} />
 
       {/* /dashboard/:tabName — tab content, optional ?q= & ?genre= etc. */}
       <Route

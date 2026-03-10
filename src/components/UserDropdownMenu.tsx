@@ -55,10 +55,10 @@ export function UserDropdownMenu({ onLogout }: { onLogout?: () => void }) {
                   </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild className={MENU_ITEM_CLASS}>
-            <Link to="#" className="flex items-center gap-1.5">
-              <CreditCard className="size-5 shrink-0" />
-              Billing
-            </Link>
+<Link to="/dashboard/settings/billing" className="flex items-center gap-1.5">
+                    <CreditCard className="size-5 shrink-0" />
+                    Billing
+                  </Link>
           </DropdownMenuItem>
         </div>
         <div>
