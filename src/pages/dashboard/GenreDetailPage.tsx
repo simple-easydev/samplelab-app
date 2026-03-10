@@ -261,8 +261,9 @@ export default function GenreDetailPage() {
           </div>
         )}
 
-        <ExploreLibraryCta />
       </div>
+        <ExploreLibraryCta />
+        
     </div>
   );
 }

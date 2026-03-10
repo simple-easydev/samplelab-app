@@ -1,16 +1,50 @@
 /**
  * Reusable "Explore the full library" CTA block.
- * Dark background, overline, title, description, and Browse library button.
+ * Dark background, overline, title, description, Browse library button,
+ * and a strip of overlapping library cover placeholders.
  * Used on CreatorDetailPage, PackDetailPage, and other detail pages.
+ * Design: Figma Platform UX/UI — node 857:69521
  */
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 
 export interface ExploreLibraryCtaProps {
   /** Optional custom handler for the Browse library button. Defaults to navigating to /dashboard/discover. */
   onBrowseClick?: () => void;
   /** Optional additional class name for the wrapper. */
   className?: string;
+}
+
+/** Overlapping library cover strip — placeholder tiles matching Figma layout (CoolGray scale). */
+function LibraryCoversStrip() {
+  const coverConfig = [
+    { size: 182, left: 'calc(50% - 363px)', bg: '#878d96', center: true },
+    { size: 182, right: 0, left: undefined, bg: '#878d96', center: false },
+    { size: 209, left: 'calc(50% + 257.5px)', bg: '#a2a9b0', center: true },
+    { size: 209, left: 'calc(50% - 257.5px)', bg: '#a2a9b0', center: true },
+    { size: 234, left: 'calc(50% + 128px)', bg: '#c1c7cd', center: true },
+    { size: 234, left: 'calc(50% - 129px)', bg: '#c1c7cd', center: true },
+    { size: 258, left: '50%', bg: '#dde1e6', center: true },
+  ];
+
+  return (
+    <div className="h-[258px] relative w-full max-w-[910px] mx-auto" aria-hidden>
+      {coverConfig.map(({ size, left, right, bg, center }, idx) => (
+        <div
+          key={idx}
+          className="absolute bottom-0 overflow-hidden rounded-t-sm"
+          style={{
+            width: size,
+            height: size,
+            left: right === 0 ? undefined : left,
+            right: right === 0 ? 0 : undefined,
+            transform: center ? 'translateX(-50%)' : undefined,
+            backgroundColor: bg,
+          }}
+        />
+      ))}
+    </div>
+  );
 }
 
 export function ExploreLibraryCta({ onBrowseClick, className = '' }: ExploreLibraryCtaProps) {
@@ -26,25 +60,32 @@ export function ExploreLibraryCta({ onBrowseClick, className = '' }: ExploreLibr
 
   return (
     <div
-      className={`mt-16 rounded-lg bg-[#26231e] px-8 py-16 flex flex-col items-center gap-6 text-center ${className}`.trim()}
+      className={`mt-16 bg-[#26231e] flex flex-col items-center gap-16 pt-32 pb-0 px-8 text-center ${className}`.trim()}
     >
-      <p className="text-[#f3c16c] text-lg font-semibold tracking-[0.8px] uppercase">
-        Looking for more?
-      </p>
-      <h2 className="text-[#fffbf0] text-3xl sm:text-4xl font-bold tracking-[-0.6px]">
-        Explore the full library
-      </h2>
-      <p className="text-[#e8e2d2] text-base max-w-xl">
-        Browse all packs and samples across genres, moods, and styles
-      </p>
-      <button
-        type="button"
-        onClick={handleClick}
-        className="border border-[#fffbf0]/30 h-14 px-5 rounded-xs flex items-center gap-2 text-[#fffbf0] text-lg font-medium hover:bg-[#fffbf0]/10 transition-colors"
-      >
-        Browse library
-        <ArrowLeft className="size-7 rotate-180" />
-      </button>
+      <div className="flex flex-col items-center gap-12">
+        <div className="flex flex-col gap-5 items-center text-center w-full max-w-[676px]">
+          <div className="flex flex-col gap-4 w-full">
+            <p className="text-[#f3c16c] text-lg font-semibold tracking-[0.8px] uppercase leading-6">
+              Looking for more?
+            </p>
+            <h2 className="text-[#fffbf0] text-[48px] font-bold leading-[56px] tracking-[-0.6px]">
+              Explore the full library
+            </h2>
+          </div>
+          <p className="text-[#e8e2d2] text-base leading-6 w-full">
+            Browse all packs and samples across genres, moods, and styles
+          </p>
+        </div>
+        <button
+          type="button"
+          onClick={handleClick}
+          className="border border-[#fffbf0]/30 h-14 px-5 rounded-xs flex items-center justify-center gap-2 text-[#fffbf0] text-lg font-medium hover:bg-[#fffbf0]/10 transition-colors"
+        >
+          Browse library
+          <ArrowRight className="size-7 shrink-0" aria-hidden />
+        </button>
+      </div>
+      <LibraryCoversStrip />
     </div>
   );
 }

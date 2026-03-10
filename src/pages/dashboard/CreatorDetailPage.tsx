@@ -220,8 +220,8 @@ export default function CreatorDetailPage() {
           </CardCarousel>
         </div>
 
-        <ExploreLibraryCta />
       </div>
+        <ExploreLibraryCta />
     </div>
   );
 }

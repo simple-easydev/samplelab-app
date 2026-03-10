@@ -217,8 +217,8 @@ export default function PackDetailPage() {
           ))}
         </CardCarousel>
 
-        <ExploreLibraryCta />
       </div>
+        <ExploreLibraryCta />
     </div>
   );
 }

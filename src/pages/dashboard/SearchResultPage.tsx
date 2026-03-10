@@ -213,8 +213,8 @@ export default function SearchResultPage() {
           </CardCarousel>
           </div>
         </div>
-        <ExploreLibraryCta />
       </div>
+      <ExploreLibraryCta />
     </div>
   );
 }
