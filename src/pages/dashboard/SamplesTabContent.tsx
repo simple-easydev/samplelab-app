@@ -28,7 +28,7 @@ function mapAllSampleToSimilarItem(
     premium: false,
     bpm: sample.bpm ?? undefined,
     key: sample.key ?? undefined,
-    imageUrl: null,
+    imageUrl: sample.thumbnail_url ?? undefined,
   };
 }
 

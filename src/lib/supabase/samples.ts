@@ -19,6 +19,7 @@ export interface SampleRowAll {
   pack_name: string;
   creator_name: string;
   audio_url: string | null;
+  thumbnail_url: string | null;
   genre: string | null;
   bpm: number | null;
   key: string | null;
