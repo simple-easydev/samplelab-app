@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { AccessGate } from '@/components/AccessGate';
 import { SampleRow, type SimilarSampleItem } from '@/components/SampleRow';
 import { useSubscription } from '@/hooks/useSubscription';
-import { getAllSamples } from '@/lib/supabase/samples';
+import { getAllSamples, getSampleMetadata, formatDurationSeconds } from '@/lib/supabase/samples';
 import { SamplesFilterBar } from './SamplesFilterBar';
 
 function mapAllSampleToSimilarItem(
@@ -14,11 +14,15 @@ function mapAllSampleToSimilarItem(
   if (sample.has_stems) tags.push('Stems');
   if (sample.type) tags.push(sample.type);
 
+  const metadata = getSampleMetadata(sample);
+
   return {
     id: sample.id,
     name: sample.name,
     creator: sample.creator_name,
-    duration: '—',
+    duration: metadata ? formatDurationSeconds(metadata.duration_seconds) : '—',
+    waveformBars: metadata?.bars,
+    audioUrl: sample.audio_url ?? undefined,
     tags,
     royaltyFree: true,
     premium: false,

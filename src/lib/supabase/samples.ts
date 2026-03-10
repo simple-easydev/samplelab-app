@@ -1,8 +1,16 @@
 import { supabase } from './client';
 
 /**
+ * Audio metadata returned per sample (waveform bars and duration).
+ */
+export interface SampleMetadata {
+  bars: number[];
+  duration_seconds: number;
+}
+
+/**
  * Sample row returned by RPC get_all_samples (admin library Samples tab).
- * Matches API: id, name, pack_name, creator_name, genre, stems_count, etc.
+ * Matches API: id, name, pack_name, creator_name, genre, stems_count, metadata, etc.
  */
 export interface SampleRowAll {
   id: string;
@@ -10,6 +18,7 @@ export interface SampleRowAll {
   pack_id: string;
   pack_name: string;
   creator_name: string;
+  audio_url: string | null;
   genre: string | null;
   bpm: number | null;
   key: string | null;
@@ -19,6 +28,8 @@ export interface SampleRowAll {
   has_stems: boolean;
   stems_count: number;
   created_at: string;
+  /** Waveform bars and duration; may be JSON string from DB. */
+  metadata?: SampleMetadata | string | null;
 }
 
 /**
@@ -34,4 +45,29 @@ export async function getAllSamples(): Promise<SampleRowAll[]> {
   }
 
   return Array.isArray(data) ? (data as SampleRowAll[]) : [];
+}
+
+/** Parse metadata from row (handles JSON string from DB). */
+export function getSampleMetadata(row: SampleRowAll): SampleMetadata | null {
+  const raw = row.metadata;
+  if (!raw) return null;
+  if (typeof raw === 'string') {
+    try {
+      const parsed = JSON.parse(raw) as SampleMetadata;
+      return Array.isArray(parsed?.bars) && typeof parsed?.duration_seconds === 'number'
+        ? parsed
+        : null;
+    } catch {
+      return null;
+    }
+  }
+  return Array.isArray(raw.bars) && typeof raw.duration_seconds === 'number' ? raw : null;
+}
+
+/** Format duration in seconds to "M:SS" (e.g. 42.5 → "0:42"). */
+export function formatDurationSeconds(seconds: number): string {
+  const secs = Math.floor(seconds);
+  const m = Math.floor(secs / 60);
+  const s = secs % 60;
+  return `${m}:${s.toString().padStart(2, '0')}`;
 }

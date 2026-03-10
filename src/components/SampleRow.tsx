@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Crown, Play, Heart, Download, MoreVertical, FolderOpen, User, Share2 } from 'lucide-react';
+import { useEffect, useRef, useState } from 'react';
+import { Crown, Play, Pause, Heart, Download, MoreVertical, FolderOpen, User, Share2 } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +14,8 @@ export interface SimilarSampleItem {
   duration: string;
   /** Play progress 0–1 (e.g. 0.35 = 35% played). Used by SoundWave. */
   progress?: number;
+  /** Waveform bar heights 0–1 from sample metadata; when set, used for visualization. */
+  waveformBars?: number[];
   /** First row: e.g. genre, type (Loop), Stems */
   tags: string[];
   /** Second row: show "Royalty-Free" */
@@ -23,6 +25,8 @@ export interface SimilarSampleItem {
   bpm?: number;
   key?: string;
   imageUrl?: string | null;
+  /** Optional audio URL for playback. */
+  audioUrl?: string | null;
 }
 
 const BAR_COUNT = 48;
@@ -67,6 +71,8 @@ export interface SoundWaveProps {
   duration: string;
   /** Fixed play progress from 0 to 1 (e.g. 0.35 = 35% played). Waveform and time use this value. */
   progress?: number;
+  /** Bar heights 0–1 from sample metadata; when provided, used for waveform instead of placeholder. */
+  waveformBars?: number[];
   /** Show elapsed time (e.g. "0:12") or remaining time (e.g. "0:22"). Default "remaining". */
   timeDisplay?: SoundWaveTimeDisplay;
   /** When true, waveform bars use darker colors (hover/active state). */
@@ -77,22 +83,19 @@ export interface SoundWaveProps {
 function SoundWave({
   duration,
   progress: progressProp = 0,
+  waveformBars,
   timeDisplay = 'remaining',
   emphasized = false,
   className,
 }: SoundWaveProps) {
   const durationSec = parseDurationToSeconds(duration);
-  const [seekElapsed, setSeekElapsed] = useState<number | null>(null);
+  const bars = waveformBars && waveformBars.length > 0 ? waveformBars : WAVEFORM;
+  const barCount = bars.length;
 
   const progress = Math.max(0, Math.min(1, progressProp));
-  const elapsed = seekElapsed ?? progress * durationSec;
+  const elapsed = progress * durationSec;
   const effectiveProgress = durationSec > 0 ? elapsed / durationSec : 0;
-  const playedIndex = Math.floor(effectiveProgress * BAR_COUNT);
-
-  const handleBarClick = (i: number) => {
-    const newElapsed = (i / BAR_COUNT) * durationSec;
-    setSeekElapsed(+newElapsed.toFixed(1));
-  };
+  const playedIndex = Math.floor(effectiveProgress * barCount);
 
   const displayTime =
     timeDisplay === 'passed'
@@ -104,23 +107,21 @@ function SoundWave({
 
   return (
     <div
-      className={className}
+      className={[className, 'min-w-0 overflow-hidden'].filter(Boolean).join(' ')}
       role="group"
       aria-label="Waveform"
     >
-      <div className="flex items-center gap-2 h-10 min-w-0 flex-1 max-w-[277px]">
+      <div className="flex items-center gap-2 h-10 min-w-0 w-full">
         <div
-          className="flex items-center flex-1 h-full gap-0.5 cursor-pointer min-w-0"
+          className="flex items-center flex-1 h-full gap-0.5 cursor-pointer min-w-0 overflow-hidden"
           style={{ minHeight: '40px' }}
         >
-          {WAVEFORM.map((val, i) => {
+          {bars.map((val, i) => {
             const played = i <= playedIndex;
             return (
-              <button
+              <div
                 key={i}
-                type="button"
-                onClick={() => handleBarClick(i)}
-                className="flex-1 min-w-[2px] max-w-[4.5px] rounded-full transition-colors duration-150 ease-out border-0 cursor-pointer p-0"
+                className="flex-1 min-w-0 max-w-[4.5px] rounded-full transition-colors duration-150 ease-out border-0 cursor-pointer p-0"
                 style={{
                   height: `${val * 100}%`,
                   background: played ? playedColor : unplayedColor,
@@ -154,6 +155,50 @@ export interface SampleRowProps {
 
 export function SampleRow({ item, variant = 'full', rank, isFavorited = false }: SampleRowProps) {
   const [fullRowHovered, setFullRowHovered] = useState(false);
+  const [audioProgress, setAudioProgress] = useState(0);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  useEffect(() => {
+    return () => {
+      if (audioRef.current) {
+        audioRef.current.pause();
+        audioRef.current = null;
+      }
+    };
+  }, []);
+
+  const totalSeconds = item.waveformBars && item.waveformBars.length > 0
+    ? parseDurationToSeconds(item.duration)
+    : parseDurationToSeconds(item.duration);
+
+  const handleTogglePlay = () => {
+    if (!item.audioUrl) return;
+    let audio = audioRef.current;
+    if (!audio) {
+      audio = new Audio(item.audioUrl);
+      audioRef.current = audio;
+      const currentAudio = audio;
+      audio.addEventListener('timeupdate', () => {
+        if (!currentAudio) return;
+        const dur = totalSeconds || currentAudio.duration || 0;
+        if (dur > 0) {
+          setAudioProgress(currentAudio.currentTime / dur);
+        }
+      });
+      audio.addEventListener('ended', () => {
+        setAudioProgress(0);
+        setIsPlaying(false);
+      });
+    }
+    if (audio.paused) {
+      void audio.play();
+      setIsPlaying(true);
+    } else {
+      audio.pause();
+      setIsPlaying(false);
+    }
+  };
 
   if (variant === 'compact') {
     return (
@@ -164,26 +209,39 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
           </span>
         )}
         {/* Thumbnail with hover overlay + play button (Figma 804-32679) */}
-        <div className="relative size-14 shrink-0 rounded-sm overflow-hidden border border-[#e8e2d2] bg-white">
-          {item.imageUrl ? (
-            <img
-              src={item.imageUrl}
-              alt=""
-              className="absolute inset-0 size-full object-cover"
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            handleTogglePlay();
+          }}
+          className="shrink-0"
+        >
+          <div className="relative size-14 rounded-sm overflow-hidden border border-[#e8e2d2] bg-white">
+            {item.imageUrl ? (
+              <img
+                src={item.imageUrl}
+                alt=""
+                className="absolute inset-0 size-full object-cover"
+              />
+            ) : (
+              <div className="absolute inset-0 bg-[#e8e2d2]" aria-hidden />
+            )}
+            <div
+              className={`absolute inset-0 bg-[#161410] transition-opacity duration-200 ${isPlaying ? 'opacity-50' : 'opacity-0 group-hover:opacity-50'}`}
+              aria-hidden
             />
-          ) : (
-            <div className="absolute inset-0 bg-[#e8e2d2]" aria-hidden />
-          )}
-          <div
-            className="absolute inset-0 bg-[#161410] opacity-0 transition-opacity duration-200 group-hover:opacity-50"
-            aria-hidden
-          />
-          <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none">
-            <div className="flex size-10 items-center justify-center rounded-full bg-[#161410]/80 border border-[#e8e2d2]/20">
-              <Play className="size-5 text-[#fffbf0] fill-[#fffbf0] shrink-0" aria-hidden />
+            <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+              <div className="flex size-10 items-center justify-center rounded-full bg-[#161410]/80 border border-[#e8e2d2]/20">
+                {isPlaying ? (
+                  <Pause className="size-5 text-[#fffbf0] fill-[#fffbf0] shrink-0" aria-hidden />
+                ) : (
+                  <Play className="size-5 text-[#fffbf0] fill-[#fffbf0] shrink-0" aria-hidden />
+                )}
+              </div>
             </div>
           </div>
-        </div>
+        </button>
         <div className="flex flex-col gap-1 min-w-0 flex-1 justify-center">
           <p className="text-[#161410] text-sm font-bold leading-5 truncate tracking-[0.1px]">
             {item.name}
@@ -227,26 +285,39 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
       >
         {/* Column 1: Thumbnail (with hover play overlay) + sample name + creator – Figma 804-36336 */}
         <div className="flex gap-4 h-14 items-center min-w-0">
-          <div className="relative size-14 shrink-0 rounded-sm overflow-hidden border border-[#e8e2d2] bg-white">
-            {item.imageUrl ? (
-              <img
-                src={item.imageUrl}
-                alt=""
-                className="absolute inset-0 size-full object-cover"
+          <button
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              handleTogglePlay();
+            }}
+            className="shrink-0"
+          >
+            <div className="relative size-14 rounded-sm overflow-hidden border border-[#e8e2d2] bg-white">
+              {item.imageUrl ? (
+                <img
+                  src={item.imageUrl}
+                  alt=""
+                  className="absolute inset-0 size-full object-cover"
+                />
+              ) : (
+                <div className="absolute inset-0 bg-[#e8e2d2]" aria-hidden />
+              )}
+              <div
+                className={`absolute inset-0 bg-[#161410] transition-opacity duration-200 ${isPlaying ? 'opacity-50' : 'opacity-0 group-hover:opacity-50'}`}
+                aria-hidden
               />
-            ) : (
-              <div className="absolute inset-0 bg-[#e8e2d2]" aria-hidden />
-            )}
-            <div
-              className="absolute inset-0 bg-[#161410] opacity-0 transition-opacity duration-200 group-hover:opacity-50"
-              aria-hidden
-            />
-            <div className="absolute inset-0 flex items-center justify-center opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none">
-              <div className="flex size-10 items-center justify-center rounded-full bg-[#161410]/80 border border-[#e8e2d2]/20">
-                <Play className="size-5 text-[#fffbf0] fill-[#fffbf0] shrink-0" aria-hidden />
+              <div className={`absolute inset-0 flex items-center justify-center transition-opacity duration-200 pointer-events-none ${isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
+                <div className="flex size-10 items-center justify-center rounded-full bg-[#161410]/80 border border-[#e8e2d2]/20">
+                  {isPlaying ? (
+                    <Pause className="size-5 text-[#fffbf0] fill-[#fffbf0] shrink-0" aria-hidden />
+                  ) : (
+                    <Play className="size-5 text-[#fffbf0] fill-[#fffbf0] shrink-0" aria-hidden />
+                  )}
+                </div>
               </div>
             </div>
-          </div>
+          </button>
           <div className="flex flex-col gap-1 min-w-0 flex-1 justify-center">
             <p className="text-[#161410] text-sm font-bold leading-5 truncate tracking-[0.1px]">
               {item.name}
@@ -261,7 +332,8 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
         <div className="hidden sm:flex items-center gap-2 min-w-0 w-full">
           <SoundWave
             duration={item.duration}
-            progress={item.progress ?? 0}
+            progress={audioProgress}
+            waveformBars={item.waveformBars}
             timeDisplay="passed"
             emphasized={fullRowHovered}
             className="h-10 shrink-0 flex-1 min-w-0"
