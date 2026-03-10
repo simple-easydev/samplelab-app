@@ -19,7 +19,7 @@ import {
   NEW_RELEASES_ITEMS,
   creatorNameToSlug,
 } from './constants';
-import { AccessGate } from '@/components/AccessGate';
+import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
 
 const SEARCH_RESULT_TABS = [
   { id: 'all', label: 'All' },
@@ -206,8 +206,8 @@ export default function SearchResultPage() {
           </CardCarousel>
           </div>
         </div>
+        <ExploreLibraryCta />
       </div>
-      <AccessGate />
     </div>
   );
 }
