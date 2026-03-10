@@ -1,34 +1,60 @@
-/**
- * Genres tab – Figma 821-60314.
- * Filter bar (Curated, A-Z), Search genres, and grid of GenreCards.
- * When URL has ?q=..., shows SearchQueryChip instead of the search input.
- */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { GenreCard } from '@/components/GenreCard';
+import { getAllGenres } from '@/lib/supabase/genres';
 import { genreNameToSlug } from './constants';
 import { Input } from '@/components/ui/input';
 import { SearchQueryChip } from '@/components/SearchQueryChip';
-import { GENRES_SORT_OPTIONS, GENRES_GRID_ITEMS } from './constants';
+import { GENRES_SORT_OPTIONS } from './constants';
+
+function getDisplayName(name: string): string {
+  if (!name) return name;
+  return name
+    .split(' ')
+    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
+    .join(' ');
+}
 
 export function GenresTabContent() {
   const [searchParams, setSearchParams] = useSearchParams();
   const qFromUrl = searchParams.get('q') ?? '';
   const [sortId, setSortId] = useState<string>('curated');
   const [searchQuery, setSearchQuery] = useState('');
+   const [genres, setGenres] = useState<Awaited<ReturnType<typeof getAllGenres>>>([]);
+   const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setLoading(true);
+    });
+    getAllGenres()
+      .then((data) => {
+        if (!cancelled) {
+          setGenres(data);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   const filteredGenres = useMemo(() => {
     const raw = qFromUrl.trim() || searchQuery.trim();
     const q = raw.toLowerCase();
     const list = q
-      ? GENRES_GRID_ITEMS.filter((g) => g.name.toLowerCase().includes(q))
-      : GENRES_GRID_ITEMS;
+      ? genres.filter((g) => g.name.toLowerCase().includes(q))
+      : genres;
     if (sortId === 'a-z') {
       return [...list].sort((a, b) => a.name.localeCompare(b.name));
     }
     return list;
-  }, [qFromUrl, searchQuery, sortId]);
+  }, [qFromUrl, searchQuery, sortId, genres]);
 
   return (
     <div className="mb-8 flex flex-col gap-8 relative">
@@ -84,15 +110,19 @@ export function GenresTabContent() {
         {/* Genre cards grid – Figma 821-38787, gap 24px */}
         <section className="w-full" aria-label="Genres">
           <div className="flex flex-wrap gap-6 items-center content-center w-full">
-            {filteredGenres.map((genre) => (
-              <Link
-                key={genre.name}
-                to={`/dashboard/genres/${genreNameToSlug(genre.name)}`}
-                className="contents"
-              >
-                <GenreCard name={genre.name} imageUrl={genre.imageUrl} />
-              </Link>
-            ))}
+            {loading ? (
+              <p className="text-[#5e584b] text-sm">Loading genres…</p>
+            ) : (
+              filteredGenres.map((genre) => (
+                <Link
+                  key={genre.id}
+                  to={`/dashboard/genres/${genreNameToSlug(genre.name)}`}
+                  className="contents"
+                >
+                  <GenreCard name={getDisplayName(genre.name)} />
+                </Link>
+              ))
+            )}
           </div>
         </section>
       </div>

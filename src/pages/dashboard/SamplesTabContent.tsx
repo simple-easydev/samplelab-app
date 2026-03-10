@@ -1,29 +1,30 @@
+import { useEffect, useMemo, useState } from 'react';
 import { AccessGate } from '@/components/AccessGate';
 import { SampleRow, type SimilarSampleItem } from '@/components/SampleRow';
 import { useSubscription } from '@/hooks/useSubscription';
+import { getAllSamples } from '@/lib/supabase/samples';
 import { SamplesFilterBar } from './SamplesFilterBar';
-import { SAMPLES_LIST } from './constants';
 
-function mapSampleListItemToSimilarItem(
-  sample: (typeof SAMPLES_LIST)[number],
-  index: number
+function mapAllSampleToSimilarItem(
+  sample: Awaited<ReturnType<typeof getAllSamples>>[number]
 ): SimilarSampleItem {
   const tags: string[] = [];
   if (sample.genre) tags.push(sample.genre);
-  if (sample.tags?.length) tags.push(...sample.tags);
-  const bpmNum =
-    sample.bpm != null ? parseInt(sample.bpm.replace(/\D/g, ''), 10) : undefined;
+  tags.push(sample.pack_name);
+  if (sample.has_stems) tags.push('Stems');
+  if (sample.type) tags.push(sample.type);
+
   return {
-    id: `sample-${index}`,
+    id: sample.id,
     name: sample.name,
-    creator: sample.creator,
-    duration: sample.duration,
+    creator: sample.creator_name,
+    duration: '—',
     tags,
-    royaltyFree: sample.license === 'Royalty-Free',
-    premium: sample.premium ?? false,
-    bpm: Number.isNaN(bpmNum) ? undefined : bpmNum,
-    key: sample.key,
-    imageUrl: sample.imageUrl ?? null,
+    royaltyFree: true,
+    premium: false,
+    bpm: sample.bpm ?? undefined,
+    key: sample.key ?? undefined,
+    imageUrl: null,
   };
 }
 
@@ -34,16 +35,44 @@ function mapSampleListItemToSimilarItem(
 export function SamplesTabContent() {
   const { isActive } = useSubscription();
 
-  const sampleItems: SimilarSampleItem[] = SAMPLES_LIST.map(mapSampleListItemToSimilarItem);
+  const [samples, setSamples] = useState<Awaited<ReturnType<typeof getAllSamples>>>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setLoading(true);
+    });
+    getAllSamples()
+      .then((data) => {
+        if (!cancelled) {
+          setSamples(data);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  const sampleItems: SimilarSampleItem[] = useMemo(
+    () => samples.map(mapAllSampleToSimilarItem),
+    [samples]
+  );
 
   const content = (
     <>
       <SamplesFilterBar />
       <section className="w-full" aria-label="Samples list">
         <div className="border border-[#e8e2d2] rounded overflow-hidden flex flex-col">
-          {sampleItems.map((item) => (
-            <SampleRow key={item.id} item={item} />
-          ))}
+          {loading ? (
+            <p className="text-[#5e584b] text-sm p-4">Loading samples…</p>
+          ) : (
+            sampleItems.map((item) => <SampleRow key={item.id} item={item} />)
+          )}
         </div>
       </section>
     </>
