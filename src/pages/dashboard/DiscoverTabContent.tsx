@@ -15,7 +15,6 @@ import {
   LIKED_PACK_NAME,
   FEATURED_CREATORS,
   TOP_GENRES,
-  creatorNameToSlug,
   genreNameToSlug,
 } from './constants';
 
@@ -87,9 +86,8 @@ export function DiscoverTabContent({ variant = 'default' }: DiscoverTabContentPr
           <CreatorCard
             key={creator.name}
             name={creator.name}
-            followersCount={creator.followersCount}
+            samplesCount={creator.samplesCount}
             packsCount={creator.packsCount}
-            creatorSlug={creatorNameToSlug(creator.name)}
           />
         ))}
       </CardCarousel>

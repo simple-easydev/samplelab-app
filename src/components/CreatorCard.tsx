@@ -3,26 +3,27 @@
  * Circular avatar, "Creator" overline, name, tag pills (e.g. followers, packs).
  */
 import { Link } from 'react-router-dom';
-import { Play, FolderOpen } from 'lucide-react';
+import { Music2, FolderOpen } from 'lucide-react';
 
 export interface CreatorCardProps {
+  /** Creator display name */
   name: string;
-  /** e.g. followers or play count "100" */
-  followersCount?: string;
+  /** Creator UUID; when set, card links to /dashboard/creators/:id */
+  creatorId?: string;
+  /** e.g. "120" for number of samples */
+  samplesCount?: string;
   /** e.g. "10" for number of packs */
   packsCount?: string;
   /** Optional avatar image URL; placeholder used if not provided */
   imageUrl?: string;
-  /** Optional slug for creator detail link (e.g. "creator-name"). When set, card links to /dashboard/creators/:slug */
-  creatorSlug?: string;
 }
 
 export function CreatorCard({
   name,
-  followersCount,
+  creatorId,
+  samplesCount,
   packsCount,
   imageUrl,
-  creatorSlug,
 }: CreatorCardProps) {
   const cardContent = (
     <>
@@ -55,11 +56,11 @@ export function CreatorCard({
         <div className="border-t border-[#e8e2d2] w-full shrink-0" aria-hidden />
 
         <div className="flex gap-2 h-6 items-center justify-center flex-wrap">
-          {followersCount != null && (
+          {samplesCount != null && (
             <div className="bg-[#e8e2d2] border border-[#d6ceb8] flex gap-0.5 h-5 items-center justify-center px-1.5 rounded-md shrink-0">
-              <Play className="size-3 text-[#161410]" aria-hidden />
+              <Music2 className="size-3 text-[#161410]" aria-hidden />
               <span className="text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]">
-                {followersCount}
+                {samplesCount}
               </span>
             </div>
           )}
@@ -79,11 +80,16 @@ export function CreatorCard({
   const className =
     'bg-[#f6f2e6] border border-[#e8e2d2] rounded-[4px] flex flex-col gap-2 overflow-hidden pb-4 shrink-0 w-[209px] min-h-[325px] items-center transition-[border-color,box-shadow] hover:border-[#d6ceb8] hover:shadow-[0_6px_18px_0_rgba(0,0,0,0.10),0_2px_6px_0_rgba(0,0,0,0.06)]';
 
-  if (creatorSlug != null && creatorSlug !== '') {
+  const commonProps = {
+    className,
+    ...(creatorId != null && { 'data-creator-id': creatorId }),
+  };
+
+  if (creatorId != null && creatorId !== '') {
     return (
       <Link
-        to={`/dashboard/creators/${creatorSlug}`}
-        className={className}
+        to={`/dashboard/creators/${creatorId}`}
+        {...commonProps}
         aria-label={`View ${name} profile`}
       >
         {cardContent}
@@ -91,5 +97,5 @@ export function CreatorCard({
     );
   }
 
-  return <article className={className}>{cardContent}</article>;
+  return <article {...commonProps}>{cardContent}</article>;
 }

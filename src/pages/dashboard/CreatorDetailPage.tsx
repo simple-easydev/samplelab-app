@@ -2,8 +2,9 @@
  * Creator detail page – Figma 863-95877.
  * Back/Share, circular avatar, overline + name, samples/packs counts, tags, description,
  * Packs carousel, Samples filter bar + list, Similar Creators carousel, Explore library CTA.
+ * Resolves creator by URL param creatorId (UUID).
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Share2 } from 'lucide-react';
 import { SamplePackCard } from '@/components/SamplePackCard';
@@ -11,9 +12,8 @@ import { CardCarousel } from '@/components/CardCarousel';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
 import { CreatorCard } from '@/components/CreatorCard';
 import { SampleRow, type SimilarSampleItem } from '@/components/SampleRow';
+import { getCreatorById } from '@/lib/supabase/creators';
 import {
-  getCreatorBySlug,
-  creatorNameToSlug,
   PACKS_GRID_ITEMS,
   CREATORS_GRID_ITEMS,
   SAMPLES_LIST,
@@ -56,10 +56,37 @@ function mapSampleToList(sample: (typeof SAMPLES_LIST)[number], index: number): 
 export default function CreatorDetailPage() {
   const { creatorId } = useParams<{ creatorId: string }>();
   const navigate = useNavigate();
-  const creator = creatorId ? getCreatorBySlug(creatorId) : undefined;
+  const [creator, setCreator] = useState<Awaited<ReturnType<typeof getCreatorById>>>(null);
+  const [loading, setLoading] = useState(true);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
-  if (!creatorId || !creator) {
+  useEffect(() => {
+    if (!creatorId) {
+      queueMicrotask(() => setLoading(false));
+      return;
+    }
+    let cancelled = false;
+    getCreatorById(creatorId)
+      .then((data) => {
+        if (!cancelled) setCreator(data);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [creatorId]);
+
+  if (!creatorId || loading) {
+    return (
+      <div className="min-h-screen bg-[#fffbf0] flex items-center justify-center gap-4">
+        <p className="text-[#7f7766]">{creatorId ? 'Loading…' : 'Creator not found.'}</p>
+      </div>
+    );
+  }
+
+  if (!creator) {
     return (
       <div className="min-h-screen bg-[#fffbf0] flex items-center justify-center gap-4">
         <p className="text-[#7f7766]">Creator not found.</p>
@@ -98,7 +125,15 @@ export default function CreatorDetailPage() {
         <div className="flex gap-8 items-start flex-wrap">
           {/* Circular avatar – Figma 326px */}
           <div className="rounded-full w-[326px] h-[326px] shrink-0 overflow-hidden bg-[#e8e2d2]">
-            <div className="w-full h-full bg-[#dde1e6]" aria-hidden />
+            {creator.avatar_url ? (
+              <img
+                src={creator.avatar_url}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-[#dde1e6]" aria-hidden />
+            )}
           </div>
 
           <div className="flex flex-col gap-8 flex-1 min-w-0 max-w-[911px]">
@@ -121,9 +156,9 @@ export default function CreatorDetailPage() {
                 {creator.name}
               </h1>
               <div className="flex items-center gap-2 text-[#5e584b] text-sm tracking-[0.1px]">
-                <span>{creator.samplesCount} Samples</span>
+                <span>{creator.samples_count} Samples</span>
                 <span className="size-1 rounded-full bg-[#5e584b]" aria-hidden />
-                <span>{creator.packsCount} Packs</span>
+                <span>{creator.packs_count} Packs</span>
               </div>
             </div>
 
@@ -209,9 +244,8 @@ export default function CreatorDetailPage() {
                 <CreatorCard
                   key={c.name}
                   name={c.name}
-                  followersCount={c.followersCount}
+                  samplesCount={c.samplesCount}
                   packsCount={c.packsCount}
-                  creatorSlug={creatorNameToSlug(c.name)}
                 />
               ))
             ) : (

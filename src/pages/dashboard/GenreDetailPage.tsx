@@ -17,7 +17,6 @@ import {
   PACKS_GRID_ITEMS,
   CREATORS_GRID_ITEMS,
   SAMPLES_LIST,
-  creatorNameToSlug,
 } from './constants';
 import { SamplesFilterBar } from './SamplesFilterBar';
 
@@ -249,9 +248,8 @@ export default function GenreDetailPage() {
                   <CreatorCard
                     key={c.name}
                     name={c.name}
-                    followersCount={c.followersCount}
+                    samplesCount={c.samplesCount}
                     packsCount={c.packsCount}
-                    creatorSlug={creatorNameToSlug(c.name)}
                   />
                 ))
               ) : (

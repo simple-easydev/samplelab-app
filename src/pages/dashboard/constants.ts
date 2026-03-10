@@ -96,12 +96,12 @@ export function getPackById(packId: string): PackItem | undefined {
 }
 
 export const FEATURED_CREATORS = [
-  { name: 'Creator Name Goes Here', followersCount: '100', packsCount: '10' },
-  { name: 'Beat Lab', followersCount: '250', packsCount: '24' },
-  { name: 'Sound Factory', followersCount: '180', packsCount: '18' },
-  { name: 'Vinyl Revival', followersCount: '320', packsCount: '31' },
-  { name: 'Synth Wave', followersCount: '95', packsCount: '12' },
-  { name: 'Creator name', followersCount: '64', packsCount: '8' },
+  { name: 'Creator Name Goes Here', samplesCount: '100', packsCount: '10' },
+  { name: 'Beat Lab', samplesCount: '240', packsCount: '24' },
+  { name: 'Sound Factory', samplesCount: '180', packsCount: '18' },
+  { name: 'Vinyl Revival', samplesCount: '310', packsCount: '31' },
+  { name: 'Synth Wave', samplesCount: '120', packsCount: '12' },
+  { name: 'Creator name', samplesCount: '80', packsCount: '8' },
 ];
 
 /** Creators tab sort options – Figma 812-85001 (Trending, Popular, Recent, A-Z). */
@@ -123,34 +123,32 @@ export function creatorNameToSlug(name: string): string {
 /** Creators tab grid – extended list for grid view (Figma 812-85001). */
 export const CREATORS_GRID_ITEMS = [
   ...FEATURED_CREATORS,
-  { name: 'Nightshift Audio', followersCount: '420', packsCount: '15' },
-  { name: 'Concrete Theory', followersCount: '180', packsCount: '9' },
-  { name: 'Low End Bureau', followersCount: '310', packsCount: '22' },
-  { name: 'Dusty Tape Club', followersCount: '95', packsCount: '7' },
-  { name: 'Midnight Circuit', followersCount: '200', packsCount: '14' },
-  { name: 'Analog Habit', followersCount: '150', packsCount: '11' },
-  { name: 'Beat Lab', followersCount: '250', packsCount: '24' },
-  { name: 'Sound Factory', followersCount: '180', packsCount: '18' },
-  { name: 'Vinyl Revival', followersCount: '320', packsCount: '31' },
-  { name: 'Synth Wave', followersCount: '95', packsCount: '12' },
-  { name: 'Creator Name Goes Here', followersCount: '100', packsCount: '10' },
+  { name: 'Nightshift Audio', samplesCount: '150', packsCount: '15' },
+  { name: 'Concrete Theory', samplesCount: '90', packsCount: '9' },
+  { name: 'Low End Bureau', samplesCount: '220', packsCount: '22' },
+  { name: 'Dusty Tape Club', samplesCount: '70', packsCount: '7' },
+  { name: 'Midnight Circuit', samplesCount: '140', packsCount: '14' },
+  { name: 'Analog Habit', samplesCount: '110', packsCount: '11' },
+  { name: 'Beat Lab', samplesCount: '240', packsCount: '24' },
+  { name: 'Sound Factory', samplesCount: '180', packsCount: '18' },
+  { name: 'Vinyl Revival', samplesCount: '310', packsCount: '31' },
+  { name: 'Synth Wave', samplesCount: '120', packsCount: '12' },
+  { name: 'Creator Name Goes Here', samplesCount: '100', packsCount: '10' },
 ];
 
 /** Resolve creator by URL slug; returns undefined if not found. */
 export function getCreatorBySlug(slug: string): {
   name: string;
-  followersCount: string;
-  packsCount: string;
   samplesCount: number;
+  packsCount: string;
 } | undefined {
   const creator = CREATORS_GRID_ITEMS.find((c) => creatorNameToSlug(c.name) === slug);
   if (!creator) return undefined;
-  const packsNum = parseInt(creator.packsCount.replace(/\D/g, ''), 10) || 0;
+  const samplesNum = parseInt(creator.samplesCount.replace(/\D/g, ''), 10) || 0;
   return {
     name: creator.name,
-    followersCount: creator.followersCount,
     packsCount: creator.packsCount,
-    samplesCount: packsNum * 10,
+    samplesCount: samplesNum,
   };
 }
 

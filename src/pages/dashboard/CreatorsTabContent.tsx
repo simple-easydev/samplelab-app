@@ -2,8 +2,9 @@
  * Creators tab – Figma 812-85001.
  * Filter bar (Trending, Popular, Recent, A-Z), search, and grid of CreatorCards.
  * When URL has ?q=..., shows SearchQueryChip instead of the search input.
+ * Data from Supabase RPC get_creators_with_counts (creators joined with packs/samples counts).
  */
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { AccessGate } from '@/components/AccessGate';
@@ -11,7 +12,8 @@ import { CreatorCard } from '@/components/CreatorCard';
 import { Input } from '@/components/ui/input';
 import { SearchQueryChip } from '@/components/SearchQueryChip';
 import { useSubscription } from '@/hooks/useSubscription';
-import { CREATORS_SORT_OPTIONS, CREATORS_GRID_ITEMS, creatorNameToSlug } from './constants';
+import { getCreatorsWithCounts } from '@/lib/supabase/creators';
+import { CREATORS_SORT_OPTIONS } from './constants';
 
 export function CreatorsTabContent() {
   const { isActive } = useSubscription();
@@ -19,18 +21,36 @@ export function CreatorsTabContent() {
   const qFromUrl = searchParams.get('q') ?? '';
   const [sortId, setSortId] = useState<string>('trending');
   const [searchQuery, setSearchQuery] = useState('');
+  const [creators, setCreators] = useState<Awaited<ReturnType<typeof getCreatorsWithCounts>>>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) setLoading(true);
+    });
+    getCreatorsWithCounts({ p_search: qFromUrl.trim() || searchQuery.trim() || undefined })
+      .then((data) => {
+        if (!cancelled) {
+          setCreators(data);
+          setLoading(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [qFromUrl, searchQuery]);
 
   const filteredCreators = useMemo(() => {
-    const raw = qFromUrl.trim() || searchQuery.trim();
-    const q = raw.toLowerCase();
-    const list = q
-      ? CREATORS_GRID_ITEMS.filter((c) => c.name.toLowerCase().includes(q))
-      : CREATORS_GRID_ITEMS;
+    const list = [...creators];
     if (sortId === 'a-z') {
-      return [...list].sort((a, b) => a.name.localeCompare(b.name));
+      return list.sort((a, b) => a.name.localeCompare(b.name));
     }
     return list;
-  }, [qFromUrl, searchQuery, sortId]);
+  }, [creators, sortId]);
 
   return (
     <div className="mb-8 flex flex-col gap-8 relative">
@@ -47,7 +67,7 @@ export function CreatorsTabContent() {
                   key={option.id}
                   type="button"
                   onClick={() => setSortId(option.id)}
-                  className={`flex h-10 items-center justify-center px-3 rounded-xs border shrink-0 font-medium text-sm leading-5 tracking-[0.1px] whitespace-nowrap transition-colors ${
+                  className={`flex h-10 items-center justify-center gap-1.5 px-3 rounded-xs border shrink-0 font-medium text-sm leading-5 tracking-[0.1px] whitespace-nowrap transition-colors ${
                     isSelected
                       ? 'bg-[#e8e2d2] border-[#161410] text-[#161410]'
                       : 'border-[#d6ceb8] text-[#5e584b] bg-transparent hover:border-[#161410] hover:text-[#161410]'
@@ -87,15 +107,20 @@ export function CreatorsTabContent() {
 
         {/* Creator cards grid – Figma 821-34268, gap 24px */}
         <div className="flex flex-wrap gap-6 items-center content-center w-full">
-          {filteredCreators.map((creator, index) => (
-            <CreatorCard
-              key={`${creator.name}-${index}`}
-              name={creator.name}
-              followersCount={creator.followersCount}
-              packsCount={creator.packsCount}
-              creatorSlug={creatorNameToSlug(creator.name)}
-            />
-          ))}
+          {loading ? (
+            <p className="text-[#5e584b] text-sm">Loading creators…</p>
+          ) : (
+            filteredCreators.map((creator) => (
+              <CreatorCard
+                key={creator.id}
+                creatorId={creator.id}
+                name={creator.name}
+                samplesCount={String(creator.samples_count)}
+                packsCount={String(creator.packs_count)}
+                imageUrl={creator.avatar_url ?? undefined}
+              />
+            ))
+          )}
         </div>
       </div>
     </div>

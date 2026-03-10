@@ -17,7 +17,6 @@ import {
   GENRES_GRID_ITEMS,
   TRENDING_ITEMS,
   NEW_RELEASES_ITEMS,
-  creatorNameToSlug,
   genreNameToSlug,
 } from './constants';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
@@ -190,9 +189,8 @@ export default function SearchResultPage() {
                 <CreatorCard
                   key={creator.name}
                   name={creator.name}
-                  followersCount={creator.followersCount}
+                  samplesCount={creator.samplesCount}
                   packsCount={creator.packsCount}
-                  creatorSlug={creatorNameToSlug(creator.name)}
                 />
               ))}
             </CardCarousel>
