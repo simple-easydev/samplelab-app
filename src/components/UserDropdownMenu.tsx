@@ -43,16 +43,16 @@ export function UserDropdownMenu({ onLogout }: { onLogout?: () => void }) {
             Account
           </DropdownMenuLabel>
           <DropdownMenuItem asChild className={`${MENU_ITEM_CLASS} focus:bg-[#f6f2e6]`}>
-            <Link to="#" className="flex items-center gap-1.5 text-[#161410]">
+            <Link to="/dashboard/settings/account" className="flex items-center gap-1.5 text-[#161410]">
               <Settings className="size-5 shrink-0" />
               Account settings
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild className={MENU_ITEM_CLASS}>
-            <Link to="/pricing" className="flex items-center gap-1.5">
-              <Coins className="size-5 shrink-0" />
-              Plans & credits
-            </Link>
+<Link to="/dashboard/settings/plans" className="flex items-center gap-1.5">
+                    <Coins className="size-5 shrink-0" />
+                    Plans & credits
+                  </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild className={MENU_ITEM_CLASS}>
             <Link to="#" className="flex items-center gap-1.5">
