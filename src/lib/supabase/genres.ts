@@ -11,6 +11,7 @@ export interface GenreRow {
   created_at: string;
   packs_count: number;
   samples_count: number;
+  thumbnail_url: string | null;
 }
 
 /**

@@ -119,7 +119,10 @@ export function GenresTabContent() {
                   to={`/dashboard/genres/${genreNameToSlug(genre.name)}`}
                   className="contents"
                 >
-                  <GenreCard name={getDisplayName(genre.name)} />
+                  <GenreCard
+                    name={getDisplayName(genre.name)}
+                    imageUrl={genre.thumbnail_url ?? undefined}
+                  />
                 </Link>
               ))
             )}
