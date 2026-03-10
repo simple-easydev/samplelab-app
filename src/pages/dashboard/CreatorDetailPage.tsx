@@ -12,44 +12,25 @@ import { CardCarousel } from '@/components/CardCarousel';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
 import { CreatorCard } from '@/components/CreatorCard';
 import { SampleRow, type SimilarSampleItem } from '@/components/SampleRow';
-import { getCreatorById } from '@/lib/supabase/creators';
-import {
-  PACKS_GRID_ITEMS,
-  CREATORS_GRID_ITEMS,
-  SAMPLES_LIST,
-} from './constants';
+import { getCreatorById, type CreatorDetail } from '@/lib/supabase/creators';
 import { SamplesFilterBar } from './SamplesFilterBar';
 
-const CREATOR_DETAIL_TAGS = [
-  'Chill',
-  'Dreamy',
-  'Jazzy',
-  'Experimental',
-  'Melodic',
-  'Lo-Fi',
-  'FX',
-  '+5 more',
-];
-const CREATOR_DESCRIPTION =
-  "The leading provider of premium sounds, from chart-topping hooks and topline melodies and experimental loops. We collaborate with the industry's most talented vocalists, engineers, and sound designers to deliver a pro sound which is contemporary, fresh...";
-
-function mapSampleToList(sample: (typeof SAMPLES_LIST)[number], index: number): SimilarSampleItem {
-  const tags: string[] = [];
-  if (sample.genre) tags.push(sample.genre);
-  if (sample.tags?.length) tags.push(...sample.tags);
-  const bpmNum =
-    sample.bpm != null ? parseInt(sample.bpm.replace(/\D/g, ''), 10) : undefined;
+function mapSampleToRowItem(
+  sample: CreatorDetail['samples'][number],
+  creatorName: string
+): SimilarSampleItem {
+  const tags: string[] = sample.type ? [sample.type] : [];
   return {
-    id: `sample-${index}`,
+    id: sample.id,
     name: sample.name,
-    creator: sample.creator,
-    duration: sample.duration,
+    creator: creatorName,
+    duration: sample.length ?? '—',
     tags,
-    royaltyFree: sample.license === 'Royalty-Free',
-    premium: sample.premium ?? false,
-    bpm: Number.isNaN(bpmNum) ? undefined : bpmNum,
-    key: sample.key,
-    imageUrl: sample.imageUrl ?? null,
+    royaltyFree: false,
+    premium: false,
+    bpm: sample.bpm ?? undefined,
+    key: sample.key ?? undefined,
+    imageUrl: null,
   };
 }
 
@@ -101,12 +82,15 @@ export default function CreatorDetailPage() {
     );
   }
 
-  const creatorPacks = PACKS_GRID_ITEMS.filter((p) => p.creator === creator.name);
-  const creatorSamples = SAMPLES_LIST.filter((s) => s.creator === creator.name);
-  const sampleItems: SimilarSampleItem[] = creatorSamples.map(mapSampleToList);
-  const similarCreators = CREATORS_GRID_ITEMS.filter(
-    (c) => c.name !== creator.name
-  ).slice(0, 8);
+  const displayTags = [
+    ...creator.tags,
+    ...creator.genres.map((g) => g.name),
+  ].filter(Boolean);
+  const sampleItems: SimilarSampleItem[] = creator.samples.map((s) =>
+    mapSampleToRowItem(s, creator.name)
+  );
+  const descriptionText = creator.description ?? '';
+  const descriptionPreviewLen = 180;
 
   return (
     <div className="min-h-screen bg-[#fffbf0]">
@@ -164,31 +148,37 @@ export default function CreatorDetailPage() {
 
             <div className="border-t border-[#e8e2d2] w-full" aria-hidden />
 
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2">
-              {CREATOR_DETAIL_TAGS.map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-[#e8e2d2] border border-[#d6ceb8] h-6 px-1.5 rounded-md flex items-center justify-center text-[#161410] text-xs font-medium tracking-[0.2px]"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+            {/* Tags / genres */}
+            {displayTags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {displayTags.map((tag, i) => (
+                  <span
+                    key={`${tag}-${i}`}
+                    className="bg-[#e8e2d2] border border-[#d6ceb8] h-6 px-1.5 rounded-md flex items-center justify-center text-[#161410] text-xs font-medium tracking-[0.2px]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* Description */}
-            <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
-              {descriptionExpanded
-                ? CREATOR_DESCRIPTION
-                : `${CREATOR_DESCRIPTION.slice(0, 180)}... `}
-              <button
-                type="button"
-                onClick={() => setDescriptionExpanded(!descriptionExpanded)}
-                className="text-[#161410] font-medium underline hover:no-underline"
-              >
-                {descriptionExpanded ? 'Show less' : 'Show more'}
-              </button>
-            </p>
+            {descriptionText && (
+              <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
+                {descriptionExpanded
+                  ? descriptionText
+                  : `${descriptionText.slice(0, descriptionPreviewLen)}${descriptionText.length > descriptionPreviewLen ? '... ' : ''}`}
+                {descriptionText.length > descriptionPreviewLen && (
+                  <button
+                    type="button"
+                    onClick={() => setDescriptionExpanded(!descriptionExpanded)}
+                    className="text-[#161410] font-medium underline hover:no-underline"
+                  >
+                    {descriptionExpanded ? 'Show less' : 'Show more'}
+                  </button>
+                )}
+              </p>
+            )}
           </div>
         </div>
 
@@ -197,16 +187,17 @@ export default function CreatorDetailPage() {
         {/* Packs carousel */}
         <div className="flex flex-col gap-8 mb-12">
           <CardCarousel title="Packs">
-            {creatorPacks.length > 0 ? (
-              creatorPacks.slice(0, 8).map((p) => (
+            {creator.packs.length > 0 ? (
+              creator.packs.map((p) => (
                 <SamplePackCard
                   key={p.id}
                   packId={p.id}
-                  title={p.title}
-                  creator={p.creator}
-                  playCount={p.playCount}
-                  genre={p.genre}
-                  premium={p.premium}
+                  title={p.name}
+                  creator={creator.name}
+                  playCount={p.download_count != null ? String(p.download_count) : undefined}
+                  genre={p.tags?.[0] ?? undefined}
+                  premium={p.is_premium ?? false}
+                  imageUrl={p.cover_url ?? undefined}
                 />
               ))
             ) : (
@@ -236,16 +227,16 @@ export default function CreatorDetailPage() {
         </section>
         </div>
 
-        {/* Similar Creators – Figma 863-95877 */}
+        {/* Similar Creators */}
         <div className="flex flex-col gap-8 mb-12">
           <CardCarousel title="Similar Creators">
-            {similarCreators.length > 0 ? (
-              similarCreators.map((c) => (
+            {creator.similar_creators.length > 0 ? (
+              creator.similar_creators.map((c) => (
                 <CreatorCard
-                  key={c.name}
+                  key={c.id}
+                  creatorId={c.id}
                   name={c.name}
-                  samplesCount={c.samplesCount}
-                  packsCount={c.packsCount}
+                  imageUrl={c.avatar_url ?? undefined}
                 />
               ))
             ) : (

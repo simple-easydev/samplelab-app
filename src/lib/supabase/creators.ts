@@ -12,6 +12,63 @@ export interface CreatorWithCounts {
   samples_count: number;
 }
 
+/** Pack shape returned by get_creator_by_id */
+export interface CreatorDetailPack {
+  id: string;
+  name: string;
+  description: string | null;
+  cover_url: string | null;
+  category_id: string | null;
+  tags: string[] | null;
+  is_premium: boolean | null;
+  status: string;
+  download_count: number | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+/** Sample shape returned by get_creator_by_id */
+export interface CreatorDetailSample {
+  id: string;
+  pack_id: string;
+  name: string;
+  audio_url: string;
+  bpm: number | null;
+  key: string | null;
+  type: string;
+  length: string | null;
+  file_size_bytes: number | null;
+  credit_cost: number | null;
+  status: string;
+  has_stems: boolean | null;
+  download_count: number | null;
+  created_at: string | null;
+  updated_at: string | null;
+}
+
+/** Similar creator shape returned by get_creator_by_id */
+export interface CreatorDetailSimilarCreator {
+  id: string;
+  name: string;
+  avatar_url: string | null;
+}
+
+/** Full creator detail from get_creator_by_id RPC */
+export interface CreatorDetail {
+  id: string;
+  name: string;
+  description: string | null;
+  avatar_url: string | null;
+  packs_count: number;
+  samples_count: number;
+  tags: string[];
+  genres: { id: string; name: string }[];
+  categories: { id: string; name: string }[];
+  packs: CreatorDetailPack[];
+  samples: CreatorDetailSample[];
+  similar_creators: CreatorDetailSimilarCreator[];
+}
+
 export interface GetCreatorsWithCountsOptions {
   /** Optional search filter on creator name (case-insensitive). */
   p_search?: string | null;
@@ -43,10 +100,18 @@ export async function getCreatorsWithCounts(
 }
 
 /**
- * Fetch a single creator by id with pack and sample counts.
- * Uses get_creators_with_counts and finds by id (consider a dedicated get_creator_by_id RPC for scale).
+ * Fetch full creator detail by id via RPC get_creator_by_id (packs, samples, similar_creators, etc.).
  */
-export async function getCreatorById(id: string): Promise<CreatorWithCounts | null> {
-  const list = await getCreatorsWithCounts({ p_limit: 1000 });
-  return list.find((c) => c.id === id) ?? null;
+export async function getCreatorById(id: string): Promise<CreatorDetail | null> {
+  const { data, error } = await supabase.rpc('get_creator_by_id', {
+    p_creator_id: id,
+  });
+
+  if (error) {
+    console.error('Error fetching creator by id:', error);
+    return null;
+  }
+
+  const row = Array.isArray(data) ? data[0] : data;
+  return (row as CreatorDetail) ?? null;
 }
