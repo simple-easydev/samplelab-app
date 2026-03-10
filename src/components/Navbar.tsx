@@ -1,7 +1,7 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useEffect, useState } from 'react';
-import { User } from 'lucide-react';
 import { SearchBar } from '@/components/SearchBar';
+import { UserDropdownMenu } from '@/components/UserDropdownMenu';
 import { TryForFreeButton } from '@/components/ui/try-for-free-button';
 import { getUserCredits } from '@/lib/supabase/subscriptions';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -16,8 +16,7 @@ const NAV_LINKS = [
 export function Navbar() {
   const [credits, setCredits] = useState<number | null>(null);
   const navigate = useNavigate();
-  const { isActive, loading, subscription } = useSubscription();
-  console.log({ subscription})
+  const { isActive, loading } = useSubscription();
 
   useEffect(() => {
     getUserCredits().then(setCredits);
@@ -50,13 +49,7 @@ export function Navbar() {
           onSearch={(q) => q && navigate(`/dashboard?q=${encodeURIComponent(q)}`)}
         />
         <div className="flex gap-3 items-center">
-          <Link
-            to="/dashboard/discover"
-            className="border border-[#a49a84] flex items-center justify-center size-10 rounded-[2px] shrink-0 text-[#161410] hover:bg-[#e8e2d2] transition-colors"
-            aria-label="Account"
-          >
-            <User className="size-5" />
-          </Link>
+          <UserDropdownMenu />
           {isFreePlan ? (
             <TryForFreeButton asChild className="h-10 min-w-[100px]">
               <Link to="/pricing">Subscribe</Link>
@@ -64,7 +57,7 @@ export function Navbar() {
           ) : (
             <Link
               to="/dashboard/discover"
-              className="border border-[#a49a84] flex h-10 items-center justify-center px-3 rounded-[2px] text-[#161410] text-sm font-medium tracking-[0.1px] hover:bg-[#e8e2d2] transition-colors"
+              className="border border-[#a49a84] flex h-10 items-center justify-center px-3 rounded-xs text-[#161410] text-sm font-medium tracking-[0.1px] hover:bg-[#e8e2d2] transition-colors"
             >
               {credits != null ? `Credits: ${credits}` : 'Credits'}
             </Link>
