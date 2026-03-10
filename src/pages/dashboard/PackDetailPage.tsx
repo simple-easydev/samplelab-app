@@ -8,6 +8,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Share2, Download, Play, Heart } from 'lucide-react';
 import { SamplePackCard } from '@/components/SamplePackCard';
 import { CardCarousel } from '@/components/CardCarousel';
+import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
 import { SampleRow, type SimilarSampleItem } from '@/components/SampleRow';
 import {
   getPackById,
@@ -216,26 +217,7 @@ export default function PackDetailPage() {
           ))}
         </CardCarousel>
 
-        {/* Explore library CTA */}
-        <div className="mt-16 rounded-lg bg-[#26231e] px-8 py-16 flex flex-col items-center gap-6 text-center">
-          <p className="text-[#f3c16c] text-lg font-semibold tracking-[0.8px] uppercase">
-            Looking for more?
-          </p>
-          <h2 className="text-[#fffbf0] text-3xl sm:text-4xl font-bold tracking-[-0.6px]">
-            Explore the full library
-          </h2>
-          <p className="text-[#e8e2d2] text-base max-w-xl">
-            Browse all packs and samples across genres, moods, and styles
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate('/dashboard/discover')}
-            className="border border-[#fffbf0]/30 h-14 px-5 rounded-[2px] flex items-center gap-2 text-[#fffbf0] text-lg font-medium hover:bg-[#fffbf0]/10 transition-colors"
-          >
-            Browse library
-            <ArrowLeft className="size-7 rotate-180" />
-          </button>
-        </div>
+        <ExploreLibraryCta />
       </div>
     </div>
   );

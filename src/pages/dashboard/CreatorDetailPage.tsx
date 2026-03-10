@@ -1,17 +1,21 @@
 /**
- * Creator detail page – Figma 863-95869.
+ * Creator detail page – Figma 863-95877.
  * Back/Share, circular avatar, overline + name, samples/packs counts, tags, description,
- * Packs carousel, Samples filter bar + list, optional Subscribe CTA and Explore library.
+ * Packs carousel, Samples filter bar + list, Similar Creators carousel, Explore library CTA.
  */
 import { useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share2, Lock } from 'lucide-react';
+import { ArrowLeft, Share2 } from 'lucide-react';
 import { SamplePackCard } from '@/components/SamplePackCard';
 import { CardCarousel } from '@/components/CardCarousel';
+import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
+import { CreatorCard } from '@/components/CreatorCard';
 import { SampleRow, type SimilarSampleItem } from '@/components/SampleRow';
 import {
   getCreatorBySlug,
+  creatorNameToSlug,
   PACKS_GRID_ITEMS,
+  CREATORS_GRID_ITEMS,
   SAMPLES_LIST,
 } from './constants';
 import { SamplesFilterBar } from './SamplesFilterBar';
@@ -19,15 +23,15 @@ import { SamplesFilterBar } from './SamplesFilterBar';
 const CREATOR_DETAIL_TAGS = [
   'Chill',
   'Dreamy',
-  'Vocals',
+  'Jazzy',
   'Experimental',
-  'Melodies',
+  'Melodic',
   'Lo-Fi',
   'FX',
   '+5 more',
 ];
 const CREATOR_DESCRIPTION =
-  "The leading provider of premium vocals, from chart-topping hooks and toplines to inspirational melodies and experimental tools. We collaborate with the industry's most talented vocalists, engineers, and sound designers to deliver a pro sound with a contemporary feel. Heade...";
+  "The leading provider of premium sounds, from chart-topping hooks and topline melodies and experimental loops. We collaborate with the industry's most talented vocalists, engineers, and sound designers to deliver a pro sound which is contemporary, fresh...";
 
 function mapSampleToList(sample: (typeof SAMPLES_LIST)[number], index: number): SimilarSampleItem {
   const tags: string[] = [];
@@ -73,6 +77,9 @@ export default function CreatorDetailPage() {
   const creatorPacks = PACKS_GRID_ITEMS.filter((p) => p.creator === creator.name);
   const creatorSamples = SAMPLES_LIST.filter((s) => s.creator === creator.name);
   const sampleItems: SimilarSampleItem[] = creatorSamples.map(mapSampleToList);
+  const similarCreators = CREATORS_GRID_ITEMS.filter(
+    (c) => c.name !== creator.name
+  ).slice(0, 8);
 
   return (
     <div className="min-h-screen bg-[#fffbf0]">
@@ -190,45 +197,30 @@ export default function CreatorDetailPage() {
                   No samples yet.
                 </div>
               )}
-            </div>
-          </section>
+        </div>
+        </section>
         </div>
 
-        {/* Subscribe for full access – Figma access gate */}
-        <div className="relative flex flex-col items-center py-16">
-          <div
-            className="absolute inset-x-0 bottom-0 h-32 pointer-events-none bg-linear-to-t from-[#fffbf0] to-transparent"
-            aria-hidden
-          />
-          <button
-            type="button"
-            className="relative z-10 bg-[#161410] text-[#fffbf0] h-14 px-5 rounded-xs flex items-center gap-2.5 text-lg font-medium hover:opacity-90"
-          >
-            <Lock className="size-7" />
-            Subscribe for full access
-          </button>
+        {/* Similar Creators – Figma 863-95877 */}
+        <div className="flex flex-col gap-8 mb-12">
+          <CardCarousel title="Similar Creators">
+            {similarCreators.length > 0 ? (
+              similarCreators.map((c) => (
+                <CreatorCard
+                  key={c.name}
+                  name={c.name}
+                  followersCount={c.followersCount}
+                  packsCount={c.packsCount}
+                  creatorSlug={creatorNameToSlug(c.name)}
+                />
+              ))
+            ) : (
+              <p className="text-[#5e584b] text-sm py-4">No similar creators.</p>
+            )}
+          </CardCarousel>
         </div>
 
-        {/* Explore library CTA */}
-        <div className="mt-16 rounded-lg bg-[#26231e] px-8 py-16 flex flex-col items-center gap-6 text-center">
-          <p className="text-[#f3c16c] text-lg font-semibold tracking-[0.8px] uppercase">
-            Looking for more?
-          </p>
-          <h2 className="text-[#fffbf0] text-3xl sm:text-4xl font-bold tracking-[-0.6px]">
-            Explore the full library
-          </h2>
-          <p className="text-[#e8e2d2] text-base max-w-xl">
-            Browse all packs and samples across genres, moods, and styles
-          </p>
-          <button
-            type="button"
-            onClick={() => navigate('/dashboard/discover')}
-            className="border border-[#fffbf0]/30 h-14 px-5 rounded-xs flex items-center gap-2 text-[#fffbf0] text-lg font-medium hover:bg-[#fffbf0]/10 transition-colors"
-          >
-            Browse library
-            <ArrowLeft className="size-7 rotate-180" />
-          </button>
-        </div>
+        <ExploreLibraryCta />
       </div>
     </div>
   );
