@@ -2,56 +2,71 @@
  * Sample pack detail page – Figma 857-69521.
  * Back/Share, cover + details, Get Pack / Play Preview / Heart, tags, description,
  * sample list with filters, Similar Packs carousel, Explore library CTA.
+ * Data from Supabase RPC get_pack_by_id.
  */
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Share2, Download, Play, Heart } from 'lucide-react';
 import { SamplePackCard } from '@/components/SamplePackCard';
 import { CardCarousel } from '@/components/CardCarousel';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
-import { SampleRow, type SimilarSampleItem } from '@/components/SampleRow';
-import {
-  getPackById,
-  FEATURED_PACKS,
-  SIMILAR_PACKS_TO_LIKES,
-  SAMPLES_LIST,
-} from './constants';
+import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
+import { getPackById, type PackDetail } from '@/lib/supabase/packs';
+import { mapAllSampleToRowItem } from '@/lib/utils';
 import { SamplesFilterBar } from './SamplesFilterBar';
 
-const PACK_DETAIL_TAGS = ['Chill', 'Dreamy', 'Vocals', 'Experimental', 'Melodic', 'Lo-Fi', 'FX', '+5 more'];
-const PACK_DESCRIPTION =
-  "This pack is a carefully curated collection of Hip-Hop-focused samples designed to bring character, texture, and musicality into your productions. Every sound was created with real-world use in mind—whether you're sketching ideas quickly or polishing a final release. Inside, you'll find a blend of drums, melodies, and one-shots ready to drop into your sessions.";
-
-function mapSampleListItemToSimilarItem(
-  sample: (typeof SAMPLES_LIST)[number],
-  index: number
-): SimilarSampleItem {
-  const tags: string[] = [];
-  if (sample.genre) tags.push(sample.genre);
-  if (sample.tags?.length) tags.push(...sample.tags);
-  const bpmNum =
-    sample.bpm != null ? parseInt(sample.bpm.replace(/\D/g, ''), 10) : undefined;
-  return {
-    id: `sample-${index}`,
-    name: sample.name,
-    creator: sample.creator,
-    duration: sample.duration,
-    tags,
-    royaltyFree: sample.license === 'Royalty-Free',
-    premium: sample.premium ?? false,
-    bpm: Number.isNaN(bpmNum) ? undefined : bpmNum,
-    key: sample.key,
-    imageUrl: sample.imageUrl ?? null,
-  };
+function formatReleasedAt(createdAt: string): string {
+  const date = new Date(createdAt);
+  const now = new Date();
+  const diffMs = now.getTime() - date.getTime();
+  const diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (diffDays < 1) return 'Released today';
+  if (diffDays === 1) return 'Released 1d ago';
+  if (diffDays < 7) return `Released ${diffDays}d ago`;
+  const diffWeeks = Math.floor(diffDays / 7);
+  if (diffWeeks === 1) return 'Released 1w ago';
+  if (diffWeeks < 4) return `Released ${diffWeeks}w ago`;
+  const diffMonths = Math.floor(diffDays / 30);
+  if (diffMonths === 1) return 'Released 1mo ago';
+  if (diffMonths < 12) return `Released ${diffMonths}mo ago`;
+  const diffYears = Math.floor(diffDays / 365);
+  return diffYears === 1 ? 'Released 1y ago' : `Released ${diffYears}y ago`;
 }
 
 export default function PackDetailPage() {
   const { packId } = useParams<{ packId: string }>();
   const navigate = useNavigate();
-  const pack = packId ? getPackById(packId) : undefined;
+  const [pack, setPack] = useState<PackDetail | null>(null);
+  const [loading, setLoading] = useState(true);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
 
-  if (!packId || !pack) {
+  useEffect(() => {
+    if (!packId) {
+      queueMicrotask(() => setLoading(false));
+      return;
+    }
+    let cancelled = false;
+    getPackById(packId)
+      .then((data) => {
+        if (!cancelled) setPack(data);
+      })
+      .finally(() => {
+        if (!cancelled) setLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [packId]);
+
+  if (!packId || loading) {
+    return (
+      <div className="min-h-screen bg-[#fffbf0] flex items-center justify-center gap-4">
+        <p className="text-[#7f7766]">{packId ? 'Loading…' : 'Pack not found.'}</p>
+      </div>
+    );
+  }
+
+  if (!pack) {
     return (
       <div className="min-h-screen bg-[#fffbf0] flex items-center justify-center gap-4">
         <p className="text-[#7f7766]">Pack not found.</p>
@@ -66,11 +81,12 @@ export default function PackDetailPage() {
     );
   }
 
-  const similarPacks = [...SIMILAR_PACKS_TO_LIKES, ...FEATURED_PACKS].filter((p) => p.id !== pack.id);
-  const uniqueSimilar = similarPacks.filter(
-    (p, i, arr) => arr.findIndex((x) => x.id === p.id) === i
+  const genreLabel = pack.genres?.[0] ?? pack.category_name ?? '—';
+  const displayTags = pack.tags && pack.tags.length > 0 ? pack.tags : [];
+  const description = pack.description ?? '';
+  const sampleItems: SampleRowItem[] = pack.samples.map((s) =>
+    mapAllSampleToRowItem({ ...s, creator_name: pack.creator_name, pack_name: pack.name })
   );
-  const sampleItems: SimilarSampleItem[] = SAMPLES_LIST.map(mapSampleListItemToSimilarItem);
 
   return (
     <div className="min-h-screen bg-[#fffbf0]">
@@ -89,8 +105,16 @@ export default function PackDetailPage() {
         <div className="flex gap-8 items-start flex-wrap">
           {/* Cover */}
           <div className="bg-[#dde1e6] rounded overflow-hidden shrink-0 w-[326px] h-[326px] relative">
-            <div className="w-full h-full bg-[#e8e2d2]" aria-hidden />
-            {pack.premium && (
+            {pack.cover_url ? (
+              <img
+                src={pack.cover_url}
+                alt=""
+                className="w-full h-full object-cover"
+              />
+            ) : (
+              <div className="w-full h-full bg-[#e8e2d2]" aria-hidden />
+            )}
+            {pack.is_premium && (
               <div className="absolute top-4 right-4 bg-[#f3c16c] border border-[#eaaa3e] flex items-center justify-center h-6 px-1.5 rounded-md">
                 <span className="text-[#161410] text-xs font-medium tracking-[0.2px] uppercase">
                   Premium
@@ -116,23 +140,25 @@ export default function PackDetailPage() {
 
             <div className="flex flex-col gap-4">
               <h1 className="text-[#161410] text-[32px] sm:text-[40px] font-bold leading-tight tracking-[-0.6px]">
-                {pack.title}
+                {pack.name}
               </h1>
               <div className="flex items-center gap-2.5">
                 <div className="size-7 rounded-full bg-[#e8e2d2] shrink-0" aria-hidden />
-                <span className="text-[#161410] text-lg font-medium truncate">{pack.creator}</span>
+                <span className="text-[#161410] text-lg font-medium truncate">
+                  {pack.creator_name}
+                </span>
               </div>
             </div>
 
             {/* Metadata */}
             <div className="flex flex-wrap items-center gap-2 text-[#5e584b] text-sm tracking-[0.1px]">
-              <span>80 Samples</span>
+              <span>{pack.samples_count} Samples</span>
               <span className="size-1 rounded-full bg-[#5e584b]" aria-hidden />
-              <span>{pack.genre ?? '—'}</span>
+              <span>{genreLabel}</span>
               <span className="size-1 rounded-full bg-[#5e584b]" aria-hidden />
               <span>Royalty-Free</span>
               <span className="size-1 rounded-full bg-[#5e584b]" aria-hidden />
-              <span>Released 2w ago</span>
+              <span>{formatReleasedAt(pack.created_at)}</span>
             </div>
 
             <div className="border-t border-[#e8e2d2] w-full" aria-hidden />
@@ -163,28 +189,36 @@ export default function PackDetailPage() {
             </div>
 
             {/* Tags */}
-            <div className="flex flex-wrap gap-2">
-              {PACK_DETAIL_TAGS.map((tag) => (
-                <span
-                  key={tag}
-                  className="bg-[#e8e2d2] border border-[#d6ceb8] h-6 px-1.5 rounded-md flex items-center justify-center text-[#161410] text-xs font-medium tracking-[0.2px]"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+            {displayTags.length > 0 && (
+              <div className="flex flex-wrap gap-2">
+                {displayTags.map((tag) => (
+                  <span
+                    key={tag}
+                    className="bg-[#e8e2d2] border border-[#d6ceb8] h-6 px-1.5 rounded-md flex items-center justify-center text-[#161410] text-xs font-medium tracking-[0.2px]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
+            )}
 
             {/* Description */}
-            <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
-              {descriptionExpanded ? PACK_DESCRIPTION : `${PACK_DESCRIPTION.slice(0, 180)}... `}
-              <button
-                type="button"
-                onClick={() => setDescriptionExpanded(!descriptionExpanded)}
-                className="text-[#161410] font-medium underline hover:no-underline"
-              >
-                {descriptionExpanded ? 'Show less' : 'Show more'}
-              </button>
-            </p>
+            {description && (
+              <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
+                {descriptionExpanded
+                  ? description
+                  : `${description.slice(0, 180)}${description.length > 180 ? '... ' : ''}`}
+                {description.length > 180 && (
+                  <button
+                    type="button"
+                    onClick={() => setDescriptionExpanded(!descriptionExpanded)}
+                    className="text-[#161410] font-medium underline hover:no-underline"
+                  >
+                    {descriptionExpanded ? 'Show less' : 'Show more'}
+                  </button>
+                )}
+              </p>
+            )}
           </div>
         </div>
 
@@ -195,30 +229,40 @@ export default function PackDetailPage() {
           <SamplesFilterBar />
           <section className="w-full" aria-label="Samples in this pack">
             <div className="border border-[#e8e2d2] rounded overflow-hidden flex flex-col">
-              {sampleItems.map((item) => (
-                <SampleRow key={item.id} item={item} />
-              ))}
+              {sampleItems.length > 0 ? (
+                sampleItems.map((item) => (
+                  <SampleRow key={item.id} item={item} />
+                ))
+              ) : (
+                <p className="text-[#5e584b] text-sm py-6 px-4">
+                  No samples in this pack yet.
+                </p>
+              )}
             </div>
           </section>
         </div>
 
         {/* Similar Packs */}
         <CardCarousel title="Similar Packs">
-          {uniqueSimilar.slice(0, 6).map((p) => (
-            <SamplePackCard
-              key={p.id}
-              packId={p.id}
-              title={p.title}
-              creator={p.creator}
-              playCount={p.playCount}
-              genre={p.genre}
-              premium={p.premium}
-            />
-          ))}
+          {pack.similar_packs.length > 0 ? (
+            pack.similar_packs.slice(0, 6).map((p) => (
+              <SamplePackCard
+                key={p.id}
+                packId={p.id}
+                title={p.name}
+                creator={p.creator_name}
+                playCount={String(p.samples_count)}
+                genre={p.genres?.[0] ?? p.category_name}
+                premium={p.is_premium ?? false}
+                imageUrl={p.cover_url ?? undefined}
+              />
+            ))
+          ) : (
+            <p className="text-[#5e584b] text-sm py-4">No similar packs.</p>
+          )}
         </CardCarousel>
-
       </div>
-        <ExploreLibraryCta />
+      <ExploreLibraryCta />
     </div>
   );
 }

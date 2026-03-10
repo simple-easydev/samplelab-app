@@ -1,6 +1,6 @@
 import { ArrowRight } from 'lucide-react';
 import { SampleRow } from '@/components/SampleRow';
-import type { SimilarSampleItem } from '@/components/SampleRow';
+import type { SampleRowItem } from '@/components/SampleRow';
 
 /**
  * Reusable list column from Figma (node 812-51974) – same list view for Trending samples, New Releases, Creators.
@@ -12,7 +12,7 @@ export interface DiscoverListItem {
   creator: string;
 }
 
-function discoverItemToSimilarSample(item: DiscoverListItem): SimilarSampleItem {
+function discoverItemToSimilarSample(item: DiscoverListItem): SampleRowItem {
   return {
     id: `discover-${item.rank}-${item.name}`,
     name: item.name,

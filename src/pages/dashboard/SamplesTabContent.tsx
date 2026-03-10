@@ -1,36 +1,12 @@
 import { useEffect, useMemo, useState } from 'react';
 import { AccessGate } from '@/components/AccessGate';
-import { SampleRow, type SimilarSampleItem } from '@/components/SampleRow';
+import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
 import { useSubscription } from '@/hooks/useSubscription';
-import { getAllSamples, getSampleMetadata, formatDurationSeconds } from '@/lib/supabase/samples';
+import { getAllSamples } from '@/lib/supabase/samples';
 import { SamplesFilterBar } from './SamplesFilterBar';
+import { mapAllSampleToRowItem } from '@/lib/utils';
 
-function mapAllSampleToSimilarItem(
-  sample: Awaited<ReturnType<typeof getAllSamples>>[number]
-): SimilarSampleItem {
-  const tags: string[] = [];
-  if (sample.genre) tags.push(sample.genre);
-  tags.push(sample.pack_name);
-  if (sample.has_stems) tags.push('Stems');
-  if (sample.type) tags.push(sample.type);
 
-  const metadata = getSampleMetadata(sample);
-
-  return {
-    id: sample.id,
-    name: sample.name,
-    creator: sample.creator_name,
-    duration: metadata ? formatDurationSeconds(metadata.duration_seconds) : '—',
-    waveformBars: metadata?.bars,
-    audioUrl: sample.audio_url ?? undefined,
-    tags,
-    royaltyFree: true,
-    premium: false,
-    bpm: sample.bpm ?? undefined,
-    key: sample.key ?? undefined,
-    imageUrl: sample.thumbnail_url ?? undefined,
-  };
-}
 
 /**
  * Samples tab – Figma 812-47888.
@@ -62,8 +38,8 @@ export function SamplesTabContent() {
     };
   }, []);
 
-  const sampleItems: SimilarSampleItem[] = useMemo(
-    () => samples.map(mapAllSampleToSimilarItem),
+  const sampleItems: SampleRowItem[] = useMemo(
+    () => samples.map(mapAllSampleToRowItem),
     [samples]
   );
 

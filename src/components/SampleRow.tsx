@@ -7,7 +7,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 
-export interface SimilarSampleItem {
+export interface SampleRowItem {
   id: string;
   name: string;
   creator: string;
@@ -144,7 +144,7 @@ function SoundWave({
 const ROW_GRID_COLUMNS = 'minmax(0, 280px) minmax(260px, 340px) minmax(160px, 1fr) 140px';
 
 export interface SampleRowProps {
-  item: SimilarSampleItem;
+  item: SampleRowItem;
   /** When "compact", only thumbnail + name + creator (and optional rank) are shown. Default "full". */
   variant?: 'full' | 'compact';
   /** Optional rank number; shown as leading column when variant is "compact". */

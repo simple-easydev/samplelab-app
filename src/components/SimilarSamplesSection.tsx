@@ -1,17 +1,17 @@
-import { SampleRow, type SimilarSampleItem } from '@/components/SampleRow';
+import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
 
-export type { SimilarSampleItem } from '@/components/SampleRow';
+export type { SampleRowItem } from '@/components/SampleRow';
 
 export interface SimilarSamplesSectionProps {
   /** The name of the sample the user previously downloaded (shown in the title). Omit to use default. */
   sourceSampleName?: string;
   /** Similar sample items. Omit to use default mock data. */
-  items?: SimilarSampleItem[];
+  items?: SampleRowItem[];
 }
 
 const SIMILAR_SAMPLES_SOURCE = 'Sample Name';
 
-const SIMILAR_SAMPLES_ITEMS: SimilarSampleItem[] = [
+const SIMILAR_SAMPLES_ITEMS: SampleRowItem[] = [
   {
     id: '1',
     name: 'Sample name goes here',

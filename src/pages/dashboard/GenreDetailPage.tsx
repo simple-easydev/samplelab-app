@@ -10,7 +10,7 @@ import { SamplePackCard } from '@/components/SamplePackCard';
 import { CardCarousel } from '@/components/CardCarousel';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
 import { CreatorCard } from '@/components/CreatorCard';
-import { SampleRow, type SimilarSampleItem } from '@/components/SampleRow';
+import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
 import {
   getGenreBySlug,
   getGenreDetailMeta,
@@ -20,7 +20,7 @@ import {
 } from './constants';
 import { SamplesFilterBar } from './SamplesFilterBar';
 
-function mapSampleToList(sample: (typeof SAMPLES_LIST)[number], index: number): SimilarSampleItem {
+function mapSampleToList(sample: (typeof SAMPLES_LIST)[number], index: number): SampleRowItem {
   const tags: string[] = [];
   if (sample.genre) tags.push(sample.genre);
   if (sample.tags?.length) tags.push(...sample.tags);
@@ -77,7 +77,7 @@ export default function GenreDetailPage() {
   const creatorNamesInGenre = new Set(genrePacks.map((p) => p.creator));
   const genreCreators = CREATORS_GRID_ITEMS.filter((c) => creatorNamesInGenre.has(c.name));
 
-  const sampleItems: SimilarSampleItem[] = genreSamples.map(mapSampleToList);
+  const sampleItems: SampleRowItem[] = genreSamples.map(mapSampleToList);
   const samplesCount = genreSamples.length;
   const packsCount = genrePacks.length;
 

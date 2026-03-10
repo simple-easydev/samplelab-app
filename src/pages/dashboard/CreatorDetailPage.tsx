@@ -11,14 +11,14 @@ import { SamplePackCard } from '@/components/SamplePackCard';
 import { CardCarousel } from '@/components/CardCarousel';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
 import { CreatorCard } from '@/components/CreatorCard';
-import { SampleRow, type SimilarSampleItem } from '@/components/SampleRow';
+import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
 import { getCreatorById, type CreatorDetail } from '@/lib/supabase/creators';
 import { SamplesFilterBar } from './SamplesFilterBar';
 
 function mapSampleToRowItem(
   sample: CreatorDetail['samples'][number],
   creatorName: string
-): SimilarSampleItem {
+): SampleRowItem {
   const tags: string[] = sample.type ? [sample.type] : [];
   return {
     id: sample.id,
@@ -86,7 +86,7 @@ export default function CreatorDetailPage() {
     ...creator.tags,
     ...creator.genres.map((g) => g.name),
   ].filter(Boolean);
-  const sampleItems: SimilarSampleItem[] = creator.samples.map((s) =>
+  const sampleItems: SampleRowItem[] = creator.samples.map((s) =>
     mapSampleToRowItem(s, creator.name)
   );
   const descriptionText = creator.description ?? '';

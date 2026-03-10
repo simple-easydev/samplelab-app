@@ -12,7 +12,7 @@ export interface SampleMetadata {
  * Sample row returned by RPC get_all_samples (admin library Samples tab).
  * Matches API: id, name, pack_name, creator_name, genre, stems_count, metadata, etc.
  */
-export interface SampleRowAll {
+export interface SampleItem {
   id: string;
   name: string;
   pack_id: string;
@@ -37,7 +37,7 @@ export interface SampleRowAll {
  * Fetch all samples with pack, creator, genre, and stem count via RPC get_all_samples.
  * Auth: authenticated or service_role.
  */
-export async function getAllSamples(): Promise<SampleRowAll[]> {
+export async function getAllSamples(): Promise<SampleItem[]> {
   const { data, error } = await supabase.rpc('get_all_samples');
 
   if (error) {
@@ -45,11 +45,11 @@ export async function getAllSamples(): Promise<SampleRowAll[]> {
     return [];
   }
 
-  return Array.isArray(data) ? (data as SampleRowAll[]) : [];
+  return Array.isArray(data) ? (data as SampleItem[]) : [];
 }
 
 /** Parse metadata from row (handles JSON string from DB). */
-export function getSampleMetadata(row: SampleRowAll): SampleMetadata | null {
+export function getSampleMetadata(row: SampleItem): SampleMetadata | null {
   const raw = row.metadata;
   if (!raw) return null;
   if (typeof raw === 'string') {

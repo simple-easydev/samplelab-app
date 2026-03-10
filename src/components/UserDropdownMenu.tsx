@@ -8,6 +8,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { supabase } from '@/lib/supabase/client';
 
 const MENU_ITEM_CLASS =
   'flex h-10 cursor-pointer items-center gap-1.5 px-3 py-0 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]';
@@ -43,8 +44,9 @@ export function UserDropdownMenu({ onLogout }: { onLogout?: () => void }) {
         <div>
           <DropdownMenuItem
             className={MENU_ITEM_CLASS}
-            onSelect={(e) => {
+            onSelect={async (e) => {
               e.preventDefault();
+              await supabase.auth.signOut();
               onLogout?.();
             }}
           >
