@@ -4,9 +4,10 @@
  * When URL has ?q=..., shows SearchQueryChip instead of the search input.
  */
 import { useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
 import { GenreCard } from '@/components/GenreCard';
+import { genreNameToSlug } from './constants';
 import { Input } from '@/components/ui/input';
 import { SearchQueryChip } from '@/components/SearchQueryChip';
 import { GENRES_SORT_OPTIONS, GENRES_GRID_ITEMS } from './constants';
@@ -84,11 +85,13 @@ export function GenresTabContent() {
         <section className="w-full" aria-label="Genres">
           <div className="flex flex-wrap gap-6 items-center content-center w-full">
             {filteredGenres.map((genre) => (
-              <GenreCard
+              <Link
                 key={genre.name}
-                name={genre.name}
-                imageUrl={genre.imageUrl}
-              />
+                to={`/dashboard/genres/${genreNameToSlug(genre.name)}`}
+                className="contents"
+              >
+                <GenreCard name={genre.name} imageUrl={genre.imageUrl} />
+              </Link>
             ))}
           </div>
         </section>

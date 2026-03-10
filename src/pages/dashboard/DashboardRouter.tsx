@@ -8,6 +8,7 @@ import DashboardPage from './DashboardPage';
 import SearchResultPage from './SearchResultPage';
 import PackDetailPage from './PackDetailPage';
 import CreatorDetailPage from './CreatorDetailPage';
+import GenreDetailPage from './GenreDetailPage';
 import { DASHBOARD_TABS } from './DashboardTabContent';
 
 type DashboardTabId = (typeof DASHBOARD_TABS)[number]['id'];
@@ -89,6 +90,9 @@ export default function DashboardRouter() {
 
       {/* /dashboard/creators/:creatorId — creator detail page */}
       <Route path="creators/:creatorId" element={<CreatorDetailPage />} />
+
+      {/* /dashboard/genres/:genreId — genre detail page */}
+      <Route path="genres/:genreId" element={<GenreDetailPage />} />
 
       {/* /dashboard/:tabName — tab content, optional ?q= & ?genre= etc. */}
       <Route

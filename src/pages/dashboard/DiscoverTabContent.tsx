@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import { DiscoverCarousel } from '@/components/DiscoverCarousel';
 import { DiscoverListColumn } from '@/components/DiscoverListColumn';
 import { SimilarSamplesSection } from '@/components/SimilarSamplesSection';
@@ -15,6 +16,7 @@ import {
   FEATURED_CREATORS,
   TOP_GENRES,
   creatorNameToSlug,
+  genreNameToSlug,
 } from './constants';
 
 export interface DiscoverTabContentProps {
@@ -93,7 +95,13 @@ export function DiscoverTabContent({ variant = 'default' }: DiscoverTabContentPr
       </CardCarousel>
       <CardCarousel title="Top genres" ctaLabel="View all genres">
         {TOP_GENRES.map((genre) => (
-          <GenreCard key={genre.name} name={genre.name} />
+          <Link
+            key={genre.name}
+            to={`/dashboard/genres/${genreNameToSlug(genre.name)}`}
+            className="contents"
+          >
+            <GenreCard name={genre.name} />
+          </Link>
         ))}
       </CardCarousel>
     </div>

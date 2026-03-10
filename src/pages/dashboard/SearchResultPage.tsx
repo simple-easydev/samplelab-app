@@ -18,6 +18,7 @@ import {
   TRENDING_ITEMS,
   NEW_RELEASES_ITEMS,
   creatorNameToSlug,
+  genreNameToSlug,
 } from './constants';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
 
@@ -201,7 +202,13 @@ export default function SearchResultPage() {
           <div ref={genresRef} className="scroll-mt-4">
           <CardCarousel title="Genres" ctaLabel="View more" onCtaClick={() => navigate(tabUrl('genres'))}>
             {GENRES_GRID_ITEMS.slice(0, 6).map((genre) => (
-              <GenreCard key={genre.name} name={genre.name} imageUrl={genre.imageUrl} />
+              <Link
+                key={genre.name}
+                to={`/dashboard/genres/${genreNameToSlug(genre.name)}`}
+                className="contents"
+              >
+                <GenreCard name={genre.name} imageUrl={genre.imageUrl} />
+              </Link>
             ))}
           </CardCarousel>
           </div>

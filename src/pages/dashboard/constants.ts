@@ -186,6 +186,49 @@ export const GENRES_GRID_ITEMS: { name: string; imageUrl?: string }[] = [
   { name: 'Afrobeat', imageUrl: 'https://www.figma.com/api/mcp/asset/360b9b3c-4cae-4e1b-ba89-6f44a9567a44' },
 ];
 
+/** Slug for genre URL (e.g. "hip-hop") – used for genre detail route. */
+export function genreNameToSlug(name: string): string {
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-|-$/g, '');
+}
+
+export function getGenreBySlug(slug: string): { name: string; imageUrl?: string } | undefined {
+  return GENRES_GRID_ITEMS.find((g) => genreNameToSlug(g.name) === slug);
+}
+
+/** Genre detail page – sub-tags and description (Figma 867-114383). Default for Hip-Hop. */
+export const GENRE_DETAIL_META: Record<
+  string,
+  { tags: string[]; description: string }
+> = {
+  'Hip-Hop': {
+    tags: ['Beats', 'Rap', 'Grime', 'R&B', 'Lofi Rap', 'Old School Rap', 'Trap', '+5 more'],
+    description:
+      "Crate digging in reverse: download the best hip-hop beats and rap music to flip your own samples. From the heart of hip-hop's birthplace, New York, to rap music from all over the world.",
+  },
+  'Lo-Fi': {
+    tags: ['Chill', 'Jazz', 'Boom Bap', 'Vinyl', 'Lofi Rap', '+3 more'],
+    description:
+      'Chill beats and dusty samples for producers who love warmth and groove. From jazz-inflected loops to boom bap drums and vinyl textures.',
+  },
+  Trap: {
+    tags: ['808', 'Hi-Hats', 'Drill', 'Melodic', '+4 more'],
+    description:
+      'Hard-hitting 808s, rolling hi-hats, and melodic trap patterns. Everything you need for modern trap and drill production.',
+  },
+};
+const DEFAULT_GENRE_META = {
+  tags: ['Beats', 'Loops', 'One-shots', '+2 more'],
+  description:
+    'Explore samples and packs in this genre. Find the right sounds for your next project.',
+};
+
+export function getGenreDetailMeta(genreName: string): { tags: string[]; description: string } {
+  return GENRE_DETAIL_META[genreName] ?? DEFAULT_GENRE_META;
+}
+
 /** Access options for packs filter – single select */
 export const ACCESS_OPTIONS = [
   { id: 'all', label: 'All' },
