@@ -230,6 +230,7 @@ export default function CreatorDetailPage() {
                   creatorId={c.id}
                   name={c.name}
                   imageUrl={c.avatar_url ?? undefined}
+                  lockDesktop
                 />
               ))
             ) : (
