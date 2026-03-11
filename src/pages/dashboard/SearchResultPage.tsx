@@ -115,22 +115,40 @@ export default function SearchResultPage() {
             })}
           </div>
 
-          {/* Samples section: title + View more + "X results for" + filter chip */}
+          {/* Samples section: mobile has separate chip row (chip on right); desktop has title left, filter right */}
           <div ref={samplesRef} className="flex flex-col gap-8 mb-8 scroll-mt-4">
-            <div className="flex items-start justify-between w-full flex-wrap gap-4">
-              <div className="flex gap-6 h-10 items-center">
+            {/* Mobile only: filter chip row with chip on the right */}
+            <div className="flex md:hidden items-center justify-end w-full gap-3">
+              <span className="text-[#161410] text-sm leading-5 tracking-[0.1px]">
+                {resultCount} results for
+              </span>
+              <button
+                type="button"
+                onClick={clearSearch}
+                className="bg-[#161410] text-[#fffbf0] h-10 px-3 rounded-full inline-flex items-center gap-2 text-sm font-medium tracking-[0.1px] hover:opacity-90 transition-opacity shrink-0"
+                aria-label={`Clear search "${q}"`}
+              >
+                <span>{q || 'Search'}</span>
+                <X className="size-5 shrink-0" />
+              </button>
+            </div>
+
+            <div className="flex flex-col md:flex-row md:items-start md:justify-between w-full gap-4">
+              {/* Title + View more */}
+              <div className="flex gap-6 h-10 items-center w-full md:w-auto justify-between">
                 <h2 className="text-[#161410] text-[28px] font-bold leading-9 tracking-[-0.2px]">
                   Samples
                 </h2>
                 <Link
                   to={tabUrl('samples')}
-                  className="inline-flex items-center gap-1.5 h-10 px-3 rounded-[2px] border border-[#a49a84] text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] hover:bg-[#161410]/5 transition-colors"
+                  className="inline-flex items-center gap-1.5 text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] hover:opacity-80 transition-colors md:h-10 md:px-3 md:rounded-[2px] md:border md:border-[#a49a84] md:hover:bg-[#161410]/5 md:hover:opacity-100"
                 >
                   View more
                   <ArrowRight className="size-5 shrink-0" />
                 </Link>
               </div>
-              <div className="flex gap-3 h-10 items-center">
+              {/* Filter chip section: desktop only */}
+              <div className="hidden md:flex gap-3 h-10 items-center shrink-0">
                 <span className="text-[#161410] text-sm leading-5 tracking-[0.1px]">
                   {resultCount} results for
                 </span>

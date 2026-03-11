@@ -29,19 +29,19 @@ export function CardCarousel({ title, subtitle, ctaLabel, onCtaClick, children }
 
   return (
     <div className="flex flex-col gap-8 w-full">
-      {/* Section header: title (+ optional subtitle) + optional CTA + arrows */}
-      <div className="flex items-center justify-between w-full">
-        <div className="flex gap-6 items-center flex-wrap">
-          <div className="flex flex-col gap-2">
-            <h2 className="text-[#161410] text-[28px] font-bold leading-9 tracking-[-0.2px]">
-              {title}
-            </h2>
-            {subtitle != null && (
-              <p className="text-[#7f7766] text-sm leading-5 tracking-[0.1px]">
-                {subtitle}
-              </p>
-            )}
-          </div>
+      {/* Section header: title (+ optional subtitle) left; CTA + arrows right */}
+      <div className="flex items-center justify-between w-full gap-4">
+        <div className="flex flex-col gap-2 min-w-0">
+          <h2 className="text-[#161410] text-[28px] font-bold leading-9 tracking-[-0.2px]">
+            {title}
+          </h2>
+          {subtitle != null && (
+            <p className="text-[#7f7766] text-sm leading-5 tracking-[0.1px]">
+              {subtitle}
+            </p>
+          )}
+        </div>
+        <div className="flex gap-3 items-center shrink-0">
           {ctaLabel != null && ctaLabel !== '' && (
             <a
               href="#"
@@ -51,30 +51,30 @@ export function CardCarousel({ title, subtitle, ctaLabel, onCtaClick, children }
                   onCtaClick();
                 }
               }}
-              className="inline-flex items-center gap-1.5 h-10 px-3 rounded-[2px] border border-[#a49a84] text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] hover:bg-[#161410]/5 transition-colors"
+              className="inline-flex items-center gap-1.5 text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] hover:opacity-80 transition-colors md:h-10 md:px-3 md:rounded-[2px] md:border md:border-[#a49a84] md:hover:bg-[#161410]/5 md:hover:opacity-100"
             >
               {ctaLabel}
               <ArrowRight className="size-5 shrink-0" />
             </a>
           )}
-        </div>
-        <div className="flex gap-3 items-center shrink-0">
-          <button
-            type="button"
-            onClick={() => scroll('left')}
-            className="border border-[#a49a84] size-10 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#161410]/5 transition-colors"
-            aria-label="Previous"
-          >
-            <ChevronLeft className="size-5" />
-          </button>
-          <button
-            type="button"
-            onClick={() => scroll('right')}
-            className="border border-[#a49a84] size-10 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#161410]/5 transition-colors"
-            aria-label="Next"
-          >
-            <ChevronRight className="size-5" />
-          </button>
+          <div className="hidden md:flex gap-3 items-center">
+            <button
+              type="button"
+              onClick={() => scroll('left')}
+              className="border border-[#a49a84] size-10 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#161410]/5 transition-colors"
+              aria-label="Previous"
+            >
+              <ChevronLeft className="size-5" />
+            </button>
+            <button
+              type="button"
+              onClick={() => scroll('right')}
+              className="border border-[#a49a84] size-10 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#161410]/5 transition-colors"
+              aria-label="Next"
+            >
+              <ChevronRight className="size-5" />
+            </button>
+          </div>
         </div>
       </div>
 
