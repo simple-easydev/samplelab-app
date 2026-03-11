@@ -29,3 +29,27 @@ export async function getAllGenres(): Promise<GenreRow[]> {
   return Array.isArray(data) ? (data as GenreRow[]) : [];
 }
 
+/**
+ * Row shape returned by get_top_ranked_genres RPC (for Top genres carousel).
+ */
+export interface TopRankedGenreRow {
+  id?: string;
+  name: string;
+  thumbnail_url?: string | null;
+}
+
+/**
+ * Fetch top ranked genres via Supabase RPC get_top_ranked_genres.
+ * Returns empty array on error or if RPC is not deployed.
+ */
+export async function getTopRankedGenres(): Promise<TopRankedGenreRow[]> {
+  const { data, error } = await supabase.rpc('get_top_ranked_genres');
+
+  if (error) {
+    console.error('Error fetching top ranked genres:', error);
+    return [];
+  }
+
+  return Array.isArray(data) ? (data as TopRankedGenreRow[]) : [];
+}
+
