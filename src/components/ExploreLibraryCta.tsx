@@ -15,9 +15,9 @@ export interface ExploreLibraryCtaProps {
   className?: string;
 }
 
-/** Overlapping library cover strip — placeholder tiles matching Figma layout (CoolGray scale). */
+/** Overlapping library cover strip — placeholder tiles matching Figma layout (CoolGray scale). Desktop: 7 covers, 258px height. Mobile: scaled 7 covers, 140px height. */
 function LibraryCoversStrip() {
-  const coverConfig = [
+  const desktopConfig = [
     { size: 182, left: 'calc(50% - 363px)', bg: '#878d96', center: true },
     { size: 182, right: 0, left: undefined, bg: '#878d96', center: false },
     { size: 209, left: 'calc(50% + 257.5px)', bg: '#a2a9b0', center: true },
@@ -27,9 +27,24 @@ function LibraryCoversStrip() {
     { size: 258, left: '50%', bg: '#dde1e6', center: true },
   ];
 
-  return (
-    <div className="h-[258px] relative w-full max-w-[910px] mx-auto" aria-hidden>
-      {coverConfig.map(({ size, left, right, bg, center }, idx) => (
+  /** Mobile: same 7-cover layout scaled to fit narrow viewport (~140px height, positions scaled). */
+  const mobileConfig = [
+    { size: 98, left: 'calc(50% - 158px)', bg: '#878d96', center: true },
+    { size: 98, right: 0, left: undefined, bg: '#878d96', center: false },
+    { size: 112, left: 'calc(50% + 111px)', bg: '#a2a9b0', center: true },
+    { size: 112, left: 'calc(50% - 111px)', bg: '#a2a9b0', center: true },
+    { size: 126, left: 'calc(50% + 55px)', bg: '#c1c7cd', center: true },
+    { size: 126, left: 'calc(50% - 56px)', bg: '#c1c7cd', center: true },
+    { size: 140, left: '50%', bg: '#dde1e6', center: true },
+  ];
+
+  const renderStrip = (config: typeof desktopConfig, height: number, maxWidth: string) => (
+    <div
+      className="relative w-full mx-auto"
+      style={{ height, maxWidth }}
+      aria-hidden
+    >
+      {config.map(({ size, left, right, bg, center }, idx) => (
         <div
           key={idx}
           className="absolute bottom-0 overflow-hidden rounded-t-sm"
@@ -44,6 +59,19 @@ function LibraryCoversStrip() {
         />
       ))}
     </div>
+  );
+
+  return (
+    <>
+      {/* Mobile: scaled strip */}
+      <div className="md:hidden w-full px-4">
+        {renderStrip(mobileConfig, 140, '100%')}
+      </div>
+      {/* Desktop: original strip */}
+      <div className="hidden md:block w-full">
+        {renderStrip(desktopConfig, 258, '910px')}
+      </div>
+    </>
   );
 }
 

@@ -6,12 +6,13 @@ export interface GenreCardProps {
   name: string;
   /** Optional image URL; placeholder used if not provided */
   imageUrl?: string;
-  fixedWidth?: boolean;
+  /** When true, keep desktop style (fixed width 209px) on all viewports including mobile. */
+  lockDesktop?: boolean;
 }
 
-export function GenreCard({ name, imageUrl, fixedWidth = false }: GenreCardProps) {
+export function GenreCard({ name, imageUrl, lockDesktop = false }: GenreCardProps) {
   return (
-    <article className={`bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col gap-2 overflow-hidden pb-4 shrink-0 ${fixedWidth ? 'w-[209px]' : 'w-full'} min-h-[253px] items-center`}>
+    <article className={`bg-[#f6f2e6] border border-[#e8e2d2] rounded flex flex-col gap-2 overflow-hidden pb-4 shrink-0 ${lockDesktop ? 'w-[209px]' : 'w-full'} min-h-[253px] items-center`}>
       {/* Cover */}
       <div className="flex flex-col h-[209px] p-2 w-full shrink-0">
         <div className="bg-[#dde1e6] flex-1 min-h-0 overflow-hidden rounded-[2px] w-full relative">

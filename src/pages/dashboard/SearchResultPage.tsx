@@ -84,6 +84,7 @@ export default function SearchResultPage() {
   };
 
   const sampleColumns = splitIntoColumns(SEARCH_SAMPLE_ITEMS, 3);
+  const sampleColumnsMobile = splitIntoColumns(SEARCH_SAMPLE_ITEMS, 1);
   const resultCount = 1000; // Mock
 
   const tabUrl = (tabName: string) =>
@@ -91,7 +92,7 @@ export default function SearchResultPage() {
 
   return (
     <div className="min-h-screen bg-[#fffbf0] relative">
-      <div className="px-8 pt-8 pb-32 w-full max-w-full">
+      <div className="p-4 w-full max-w-full md:px-8 md:pt-8 md:pb-32">
         <div className="max-w-[1376px] mx-auto">
           {/* Tabs – border-b, active: border-b-2 border-black */}
           <div className="border-b border-[#e8e2d2] flex gap-4 items-center mb-8">
@@ -145,8 +146,25 @@ export default function SearchResultPage() {
               </div>
             </div>
 
-            {/* 3-column sample grid */}
-            <div className="flex gap-6 w-full">
+            {/* Sample grid: 1 column on mobile, 3 columns from md up */}
+            <div className="flex flex-col gap-6 w-full md:hidden">
+              {sampleColumnsMobile.map((columnItems, colIndex) => (
+                <div
+                  key={colIndex}
+                  className="flex-1 min-w-0 border border-[#e8e2d2] rounded-[4px] overflow-hidden flex flex-col"
+                >
+                  {columnItems.map((item, i) => (
+                    <SampleSearchRow
+                      key={`${colIndex}-${i}`}
+                      name={item.name}
+                      creator={item.creator}
+                      imageUrl={item.imageUrl}
+                    />
+                  ))}
+                </div>
+              ))}
+            </div>
+            <div className="hidden md:flex gap-6 w-full">
               {sampleColumns.map((columnItems, colIndex) => (
                 <div
                   key={colIndex}
@@ -177,6 +195,7 @@ export default function SearchResultPage() {
                   playCount={pack.playCount}
                   genre={pack.genre}
                   premium={pack.premium}
+                  lockDesktop
                 />
               ))}
             </CardCarousel>
@@ -191,6 +210,7 @@ export default function SearchResultPage() {
                   name={creator.name}
                   samplesCount={creator.samplesCount}
                   packsCount={creator.packsCount}
+                  lockDesktop
                 />
               ))}
             </CardCarousel>
@@ -205,7 +225,7 @@ export default function SearchResultPage() {
                 to={`/dashboard/genres/${genreNameToSlug(genre.name)}`}
                 className="contents"
               >
-                <GenreCard name={genre.name} imageUrl={genre.imageUrl} />
+                <GenreCard name={genre.name} imageUrl={genre.imageUrl} lockDesktop />
               </Link>
             ))}
           </CardCarousel>

@@ -110,7 +110,7 @@ export function DiscoverTabContent({ variant = 'default' }: DiscoverTabContentPr
             to={`/dashboard/genres/${genreNameToSlug(genre.name)}`}
             className="contents"
           >
-            <GenreCard name={genre.name} fixedWidth />
+            <GenreCard name={genre.name} lockDesktop />
           </Link>
         ))}
       </CardCarousel>
