@@ -1,20 +1,13 @@
-import { Link } from 'react-router-dom';
 import { DiscoverCarousel } from '@/components/DiscoverCarousel';
 import { DiscoverCarouselMobile } from '@/components/DiscoverCarouselMobile';
 import { TopFeed } from '@/components/TopFeed';
 import { SimilarSamplesSection } from '@/components/SimilarSamplesSection';
 import { CardCarousel } from '@/components/CardCarousel';
+import { FeaturedPackSection } from '@/components/FeaturedPackSection';
+import { FeaturedCreatorsSection } from '@/components/FeaturedCreatorsSection';
+import { TopGenresSection } from '@/components/TopGenresSection';
 import { SamplePackCard } from '@/components/SamplePackCard';
-import { CreatorCard } from '@/components/CreatorCard';
-import { GenreCard } from '@/components/GenreCard';
-import {
-  FEATURED_PACKS,
-  SIMILAR_PACKS_TO_LIKES,
-  LIKED_PACK_NAME,
-  FEATURED_CREATORS,
-  TOP_GENRES,
-  genreNameToSlug,
-} from './constants';
+import { SIMILAR_PACKS_TO_LIKES, LIKED_PACK_NAME } from './constants';
 
 export interface DiscoverTabContentProps {
   /** When 'subscribed', shows SimilarSamplesSection and "Because you liked" section */
@@ -40,52 +33,21 @@ export function DiscoverTabContent({ variant = 'default' }: DiscoverTabContentPr
           {SIMILAR_PACKS_TO_LIKES.map((pack) => (
             <SamplePackCard
               key={pack.id}
-              packId={pack.id}
-              title={pack.title}
-              creator={pack.creator}
-              playCount={pack.playCount}
-              genre={pack.genre}
-              premium={pack.premium}
+              pack={{
+                id: pack.id,
+                name: pack.title,
+                creator_name: pack.creator,
+                download_count: pack.playCount ? parseInt(pack.playCount, 10) : undefined,
+                category_name: pack.genre ?? undefined,
+                is_premium: pack.premium ?? false,
+              }}
             />
           ))}
         </CardCarousel>
       )}
-      <CardCarousel title="Featured Packs" ctaLabel="View all packs">
-        {FEATURED_PACKS.map((pack) => (
-          <SamplePackCard
-            key={pack.id}
-            packId={pack.id}
-            title={pack.title}
-            creator={pack.creator}
-            playCount={pack.playCount}
-            genre={pack.genre}
-            premium={pack.premium}
-            lockDesktop
-          />
-        ))}
-      </CardCarousel>
-      <CardCarousel title="Featured creators" ctaLabel="View all creators">
-        {FEATURED_CREATORS.map((creator) => (
-          <CreatorCard
-            key={creator.name}
-            name={creator.name}
-            samplesCount={creator.samplesCount}
-            packsCount={creator.packsCount}
-            lockDesktop
-          />
-        ))}
-      </CardCarousel>
-      <CardCarousel title="Top genres" ctaLabel="View all genres">
-        {TOP_GENRES.map((genre) => (
-          <Link
-            key={genre.name}
-            to={`/dashboard/genres/${genreNameToSlug(genre.name)}`}
-            className="contents"
-          >
-            <GenreCard name={genre.name} lockDesktop />
-          </Link>
-        ))}
-      </CardCarousel>
+      <FeaturedPackSection />
+      <FeaturedCreatorsSection />
+      <TopGenresSection />
     </div>
   );
 }

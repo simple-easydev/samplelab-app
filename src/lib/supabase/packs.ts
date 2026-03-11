@@ -106,3 +106,39 @@ export async function getAllPacks(): Promise<PackRow[]> {
 
   return Array.isArray(data) ? (data as PackRow[]) : [];
 }
+
+/**
+ * Row shape returned by get_featured_packs RPC.
+ */
+export interface FeaturedPackRow {
+  id: string;
+  name: string;
+  description: string | null;
+  creator_id: string | null;
+  creator_name: string;
+  cover_url: string | null;
+  category_name: string | null;
+  tags: string[] | null;
+  is_premium: boolean | null;
+  status: string;
+  download_count: number | null;
+  is_featured: boolean | null;
+  created_at: string;
+  updated_at: string;
+  samples_count: number;
+}
+
+/**
+ * Fetch featured packs via Supabase RPC get_featured_packs.
+ * Returns empty array on error or if RPC is not deployed.
+ */
+export async function getFeaturedPacks(): Promise<FeaturedPackRow[]> {
+  const { data, error } = await supabase.rpc('get_featured_packs');
+
+  if (error) {
+    console.error('Error fetching featured packs:', error);
+    return [];
+  }
+
+  return Array.isArray(data) ? (data as FeaturedPackRow[]) : [];
+}

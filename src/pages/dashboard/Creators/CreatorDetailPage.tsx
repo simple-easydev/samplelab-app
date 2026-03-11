@@ -193,13 +193,15 @@ export default function CreatorDetailPage() {
               creator.packs.map((p) => (
                 <SamplePackCard
                   key={p.id}
-                  packId={p.id}
-                  title={p.name}
-                  creator={creator.name}
-                  playCount={p.download_count != null ? String(p.download_count) : undefined}
-                  genre={p.tags?.[0] ?? undefined}
-                  premium={p.is_premium ?? false}
-                  imageUrl={p.cover_url ?? undefined}
+                  pack={{
+                    id: p.id,
+                    name: p.name,
+                    creator_name: creator.name,
+                    cover_url: p.cover_url,
+                    download_count: p.download_count ?? undefined,
+                    category_name: p.tags?.[0] ?? undefined,
+                    is_premium: p.is_premium ?? false,
+                  }}
                 />
               ))
             ) : (

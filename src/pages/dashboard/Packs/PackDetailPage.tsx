@@ -257,13 +257,15 @@ export default function PackDetailPage() {
             pack.similar_packs.slice(0, 6).map((p) => (
               <SamplePackCard
                 key={p.id}
-                packId={p.id}
-                title={p.name}
-                creator={p.creator_name}
-                playCount={String(p.samples_count)}
-                genre={p.genres?.[0] ?? p.category_name}
-                premium={p.is_premium ?? false}
-                imageUrl={p.cover_url ?? undefined}
+                pack={{
+                  id: p.id,
+                  name: p.name,
+                  creator_name: p.creator_name,
+                  cover_url: p.cover_url,
+                  download_count: p.samples_count,
+                  category_name: p.genres?.[0] ?? p.category_name ?? undefined,
+                  is_premium: p.is_premium ?? false,
+                }}
               />
             ))
           ) : (

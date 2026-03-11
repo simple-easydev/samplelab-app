@@ -100,6 +100,21 @@ export async function getCreatorsWithCounts(
 }
 
 /**
+ * Fetch featured creators via Supabase RPC get_featured_creators.
+ * Returns empty array on error or if RPC is not deployed.
+ */
+export async function getFeaturedCreators(): Promise<CreatorWithCounts[]> {
+  const { data, error } = await supabase.rpc('get_featured_creators');
+
+  if (error) {
+    console.error('Error fetching featured creators:', error);
+    return [];
+  }
+
+  return Array.isArray(data) ? (data as CreatorWithCounts[]) : [];
+}
+
+/**
  * Fetch full creator detail by id via RPC get_creator_by_id (packs, samples, similar_creators, etc.).
  */
 export async function getCreatorById(id: string): Promise<CreatorDetail | null> {

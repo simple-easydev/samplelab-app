@@ -51,13 +51,15 @@ export function PacksTabContent() {
             packs.map((pack) => (
               <SamplePackCard
                 key={pack.id}
-                packId={pack.id}
-                title={pack.name}
-                creator={pack.creator_name}
-                playCount={String(pack.samples_count)}
-                genre={pack.genres?.[0] ?? pack.category_name ?? undefined}
-                premium={pack.is_premium ?? false}
-                imageUrl={pack.cover_url ?? undefined}
+                pack={{
+                  id: pack.id,
+                  name: pack.name,
+                  creator_name: pack.creator_name,
+                  cover_url: pack.cover_url,
+                  samples_count: pack.samples_count ?? pack.samples_count,
+                  category_name: pack.genres?.[0] ?? pack.category_name ?? undefined,
+                  is_premium: pack.is_premium ?? false,
+                }}
               />
             ))
           )}

@@ -233,12 +233,14 @@ export default function GenreDetailPage() {
                 genrePacks.slice(0, 12).map((p) => (
                   <SamplePackCard
                     key={p.id}
-                    packId={p.id}
-                    title={p.title}
-                    creator={p.creator}
-                    playCount={p.playCount}
-                    genre={p.genre}
-                    premium={p.premium}
+                    pack={{
+                      id: p.id,
+                      name: p.title,
+                      creator_name: p.creator,
+                      download_count: p.playCount ? parseInt(p.playCount, 10) : undefined,
+                      category_name: p.genre ?? undefined,
+                      is_premium: p.premium ?? false,
+                    }}
                   />
                 ))
               ) : (

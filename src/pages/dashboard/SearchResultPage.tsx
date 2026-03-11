@@ -15,8 +15,6 @@ import {
   FEATURED_PACKS,
   FEATURED_CREATORS,
   GENRES_GRID_ITEMS,
-  TRENDING_ITEMS,
-  NEW_RELEASES_ITEMS,
   genreNameToSlug,
 } from './constants';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
@@ -29,14 +27,23 @@ const SEARCH_RESULT_TABS = [
   { id: 'genres', label: 'Genres' },
 ] as const;
 
-/** Mock sample items for search grid (name, creator); split into columns. */
-const SEARCH_SAMPLE_ITEMS = [
-  ...TRENDING_ITEMS.map(({ name, creator }) => ({ name, creator, imageUrl: null as string | null })),
-  ...NEW_RELEASES_ITEMS.map(({ name, creator }) => ({ name, creator, imageUrl: null as string | null })),
-  { name: 'Soul Chop 04', creator: 'Vinyl Revival', imageUrl: null as string | null },
-  { name: 'Synth Pad Texture', creator: 'Synth Wave', imageUrl: null as string | null },
-  { name: '808 Essentials', creator: 'Synth Wave', imageUrl: null as string | null },
-  { name: 'Chill Vibes Pack', creator: 'Creator name', imageUrl: null as string | null },
+/** Mock sample items for search grid (name, creator, imageUrl); split into columns. */
+const SEARCH_SAMPLE_ITEMS: { name: string; creator: string; imageUrl: string | null }[] = [
+  { name: 'Sample name goes here', creator: 'Creator name', imageUrl: null },
+  { name: 'Lo-Fi Keys Loop', creator: 'Beat Lab', imageUrl: null },
+  { name: 'Trap Hi-Hat Sequence', creator: 'Sound Factory', imageUrl: null },
+  { name: 'Soul Chop 04', creator: 'Vinyl Revival', imageUrl: null },
+  { name: 'Synth Pad Texture', creator: 'Synth Wave', imageUrl: null },
+  { name: 'Fresh Drop Vol. 1', creator: 'Beat Lab', imageUrl: null },
+  { name: 'Weekend Pack', creator: 'Sound Factory', imageUrl: null },
+  { name: 'Midnight Loops', creator: 'Vinyl Revival', imageUrl: null },
+  { name: '808 Essentials', creator: 'Synth Wave', imageUrl: null },
+  { name: 'Chill Vibes Pack', creator: 'Creator name', imageUrl: null },
+  { name: 'Soul Chop 04', creator: 'Vinyl Revival', imageUrl: null },
+  { name: 'Synth Pad Texture', creator: 'Synth Wave', imageUrl: null },
+  { name: '808 Essentials', creator: 'Synth Wave', imageUrl: null },
+  { name: 'Chill Vibes Pack', creator: 'Creator name', imageUrl: null },
+  { name: 'Boom Bap Classics', creator: 'Beat Lab', imageUrl: null },
 ].slice(0, 15);
 
 function splitIntoColumns<T>(items: T[], columns: number): T[][] {
@@ -141,7 +148,7 @@ export default function SearchResultPage() {
                 </h2>
                 <Link
                   to={tabUrl('samples')}
-                  className="inline-flex items-center gap-1.5 text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] hover:opacity-80 transition-colors md:h-10 md:px-3 md:rounded-[2px] md:border md:border-[#a49a84] md:hover:bg-[#161410]/5 md:hover:opacity-100"
+                  className="inline-flex items-center gap-1.5 text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] hover:opacity-80 transition-colors md:h-10 md:px-3 md:rounded-xs md:border md:border-[#a49a84] md:hover:bg-[#161410]/5 md:hover:opacity-100"
                 >
                   View more
                   <ArrowRight className="size-5 shrink-0" />
@@ -207,12 +214,14 @@ export default function SearchResultPage() {
               {FEATURED_PACKS.map((pack) => (
                 <SamplePackCard
                   key={pack.id}
-                  packId={pack.id}
-                  title={pack.title}
-                  creator={pack.creator}
-                  playCount={pack.playCount}
-                  genre={pack.genre}
-                  premium={pack.premium}
+                  pack={{
+                    id: pack.id,
+                    name: pack.title,
+                    creator_name: pack.creator,
+                    download_count: pack.playCount ? parseInt(pack.playCount, 10) : undefined,
+                    category_name: pack.genre ?? undefined,
+                    is_premium: pack.premium ?? false,
+                  }}
                   lockDesktop
                 />
               ))}

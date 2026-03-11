@@ -14,18 +14,22 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { AudioBarIcon } from './icons';
 
+/**
+ * Pack data for the card (e.g. from get_featured_packs or compatible shape).
+ */
+export interface SamplePackCardPackData {
+  id: string;
+  name: string;
+  creator_name: string;
+  cover_url?: string | null;
+  download_count?: number | null;
+  samples_count?: number | null;
+  category_name?: string | null;
+  is_premium?: boolean | null;
+}
+
 export interface SamplePackCardProps {
-  title: string;
-  creator: string;
-  /** When set, clicking the card navigates to /dashboard/packs/:packId */
-  packId?: string;
-  /** e.g. play count "20" */
-  playCount?: string;
-  /** e.g. "Hip-Hop" */
-  genre?: string;
-  premium?: boolean;
-  /** Optional image URL; placeholder used if not provided */
-  imageUrl?: string;
+  pack: SamplePackCardPackData;
   /** Optional callbacks for context menu actions */
   onAddToFavorites?: () => void;
   onGetPack?: () => void;
@@ -42,13 +46,7 @@ const tagPill =
   'bg-[#e8e2d2] border border-[#d6ceb8] flex gap-0.5 h-5 items-center justify-center px-1.5 rounded-md shrink-0';
 
 export function SamplePackCard({
-  title,
-  creator,
-  packId,
-  playCount,
-  genre,
-  premium = false,
-  imageUrl,
+  pack,
   onAddToFavorites,
   onGetPack,
   onViewCreator,
@@ -57,17 +55,26 @@ export function SamplePackCard({
 }: SamplePackCardProps) {
   const navigate = useNavigate();
 
+  const id = pack.id;
+  const displayTitle = pack.name;
+  const displayCreator = pack.creator_name;
+  const displayImageUrl = pack.cover_url ?? undefined;
+  const displaySamplesCount =
+    pack.samples_count != null ? String(pack.samples_count) : undefined;
+  const displayGenre = pack.category_name ?? undefined;
+  const displayPremium = pack.is_premium ?? false;
+
   const handleCardClick = (e: React.MouseEvent) => {
-    if (!packId) return;
+    if (!id) return;
     const target = e.target as HTMLElement;
     if (target.closest('[data-dropdown-trigger]') || target.closest('button')) return;
-    navigate(`/dashboard/packs/${packId}`);
+    navigate(`/dashboard/packs/${id}`);
   };
 
   const moreButtonClass =
     'size-6 flex items-center justify-center rounded-xs text-[#161410] opacity-100 transition-opacity hover:bg-[#e8e2d2] data-[state=open]:opacity-100 data-[state=open]:bg-[#e8e2d2] md:opacity-0 md:group-hover:opacity-100';
 
-  const premiumBadgeDesktop = premium ? (
+  const premiumBadgeDesktop = displayPremium ? (
     <div className="absolute top-[10px] right-[10px] bg-[#f3c16c] border border-[#eaaa3e] flex items-center justify-center h-5 px-1.5 rounded-md">
       <span className="text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px] uppercase">
         Premium
@@ -75,7 +82,7 @@ export function SamplePackCard({
     </div>
   ) : null;
 
-  const premiumBadgeMobile = premium ? (
+  const premiumBadgeMobile = displayPremium ? (
     <div className="absolute top-2 right-2 bg-[#f3c16c] border border-[#eaaa3e] flex items-center justify-center size-5 rounded-md">
       <Crown className="size-3 text-[#161410]" aria-hidden />
     </div>
@@ -83,8 +90,8 @@ export function SamplePackCard({
 
   const coverImage = (
     <>
-      {imageUrl ? (
-        <img src={imageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
+      {displayImageUrl ? (
+        <img src={displayImageUrl} alt="" className="absolute inset-0 w-full h-full object-cover" />
       ) : (
         <div className="absolute inset-0 bg-[#e8e2d2]" aria-hidden />
       )}
@@ -104,28 +111,28 @@ export function SamplePackCard({
     <div className="flex flex-col gap-1 min-w-0 flex-1">
       <p className="text-[#7f7766] text-[8px] leading-3 tracking-[1.1px] uppercase">Sample pack</p>
       <p className="text-[#161410] text-sm font-bold leading-5 tracking-[0.1px] truncate">
-        {title}
+        {displayTitle}
       </p>
-      <p className="text-[#5e584b] text-xs leading-4 tracking-[0.2px] truncate">{creator}</p>
+      <p className="text-[#5e584b] text-xs leading-4 tracking-[0.2px] truncate">{displayCreator}</p>
     </div>
   );
 
   const tagsAndMenu = (
     <div className="flex h-6 items-center justify-between shrink-0">
       <div className="flex gap-2 items-center min-w-0">
-        {playCount != null && (
+        {displaySamplesCount != null && (
           <div className={tagPill}>
             <AudioBarIcon className="size-3 text-[#161410] shrink-0" aria-hidden />
             <span className="text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]">
-              {playCount}
+              {displaySamplesCount}
             </span>
           </div>
         )}
-        {genre != null && (
+        {displayGenre != null && (
           <div className={tagPill}>
             <Music2 className="size-3 text-[#161410] shrink-0 hidden md:block" aria-hidden />
             <span className="text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]">
-              {genre}
+              {displayGenre}
             </span>
           </div>
         )}
@@ -192,20 +199,20 @@ export function SamplePackCard({
 
   return (
     <article
-      role={packId ? 'button' : undefined}
-      tabIndex={packId ? 0 : undefined}
-      onClick={packId ? handleCardClick : undefined}
+      role={id ? 'button' : undefined}
+      tabIndex={id ? 0 : undefined}
+      onClick={id ? handleCardClick : undefined}
       onKeyDown={
-        packId
+        id
           ? (e) => {
               if (e.key === 'Enter' || e.key === ' ') {
                 e.preventDefault();
-                navigate(`/dashboard/packs/${packId}`);
+                navigate(`/dashboard/packs/${id}`);
               }
             }
           : undefined
       }
-      className={`${cardBase} ${packId ? 'cursor-pointer' : 'cursor-default'} flex flex-col gap-2 pb-4 shrink-0 rounded-md
+      className={`${cardBase} ${id ? 'cursor-pointer' : 'cursor-default'} flex flex-col gap-2 pb-4 shrink-0 rounded-md
         ${lockDesktop
           ? 'w-[209px] min-h-[345px]'
           : 'w-full min-h-[160px] md:w-[209px] md:min-h-[345px]'
