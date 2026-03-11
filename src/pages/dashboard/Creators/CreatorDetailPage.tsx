@@ -11,30 +11,12 @@ import { SamplePackCard } from '@/components/SamplePackCard';
 import { CardCarousel } from '@/components/CardCarousel';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
 import { CreatorCard } from '@/components/CreatorCard';
-import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
-import { getCreatorById, type CreatorDetail } from '@/lib/supabase/creators';
+import { SampleRow } from '@/components/SampleRow';
+import { getCreatorById } from '@/lib/supabase/creators';
+import { creatorDetailSampleToSampleItem } from '@/lib/utils';
 import { SamplesFilterBar } from '../Samples/SamplesFilterBar';
 import { SamplesFilterBarMobile } from '../Samples/SamplesFilterBarMobile';
 import { SamplesFilterProvider } from '@/contexts/SamplesFilterContext';
-
-function mapSampleToRowItem(
-  sample: CreatorDetail['samples'][number],
-  creatorName: string
-): SampleRowItem {
-  const tags: string[] = sample.type ? [sample.type] : [];
-  return {
-    id: sample.id,
-    name: sample.name,
-    creator: creatorName,
-    duration: sample.length ?? '—',
-    tags,
-    royaltyFree: false,
-    premium: false,
-    bpm: sample.bpm ?? undefined,
-    key: sample.key ?? undefined,
-    imageUrl: null,
-  };
-}
 
 export default function CreatorDetailPage() {
   const { creatorId } = useParams<{ creatorId: string }>();
@@ -88,9 +70,6 @@ export default function CreatorDetailPage() {
     ...creator.tags,
     ...creator.genres.map((g) => g.name),
   ].filter(Boolean);
-  const sampleItems: SampleRowItem[] = creator.samples.map((s) =>
-    mapSampleToRowItem(s, creator.name)
-  );
   const descriptionText = creator.description ?? '';
   const descriptionPreviewLen = 180;
 
@@ -225,9 +204,12 @@ export default function CreatorDetailPage() {
           </SamplesFilterProvider>
           <section className="w-full" aria-label="Samples by this creator">
             <div className="border border-[#e8e2d2] rounded overflow-hidden flex flex-col">
-              {sampleItems.length > 0 ? (
-                sampleItems.map((item) => (
-                  <SampleRow key={item.id} item={item} />
+              {creator.samples.length > 0 ? (
+                creator.samples.map((s) => (
+                  <SampleRow
+                    key={s.id}
+                    sample={creatorDetailSampleToSampleItem(s, creator.name)}
+                  />
                 ))
               ) : (
                 <div className="p-8 text-center text-[#5e584b] text-sm">

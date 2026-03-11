@@ -10,9 +10,9 @@ import { ArrowLeft, Share2, Download, Play, Heart } from 'lucide-react';
 import { SamplePackCard } from '@/components/SamplePackCard';
 import { CardCarousel } from '@/components/CardCarousel';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
-import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
+import { SampleRow } from '@/components/SampleRow';
 import { getPackById, type PackDetail } from '@/lib/supabase/packs';
-import { mapAllSampleToRowItem } from '@/lib/utils';
+import { packDetailSampleToSampleItem } from '@/lib/utils';
 import { SamplesFilterBar } from '../Samples/SamplesFilterBar';
 import { SamplesFilterBarMobile } from '../Samples/SamplesFilterBarMobile';
 import { SamplesFilterProvider } from '@/contexts/SamplesFilterContext';
@@ -86,9 +86,6 @@ export default function PackDetailPage() {
   const genreLabel = pack.genres?.[0] ?? pack.category_name ?? '—';
   const displayTags = pack.tags && pack.tags.length > 0 ? pack.tags : [];
   const description = pack.description ?? '';
-  const sampleItems: SampleRowItem[] = pack.samples.map((s) =>
-    mapAllSampleToRowItem({ ...s, creator_name: pack.creator_name, pack_name: pack.name })
-  );
 
   return (
     <div className="min-h-screen bg-[#fffbf0]">
@@ -238,9 +235,12 @@ export default function PackDetailPage() {
           </SamplesFilterProvider>
           <section className="w-full" aria-label="Samples in this pack">
             <div className="border border-[#e8e2d2] rounded overflow-hidden flex flex-col">
-              {sampleItems.length > 0 ? (
-                sampleItems.map((item) => (
-                  <SampleRow key={item.id} item={item} />
+              {pack.samples.length > 0 ? (
+                pack.samples.map((s) => (
+                  <SampleRow
+                    key={s.id}
+                    sample={packDetailSampleToSampleItem(s, pack.creator_name, pack.name)}
+                  />
                 ))
               ) : (
                 <p className="text-[#5e584b] text-sm py-6 px-4">

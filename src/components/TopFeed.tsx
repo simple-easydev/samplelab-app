@@ -5,7 +5,6 @@ import { SampleRow } from '@/components/SampleRow';
 import { getHomeFeed } from '@/lib/supabase/homeFeed';
 import type { CreatorWithCounts } from '@/lib/supabase/creators';
 import { SampleItem } from '@/lib/supabase/samples';
-import { mapAllSampleToRowItem } from '@/lib/utils';
 
 
 
@@ -21,8 +20,6 @@ function DiscoveredSamplesColumn({
   ctaLabel: string;
 }) {
 
-  const sampleItems = items.map(mapAllSampleToRowItem);
-  
   return (
     <div className="flex flex-col gap-6 flex-1 min-w-0">
       <div className="flex flex-col gap-2">
@@ -30,8 +27,8 @@ function DiscoveredSamplesColumn({
         <p className="text-[#7f7766] text-sm leading-5 tracking-[0.1px]">{subtitle}</p>
       </div>
       <div className="border border-[#e8e2d2] rounded overflow-hidden flex flex-col">
-        {sampleItems.map((item, index) => (
-          <SampleRow key={item.id} item={item} variant="compact" rank={index + 1} />
+        {items.map((sample, index) => (
+          <SampleRow key={sample.id} sample={sample} variant="compact" rank={index + 1} />
         ))}
         <div className="bg-[#f6f2e6] border-t-0 border-[#e8e2d2] flex items-center justify-center min-h-14 px-4 w-full">
           <a

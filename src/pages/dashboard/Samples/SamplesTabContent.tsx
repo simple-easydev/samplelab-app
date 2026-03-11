@@ -1,13 +1,11 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { AccessGate } from '@/components/AccessGate';
-import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
+import { SampleRow } from '@/components/SampleRow';
 import { useSubscription } from '@/hooks/useSubscription';
 import { getAllSamples } from '@/lib/supabase/samples';
 import { SamplesFilterBar } from './SamplesFilterBar';
 import { SamplesFilterBarMobile } from './SamplesFilterBarMobile';
 import { SamplesFilterProvider } from '@/contexts/SamplesFilterContext';
-import { mapAllSampleToRowItem } from '@/lib/utils';
-
 
 
 /**
@@ -40,11 +38,6 @@ export function SamplesTabContent() {
     };
   }, []);
 
-  const sampleItems: SampleRowItem[] = useMemo(
-    () => samples.map(mapAllSampleToRowItem),
-    [samples]
-  );
-
   const content = (
     <>
       <SamplesFilterProvider>
@@ -62,7 +55,7 @@ export function SamplesTabContent() {
           {loading ? (
             <p className="text-[#5e584b] text-sm p-4">Loading samples…</p>
           ) : (
-            sampleItems.map((item) => <SampleRow key={item.id} item={item} />)
+            samples.map((s) => <SampleRow key={s.id} sample={s} />)
           )}
         </div>
       </section>

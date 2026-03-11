@@ -3,6 +3,7 @@ import { twMerge } from "tailwind-merge"
 import { getSampleMetadata, formatDurationSeconds } from '@/lib/supabase/samples';
 import type { SampleItem } from '@/lib/supabase/samples';
 import type { PackDetailSample } from '@/lib/supabase/packs';
+import type { CreatorDetailSample } from '@/lib/supabase/creators';
 import { type SampleRowItem } from '@/components/SampleRow';
 
 /** Input from get_all_samples (SampleItem) or from get_pack_by_id.samples with creator_name + pack_name added. */
@@ -46,5 +47,61 @@ export function mapAllSampleToRowItem(sample: SampleRowItemInput): SampleRowItem
     bpm: sample.bpm ?? undefined,
     key: sample.key ?? undefined,
     imageUrl: 'thumbnail_url' in sample ? sample.thumbnail_url ?? undefined : undefined,
+  };
+}
+
+/** Convert pack detail sample + context to SampleItem for SampleRow. */
+export function packDetailSampleToSampleItem(
+  s: PackDetailSample,
+  creator_name: string,
+  pack_name: string
+): SampleItem {
+  return {
+    id: s.id,
+    name: s.name,
+    pack_id: s.pack_id,
+    pack_name,
+    creator_name,
+    audio_url: s.audio_url,
+    thumbnail_url: null,
+    genre: null,
+    bpm: s.bpm,
+    key: s.key,
+    type: s.type,
+    download_count: s.download_count ?? 0,
+    status: s.status,
+    has_stems: s.has_stems ?? false,
+    stems_count: 0,
+    created_at: s.created_at ?? '',
+    metadata: s.length ? { bars: [], duration_seconds: parseLengthToSeconds(s.length) } : undefined,
+  };
+}
+
+function parseLengthToSeconds(length: string): number {
+  const parts = length.trim().split(':').map(Number);
+  if (parts.length === 2 && !Number.isNaN(parts[0]) && !Number.isNaN(parts[1])) return parts[0] * 60 + parts[1];
+  return 0;
+}
+
+/** Convert creator detail sample + context to SampleItem for SampleRow. */
+export function creatorDetailSampleToSampleItem(s: CreatorDetailSample, creator_name: string): SampleItem {
+  return {
+    id: s.id,
+    name: s.name,
+    pack_id: s.pack_id,
+    pack_name: '',
+    creator_name,
+    audio_url: s.audio_url,
+    thumbnail_url: null,
+    genre: null,
+    bpm: s.bpm,
+    key: s.key,
+    type: s.type,
+    download_count: s.download_count ?? 0,
+    status: s.status,
+    has_stems: s.has_stems ?? false,
+    stems_count: 0,
+    created_at: s.created_at ?? '',
+    metadata: s.length ? { bars: [], duration_seconds: parseLengthToSeconds(s.length) } : undefined,
   };
 }

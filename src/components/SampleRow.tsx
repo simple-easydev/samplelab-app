@@ -11,7 +11,11 @@ import {
   DrawerContent,
   DrawerClose,
 } from '@/components/ui/drawer';
+import { getSampleMetadata, formatDurationSeconds, type SampleItem } from '@/lib/supabase/samples';
 
+/**
+ * @deprecated Use SampleItem from getAllSamples and pass as `sample` prop instead.
+ */
 export interface SampleRowItem {
   id: string;
   name: string;
@@ -32,6 +36,31 @@ export interface SampleRowItem {
   imageUrl?: string | null;
   /** Optional audio URL for playback. */
   audioUrl?: string | null;
+}
+
+/** Derived display values from SampleItem for use inside SampleRow. */
+function sampleToDisplay(sample: SampleItem) {
+  const meta = getSampleMetadata(sample);
+  const durationStr = meta ? formatDurationSeconds(meta.duration_seconds) : '0:00';
+  const waveformBars = meta?.bars && meta.bars.length > 0 ? meta.bars : undefined;
+  const tags: string[] = [];
+  if (sample.genre) tags.push(sample.genre);
+  if (sample.type) tags.push(sample.type);
+  if (sample.has_stems) tags.push('Stems');
+  return {
+    id: sample.id,
+    name: sample.name,
+    creator: sample.creator_name,
+    duration: durationStr,
+    waveformBars,
+    tags,
+    imageUrl: sample.thumbnail_url ?? undefined,
+    audioUrl: sample.audio_url ?? undefined,
+    bpm: sample.bpm ?? undefined,
+    key: sample.key ?? undefined,
+    royaltyFree: true as const,
+    premium: false as const,
+  };
 }
 
 const BAR_COUNT = 48;
@@ -147,7 +176,10 @@ function SoundWave({
 }
 
 export interface SampleRowProps {
-  item: SampleRowItem;
+  /** Sample from getAllSamples (preferred). When set, display is derived from this. */
+  sample?: SampleItem;
+  /** @deprecated Use `sample` from getAllSamples instead. Legacy row data when sample is not provided. */
+  item?: SampleRowItem;
   /** When "compact", only thumbnail + name + creator (and optional rank) are shown. Default "full". */
   variant?: 'full' | 'compact';
   /** Optional rank number; shown as leading column when variant is "compact". */
@@ -156,7 +188,8 @@ export interface SampleRowProps {
   isFavorited?: boolean;
 }
 
-export function SampleRow({ item, variant = 'full', rank, isFavorited = false }: SampleRowProps) {
+export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = false }: SampleRowProps) {
+  const row = sample ? sampleToDisplay(sample) : item!;
   const [fullRowHovered, setFullRowHovered] = useState(false);
   const [audioProgress, setAudioProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -172,15 +205,15 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
     };
   }, []);
 
-  const totalSeconds = item.waveformBars && item.waveformBars.length > 0
-    ? parseDurationToSeconds(item.duration)
-    : parseDurationToSeconds(item.duration);
+  const totalSeconds = row.waveformBars && row.waveformBars.length > 0
+    ? parseDurationToSeconds(row.duration)
+    : parseDurationToSeconds(row.duration);
 
   const handleTogglePlay = () => {
-    if (!item.audioUrl) return;
+    if (!row.audioUrl) return;
     let audio = audioRef.current;
     if (!audio) {
-      audio = new Audio(item.audioUrl);
+      audio = new Audio(row.audioUrl);
       audioRef.current = audio;
       const currentAudio = audio;
       audio.addEventListener('timeupdate', () => {
@@ -222,9 +255,9 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
           className="shrink-0"
         >
           <div className="relative size-14 rounded-sm overflow-hidden border border-[#e8e2d2] bg-white">
-            {item.imageUrl ? (
+            {row.imageUrl ? (
               <img
-                src={item.imageUrl}
+                src={row.imageUrl}
                 alt=""
                 className="absolute inset-0 size-full object-cover"
               />
@@ -248,10 +281,10 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
         </button>
         <div className="flex flex-col gap-1 min-w-0 flex-1 justify-center">
           <p className="text-[#161410] text-sm font-bold leading-5 truncate tracking-[0.1px]">
-            {item.name}
+            {row.name}
           </p>
           <p className="text-[#5e584b] text-xs leading-4 truncate tracking-[0.2px]">
-            {item.creator}
+            {row.creator}
           </p>
         </div>
         {/* Like + Download icons (visible on hover) */}
@@ -298,9 +331,9 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
             className="shrink-0"
           >
             <div className="relative size-14 rounded-sm overflow-hidden border border-[#e8e2d2] bg-white">
-              {item.imageUrl ? (
+              {row.imageUrl ? (
                 <img
-                  src={item.imageUrl}
+                  src={row.imageUrl}
                   alt=""
                   className="absolute inset-0 size-full object-cover"
                 />
@@ -324,10 +357,10 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
           </button>
           <div className="flex flex-col gap-1 min-w-0 flex-1 justify-center">
             <p className="text-[#161410] text-sm font-bold leading-5 truncate tracking-[0.1px]">
-              {item.name}
+              {row.name}
             </p>
             <p className="text-[#5e584b] text-xs leading-4 truncate tracking-[0.2px]">
-              {item.creator}
+              {row.creator}
             </p>
           </div>
         </div>
@@ -335,9 +368,9 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
         {/* Column 2: Waveform + time (darker on hover) — hidden on mobile */}
         <div className="hidden md:flex items-center gap-2 min-w-0 w-full">
           <SoundWave
-            duration={item.duration}
+            duration={row.duration}
             progress={audioProgress}
-            waveformBars={item.waveformBars}
+            waveformBars={row.waveformBars}
             timeDisplay="passed"
             emphasized={fullRowHovered}
             className="h-10 shrink-0 flex-1 min-w-0"
@@ -347,7 +380,7 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
         {/* Column 3: Tags — hidden on mobile */}
         <div className="hidden md:flex flex-col gap-2 items-start justify-center min-w-0">
           <div className="flex flex-wrap gap-2 items-center">
-            {item.tags.map((tag) => (
+            {row.tags.map((tag) => (
               <span
                 key={tag}
                 className="bg-[#e8e2d2] border border-[#d6ceb8] rounded-md h-5 px-1.5 inline-flex items-center justify-center text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]"
@@ -357,12 +390,12 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
             ))}
           </div>
           <div className="flex flex-wrap gap-2 items-center">
-            {item.royaltyFree !== false && (
+            {row.royaltyFree !== false && (
               <span className="bg-[#e8e2d2] border border-[#d6ceb8] rounded-md h-5 px-1.5 inline-flex items-center justify-center text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]">
                 Royalty-Free
               </span>
             )}
-            {item.premium && (
+            {row.premium && (
               <span className="bg-[#f3c16c] border border-[#eaaa3e] rounded-md h-5 px-1.5 inline-flex items-center justify-center gap-0.5 text-[#161410]">
                 <Crown className="size-3 shrink-0" aria-hidden />
               </span>
@@ -372,16 +405,16 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
 
         {/* Column 4: BPM • Key + action icons (visible on hover) */}
         <div className="flex items-center gap-3 justify-end min-w-[140px]">
-          {item.bpm != null && (
+          {row.bpm != null && (
             <div className="hidden md:flex gap-2 items-center shrink-0">
               <span className="text-[#5e584b] text-xs leading-4 tracking-[0.2px]">
-                {item.bpm} BPM
+                {row.bpm} BPM
               </span>
-              {item.key && (
+              {row.key && (
                 <>
                   <span className="text-[#5e584b] size-1 rounded-full bg-[#5e584b] shrink-0" aria-hidden />
                   <span className="text-[#5e584b] text-xs leading-4 tracking-[0.2px]">
-                    {item.key}
+                    {row.key}
                   </span>
                 </>
               )}
@@ -484,8 +517,8 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
                   }}
                   className="relative shrink-0 size-[190px] rounded overflow-hidden border border-[#e8e2d2] bg-white"
                 >
-                  {item.imageUrl ? (
-                    <img src={item.imageUrl} alt="" className="absolute inset-0 size-full object-cover" />
+                  {row.imageUrl ? (
+                    <img src={row.imageUrl} alt="" className="absolute inset-0 size-full object-cover" />
                   ) : (
                     <div className="absolute inset-0 bg-[#e8e2d2]" aria-hidden />
                   )}
@@ -508,17 +541,17 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
                 <div className="flex flex-col items-center gap-6 w-full">
                   <div className="flex flex-col gap-2 items-center text-center">
                     <p className="text-[#161410] text-base font-bold leading-6 tracking-[0.1px]">
-                      {item.name}
+                      {row.name}
                     </p>
                     <p className="text-[#5e584b] text-xs leading-4 tracking-[0.2px]">
-                      {item.creator}
+                      {row.creator}
                     </p>
                   </div>
 
                   <div className="flex flex-col gap-3 items-center w-full">
                     {/* Tags row */}
                     <div className="flex flex-wrap justify-center gap-2">
-                      {item.tags.map((tag) => (
+                      {row.tags.map((tag) => (
                         <span
                           key={tag}
                           className="bg-[#e8e2d2] border border-[#d6ceb8] rounded-md h-5 px-1.5 inline-flex items-center justify-center text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]"
@@ -526,25 +559,25 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
                           {tag}
                         </span>
                       ))}
-                      {item.royaltyFree !== false && (
+                      {row.royaltyFree !== false && (
                         <span className="bg-[#e8e2d2] border border-[#d6ceb8] rounded-md h-5 px-1.5 inline-flex items-center justify-center text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]">
                           Royalty-Free
                         </span>
                       )}
-                      {item.premium && (
+                      {row.premium && (
                         <span className="bg-[#f3c16c] border border-[#eaaa3e] rounded-md h-5 px-1.5 inline-flex items-center justify-center">
                           <Crown className="size-3 shrink-0 text-[#161410]" aria-hidden />
                         </span>
                       )}
                     </div>
                     {/* Metadata: BPM • Key */}
-                    {(item.bpm != null || item.key) && (
+                    {(row.bpm != null || row.key) && (
                       <div className="flex gap-2 items-center justify-center text-[#5e584b] text-xs leading-4 tracking-[0.2px]">
-                        {item.bpm != null && <span>{item.bpm} BPM</span>}
-                        {item.bpm != null && item.key && (
+                        {row.bpm != null && <span>{row.bpm} BPM</span>}
+                        {row.bpm != null && row.key && (
                           <span className="size-1 rounded-full bg-[#5e584b]" aria-hidden />
                         )}
-                        {item.key && <span>{item.key}</span>}
+                        {row.key && <span>{row.key}</span>}
                       </div>
                     )}
                     {/* Action icons: Repeat, Heart, Download, More */}
@@ -586,9 +619,9 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
             {/* Sound wave + duration — Figma 1396-167380 */}
             <div className="w-full">
               <SoundWave
-                duration={item.duration}
+                duration={row.duration}
                 progress={audioProgress}
-                waveformBars={item.waveformBars}
+                waveformBars={row.waveformBars}
                 timeDisplay="remaining"
                 emphasized={false}
                 className="w-full"
