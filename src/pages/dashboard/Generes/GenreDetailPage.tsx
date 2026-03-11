@@ -3,43 +3,23 @@
  * Back/Share, genre cover, overline + name, samples/packs counts, tags, description,
  * Tabs (Samples, Packs, Creators), filter bar + sample list or packs/creators carousels, Explore library CTA.
  */
-import { useState } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Share2, X } from 'lucide-react';
 import { SamplePackCard } from '@/components/SamplePackCard';
 import { CardCarousel } from '@/components/CardCarousel';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
 import { CreatorCard } from '@/components/CreatorCard';
-import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
-import {
-  getGenreBySlug,
-  getGenreDetailMeta,
-  PACKS_GRID_ITEMS,
-  CREATORS_GRID_ITEMS,
-  SAMPLES_LIST,
-} from '../constants';
+import { SampleRow } from '@/components/SampleRow';
+import { getGenreDetailById, type GenreDetail } from '@/lib/supabase/genres';
+import { getAllGenres } from '@/lib/supabase/genres';
+import { getGenreDetailMeta, genreNameToSlug } from '../constants';
 import { SamplesFilterBar } from '../Samples/SamplesFilterBar';
 import { SamplesFilterBarMobile } from '../Samples/SamplesFilterBarMobile';
 import { SamplesFilterProvider } from '@/contexts/SamplesFilterContext';
 
-function mapSampleToList(sample: (typeof SAMPLES_LIST)[number], index: number): SampleRowItem {
-  const tags: string[] = [];
-  if (sample.genre) tags.push(sample.genre);
-  if (sample.tags?.length) tags.push(...sample.tags);
-  const bpmNum =
-    sample.bpm != null ? parseInt(sample.bpm.replace(/\D/g, ''), 10) : undefined;
-  return {
-    id: `sample-${index}`,
-    name: sample.name,
-    creator: sample.creator,
-    duration: sample.duration,
-    tags,
-    royaltyFree: sample.license === 'Royalty-Free',
-    premium: sample.premium ?? false,
-    bpm: Number.isNaN(bpmNum) ? undefined : bpmNum,
-    key: sample.key,
-    imageUrl: sample.imageUrl ?? null,
-  };
+function isUuid(s: string): boolean {
+  return /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(s);
 }
 
 const GENRE_DETAIL_TABS = [
@@ -49,12 +29,76 @@ const GENRE_DETAIL_TABS = [
 ] as const;
 
 export default function GenreDetailPage() {
-  const { genreId } = useParams<{ genreId: string }>();
+  const { genreId: genreParam } = useParams<{ genreId: string }>();
   const navigate = useNavigate();
-  const genre = genreId ? getGenreBySlug(genreId) : undefined;
   const [activeTab, setActiveTab] = useState<(typeof GENRE_DETAIL_TABS)[number]['id']>('samples');
+  const [detail, setDetail] = useState<GenreDetail | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [notFound, setNotFound] = useState(false);
 
-  if (!genreId || !genre) {
+  const resolveGenreId = useCallback(async (param: string): Promise<string | null> => {
+    if (isUuid(param)) return param;
+    const genres = await getAllGenres();
+    const slug = genreNameToSlug(param);
+    const match = genres.find((g) => genreNameToSlug(g.name) === slug);
+    return match?.id ?? null;
+  }, []);
+
+  useEffect(() => {
+    if (!genreParam) {
+      queueMicrotask(() => {
+        setLoading(false);
+        setNotFound(true);
+      });
+      return;
+    }
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (!cancelled) {
+        setLoading(true);
+        setNotFound(false);
+      }
+    });
+    resolveGenreId(genreParam)
+      .then((resolvedId) => {
+        if (cancelled || !resolvedId) {
+          if (!resolvedId) setNotFound(true);
+          setLoading(false);
+          return;
+        }
+        return getGenreDetailById(resolvedId);
+      })
+      .then((data) => {
+        if (cancelled) return;
+        setDetail(data ?? null);
+        if (!data?.genre) setNotFound(true);
+        setLoading(false);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setDetail(null);
+          setNotFound(true);
+          setLoading(false);
+        }
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [genreParam, resolveGenreId]);
+
+  const clearGenreFilter = () => {
+    navigate('/dashboard/genres');
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#fffbf0] flex items-center justify-center">
+        <p className="text-[#5e584b] text-sm">Loading genre…</p>
+      </div>
+    );
+  }
+
+  if (notFound || !detail?.genre) {
     return (
       <div className="min-h-screen bg-[#fffbf0] flex items-center justify-center gap-4">
         <p className="text-[#7f7766]">Genre not found.</p>
@@ -69,43 +113,44 @@ export default function GenreDetailPage() {
     );
   }
 
+  const genre = detail.genre;
   const meta = getGenreDetailMeta(genre.name);
-  const genreSamples = SAMPLES_LIST.filter(
-    (s) => s.genre?.toLowerCase() === genre.name.toLowerCase()
-  );
-  const genrePacks = PACKS_GRID_ITEMS.filter(
-    (p) => p.genre?.toLowerCase() === genre.name.toLowerCase()
-  );
-  const creatorNamesInGenre = new Set(genrePacks.map((p) => p.creator));
-  const genreCreators = CREATORS_GRID_ITEMS.filter((c) => creatorNamesInGenre.has(c.name));
-
-  const sampleItems: SampleRowItem[] = genreSamples.map(mapSampleToList);
-  const samplesCount = genreSamples.length;
-  const packsCount = genrePacks.length;
-
-  const clearGenreFilter = () => {
-    navigate('/dashboard/genres');
-  };
+  const genreSamples = detail.samples;
+  const genrePacks = detail.packs;
+  const genreCreators = detail.creators;
+  const samplesCount = genre.samples_count ?? genreSamples.length;
+  const packsCount = genre.packs_count ?? genrePacks.length;
+  const description = genre.description ?? meta.description;
 
   return (
     <div className="min-h-screen bg-[#fffbf0]">
-      <div className="px-8 pt-8 pb-32 max-w-[1376px] mx-auto">
-        {/* Back */}
-        <button
-          type="button"
-          onClick={() => navigate('/dashboard/genres')}
-          className="flex items-center gap-1.5 text-[#161410] text-sm font-medium tracking-[0.1px] hover:opacity-80 mb-8"
-        >
-          <ArrowLeft className="size-5" />
-          Back
-        </button>
+      <div className="px-4 pt-8 pb-32 max-w-[1376px] mx-auto md:px-8">
+        {/* Header – mobile: stacked (Figma 1602-177333); desktop: side-by-side */}
+        <header className="flex flex-col gap-6 md:flex-row md:flex-wrap md:gap-8 md:mb-0">
+          {/* Back + Share row */}
+          <div className="flex items-center justify-between w-full">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard/genres')}
+              className="flex items-center gap-1.5 text-[#161410] text-sm font-medium tracking-[0.1px] hover:opacity-80"
+            >
+              <ArrowLeft className="size-5" aria-hidden />
+              Back
+            </button>
+            <button
+              type="button"
+              className="flex items-center gap-1.5 text-[#161410] text-sm font-medium tracking-[0.1px] shrink-0 hover:opacity-80"
+            >
+              <Share2 className="size-5" aria-hidden />
+              Share
+            </button>
+          </div>
 
-        {/* Hero: cover + details – Figma 867-108596 */}
-        <div className="flex gap-8 items-start flex-wrap">
-          <div className="rounded-[4px] w-[326px] h-[326px] shrink-0 overflow-hidden bg-[#dde1e6]">
-            {genre.imageUrl ? (
+          {/* Cover – mobile: 190px height full width; desktop: 326×326 */}
+          <div className="rounded-[4px] w-full h-[190px] shrink-0 overflow-hidden bg-[#dde1e6] md:w-[326px] md:h-[326px]">
+            {genre.thumbnail_url ? (
               <img
-                src={genre.imageUrl}
+                src={genre.thumbnail_url}
                 alt=""
                 className="w-full h-full object-cover"
               />
@@ -114,26 +159,18 @@ export default function GenreDetailPage() {
             )}
           </div>
 
-          <div className="flex flex-col gap-8 flex-1 min-w-0 max-w-[911px]">
-            {/* Overline + Share */}
-            <div className="flex items-start justify-between gap-4">
-              <p className="text-[#7f7766] text-sm tracking-[0.9px] uppercase">
-                Genre
-              </p>
-              <button
-                type="button"
-                className="flex items-center gap-1.5 text-[#161410] text-sm font-medium tracking-[0.1px] shrink-0 hover:opacity-80"
-              >
-                <Share2 className="size-5" />
-                Share
-              </button>
-            </div>
-
+          {/* Content – overline, title, metadata, divider, tags, description */}
+          <div className="flex flex-col gap-6 flex-1 min-w-0 md:max-w-[911px] md:gap-8">
             <div className="flex flex-col gap-4">
-              <h1 className="text-[#161410] text-[32px] sm:text-[48px] font-bold leading-tight tracking-[-0.6px]">
-                {genre.name}
-              </h1>
-              <div className="flex items-center gap-2 text-[#5e584b] text-sm tracking-[0.1px]">
+              <div className="flex flex-col gap-2">
+                <p className="text-[#7f7766] text-xs tracking-[1px] uppercase">
+                  Genre
+                </p>
+                <h1 className="text-[#161410] text-[28px] leading-[36px] font-bold tracking-[-0.2px] md:text-[32px] md:leading-tight md:tracking-[-0.6px] lg:text-[48px]">
+                  {genre.name}
+                </h1>
+              </div>
+              <div className="flex items-center gap-1.5 text-[#5e584b] text-xs tracking-[0.2px] md:gap-2 md:text-sm md:tracking-[0.1px]">
                 <span>{samplesCount} Samples</span>
                 <span className="size-1 rounded-full bg-[#5e584b]" aria-hidden />
                 <span>{packsCount} Packs</span>
@@ -142,7 +179,7 @@ export default function GenreDetailPage() {
 
             <div className="border-t border-[#e8e2d2] w-full" aria-hidden />
 
-            {/* Tags – Figma 867-108610 */}
+            {/* Tags – Figma 867-108610 / 1602-181581 */}
             <div className="flex flex-wrap gap-2">
               {meta.tags.map((tag) => (
                 <span
@@ -156,10 +193,10 @@ export default function GenreDetailPage() {
 
             {/* Description */}
             <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px] max-w-[676px]">
-              {meta.description}
+              {description}
             </p>
           </div>
-        </div>
+        </header>
 
         {/* Tabs – Figma 867-112011 */}
         <div className="border-b border-[#e8e2d2] flex gap-4 items-center mt-8 mb-6">
@@ -211,9 +248,9 @@ export default function GenreDetailPage() {
             </div>
             <section className="w-full" aria-label={`Samples in ${genre.name}`}>
               <div className="border border-[#e8e2d2] rounded overflow-hidden flex flex-col">
-                {sampleItems.length > 0 ? (
-                  sampleItems.map((item) => (
-                    <SampleRow key={item.id} item={item} />
+                {genreSamples.length > 0 ? (
+                  genreSamples.map((sample) => (
+                    <SampleRow key={sample.id} sample={sample} />
                   ))
                 ) : (
                   <div className="p-8 text-center text-[#5e584b] text-sm">
@@ -235,11 +272,11 @@ export default function GenreDetailPage() {
                     key={p.id}
                     pack={{
                       id: p.id,
-                      name: p.title,
-                      creator_name: p.creator,
-                      download_count: p.playCount ? parseInt(p.playCount, 10) : undefined,
-                      category_name: p.genre ?? undefined,
-                      is_premium: p.premium ?? false,
+                      name: p.name,
+                      creator_name: p.creator_name,
+                      download_count: p.download_count ?? undefined,
+                      category_name: p.category_name ?? undefined,
+                      is_premium: p.is_premium ?? false,
                     }}
                   />
                 ))
@@ -257,10 +294,10 @@ export default function GenreDetailPage() {
               {genreCreators.length > 0 ? (
                 genreCreators.map((c) => (
                   <CreatorCard
-                    key={c.name}
+                    key={c.id}
                     name={c.name}
-                    samplesCount={c.samplesCount}
-                    packsCount={c.packsCount}
+                    samplesCount={String(c.samples_count)}
+                    packsCount={String(c.packs_count)}
                   />
                 ))
               ) : (
@@ -271,8 +308,7 @@ export default function GenreDetailPage() {
         )}
 
       </div>
-        <ExploreLibraryCta />
-        
+      <ExploreLibraryCta />
     </div>
   );
 }

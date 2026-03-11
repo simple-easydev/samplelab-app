@@ -25,8 +25,8 @@ export function TopGenresSection({ fallbackGenres = [] }: TopGenresSectionProps)
     <CardCarousel title="Top genres" ctaLabel="View all genres">
       {genres.map((genre) => (
         <Link
-          key={genre.name}
-          to={`/dashboard/genres/${genreNameToSlug(genre.name)}`}
+          key={genre.id ?? genre.name}
+          to={`/dashboard/genres/${genre.id ?? genreNameToSlug(genre.name)}`}
           className="contents"
         >
           <GenreCard

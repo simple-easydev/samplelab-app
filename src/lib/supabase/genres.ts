@@ -1,4 +1,7 @@
 import { supabase } from './client';
+import type { SampleItem } from './samples';
+import type { PackRow } from './packs';
+import type { CreatorWithCounts } from './creators';
 
 /**
  * Genre row returned by RPC get_all_genres (admin library Genres tab).
@@ -12,6 +15,59 @@ export interface GenreRow {
   packs_count: number;
   samples_count: number;
   thumbnail_url: string | null;
+}
+
+/**
+ * Genre slice returned inside get_genre_detail_by_id (genre detail page hero).
+ */
+export interface GenreDetailGenre {
+  id: string;
+  name: string;
+  description: string | null;
+  thumbnail_url: string | null;
+  is_active: boolean;
+  samples_count: number;
+  packs_count: number;
+}
+
+/**
+ * Full genre detail returned by RPC get_genre_detail_by_id (genre detail page).
+ */
+export interface GenreDetail {
+  genre: GenreDetailGenre | null;
+  samples: SampleItem[];
+  packs: PackRow[];
+  creators: CreatorWithCounts[];
+}
+
+/**
+ * Fetch genre detail by id via RPC get_genre_detail_by_id (genre, samples, packs, creators).
+ * Returns null when genre is not found or on error.
+ */
+export async function getGenreDetailById(genreId: string): Promise<GenreDetail | null> {
+  const { data, error } = await supabase.rpc('get_genre_detail_by_id', {
+    p_genre_id: genreId,
+  });
+
+  if (error) {
+    console.error('Error fetching genre detail:', error);
+    return null;
+  }
+
+  if (!data || typeof data !== 'object') return null;
+
+  const raw = data as {
+    genre?: GenreDetailGenre | null;
+    samples?: unknown[];
+    packs?: unknown[];
+    creators?: unknown[];
+  };
+  return {
+    genre: raw.genre ?? null,
+    samples: Array.isArray(raw.samples) ? (raw.samples as SampleItem[]) : [],
+    packs: Array.isArray(raw.packs) ? (raw.packs as PackRow[]) : [],
+    creators: Array.isArray(raw.creators) ? (raw.creators as CreatorWithCounts[]) : [],
+  };
 }
 
 /**

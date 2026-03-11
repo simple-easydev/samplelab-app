@@ -2,7 +2,6 @@ import { useState, useMemo, useEffect } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { GenreCard } from '@/components/GenreCard';
 import { getAllGenres } from '@/lib/supabase/genres';
-import { genreNameToSlug } from '../constants';
 import { GenresFilterBar } from './GenresFilterBar';
 
 function getDisplayName(name: string): string {
@@ -81,7 +80,7 @@ export function GenresTabContent() {
               filteredGenres.map((genre) => (
                 <Link
                   key={genre.id}
-                  to={`/dashboard/genres/${genreNameToSlug(genre.name)}`}
+                  to={`/dashboard/genres/${genre.id}`}
                   className="contents"
                 >
                   <GenreCard
