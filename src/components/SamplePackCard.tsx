@@ -12,6 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { AudioBarIcon } from './icons';
 
 export interface SamplePackCardProps {
   title: string;
@@ -114,7 +115,7 @@ export function SamplePackCard({
       <div className="flex gap-2 items-center min-w-0">
         {playCount != null && (
           <div className={tagPill}>
-            <Play className="size-3 text-[#161410] shrink-0" aria-hidden />
+            <AudioBarIcon className="size-3 text-[#161410] shrink-0" aria-hidden />
             <span className="text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]">
               {playCount}
             </span>

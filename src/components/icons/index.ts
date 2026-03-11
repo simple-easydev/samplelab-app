@@ -23,6 +23,6 @@ export { StackCoinsIcon } from './StackCoinsIcon';
 export { RepeatIcon } from './RepeatIcon';
 export { LockIcon } from './LockIcon';
 export { HandsCoinsIcon } from './HandsCoinsIcon';
-
+export { AudioBarIcon } from './AudioBarIcon';
 export { BigLogo } from './BigLogo';
 

@@ -4,6 +4,7 @@
  */
 import { Link } from 'react-router-dom';
 import { Music2, FolderOpen } from 'lucide-react';
+import { AudioBarIcon } from './icons';
 
 export interface CreatorCardProps {
   /** Creator display name */
@@ -61,7 +62,8 @@ export function CreatorCard({
         <div className="flex gap-2 h-6 items-center justify-center flex-wrap">
           {samplesCount != null && (
             <div className="bg-[#e8e2d2] border border-[#d6ceb8] flex gap-0.5 h-5 items-center justify-center px-1.5 rounded-md shrink-0">
-              <Music2 className="size-3 text-[#161410]" aria-hidden />
+              <AudioBarIcon className="size-3 text-[#161410]" aria-hidden />
+
               <span className="text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]">
                 {samplesCount}
               </span>
