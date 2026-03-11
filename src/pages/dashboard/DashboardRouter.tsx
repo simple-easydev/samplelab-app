@@ -9,7 +9,7 @@ import SearchResultPage from './SearchResultPage';
 import PackDetailPage from './Packs/PackDetailPage';
 import CreatorDetailPage from './Creators/CreatorDetailPage';
 import GenreDetailPage from './Generes/GenreDetailPage';
-import AccountSettingsPage from './AccountSettingsPage';
+import AccountSettingsPage from './Account/AccountSettingsPage';
 import { DASHBOARD_TABS } from './DashboardTabContent';
 
 type DashboardTabId = (typeof DASHBOARD_TABS)[number]['id'];
