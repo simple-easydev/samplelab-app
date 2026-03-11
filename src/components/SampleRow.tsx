@@ -1,11 +1,16 @@
 import { useEffect, useRef, useState } from 'react';
-import { Crown, Play, Pause, Heart, Download, MoreVertical, FolderOpen, User, Share2 } from 'lucide-react';
+import { Crown, Play, Pause, Heart, Download, MoreVertical, FolderOpen, User, Share2, BarChart2, X, Repeat } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Drawer,
+  DrawerContent,
+  DrawerClose,
+} from '@/components/ui/drawer';
 
 export interface SampleRowItem {
   id: string;
@@ -155,6 +160,7 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
   const [fullRowHovered, setFullRowHovered] = useState(false);
   const [audioProgress, setAudioProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
+  const [detailsOpen, setDetailsOpen] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
@@ -272,6 +278,7 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
   }
 
   return (
+    <>
     <div
       className="group bg-[#f6f2e6] border-b border-[#e8e2d2] last:border-b-0 flex flex-col items-stretch p-4 w-full transition-[background-color] duration-200 hover:bg-[#FFFBF0]"
       onMouseEnter={() => setFullRowHovered(true)}
@@ -416,6 +423,13 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
                 className="min-w-[180px] rounded py-1 border border-[#d6ceb8] bg-white shadow-[0px_6px_20px_rgba(0,0,0,0.14),0px_1px_3px_rgba(0,0,0,0.08)]"
               >
                 <DropdownMenuItem
+                  className="flex md:hidden h-10 cursor-pointer items-center gap-1.5 px-3 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]"
+                  onSelect={() => setDetailsOpen(true)}
+                >
+                  <BarChart2 className="size-5 shrink-0" aria-hidden />
+                  View details
+                </DropdownMenuItem>
+                <DropdownMenuItem
                   className="flex h-10 cursor-pointer items-center gap-1.5 px-3 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]"
                   onSelect={(e) => e.preventDefault()}
                 >
@@ -442,5 +456,148 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
         </div>
       </div>
     </div>
+
+    <Drawer open={detailsOpen} onOpenChange={setDetailsOpen} direction="bottom">
+      <DrawerContent className="max-h-[90vh] flex flex-col bg-[#fffbf0] rounded-t-lg shadow-[0px_6px_20px_rgba(0,0,0,0.14),0px_1px_3px_rgba(0,0,0,0.08)] border-0">
+        {/* Header: close only, right-aligned — Figma 1396-167380 */}
+        <div className="flex items-center justify-end p-4 shrink-0">
+          <DrawerClose
+            className="size-6 flex items-center justify-center rounded-full text-[#5e584b] hover:bg-[#e8e2d2] hover:text-[#161410] transition-colors"
+            aria-label="Close"
+          >
+            <X className="size-5" />
+          </DrawerClose>
+        </div>
+
+        {/* Content — centered, sample + waveform — Figma 1396-167380 */}
+        <div className="flex flex-col items-center px-6 pb-24 overflow-y-auto">
+          <div className="flex flex-col items-center gap-8 w-full max-w-[326px]">
+            {/* Sample: artwork + play overlay + info + tags + metadata + actions */}
+            <div className="flex flex-col items-center gap-6 w-full">
+              {/* Artwork 190px with play overlay */}
+              <div className="flex flex-col items-center gap-6 w-full">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleTogglePlay();
+                  }}
+                  className="relative shrink-0 size-[190px] rounded overflow-hidden border border-[#e8e2d2] bg-white"
+                >
+                  {item.imageUrl ? (
+                    <img src={item.imageUrl} alt="" className="absolute inset-0 size-full object-cover" />
+                  ) : (
+                    <div className="absolute inset-0 bg-[#e8e2d2]" aria-hidden />
+                  )}
+                  <div
+                    className={`absolute inset-0 bg-[#161410] transition-opacity ${isPlaying ? 'opacity-50' : 'opacity-0'}`}
+                    aria-hidden
+                  />
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="flex size-14 items-center justify-center rounded-full bg-[#161410]/80 border border-[#e8e2d2]/20">
+                      {isPlaying ? (
+                        <Pause className="size-7 text-[#fffbf0] fill-[#fffbf0] shrink-0" aria-hidden />
+                      ) : (
+                        <Play className="size-7 text-[#fffbf0] fill-[#fffbf0] shrink-0 pl-0.5" aria-hidden />
+                      )}
+                    </div>
+                  </div>
+                </button>
+
+                {/* Info: name, creator, tags, metadata, actions */}
+                <div className="flex flex-col items-center gap-6 w-full">
+                  <div className="flex flex-col gap-2 items-center text-center">
+                    <p className="text-[#161410] text-base font-bold leading-6 tracking-[0.1px]">
+                      {item.name}
+                    </p>
+                    <p className="text-[#5e584b] text-xs leading-4 tracking-[0.2px]">
+                      {item.creator}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-col gap-3 items-center w-full">
+                    {/* Tags row */}
+                    <div className="flex flex-wrap justify-center gap-2">
+                      {item.tags.map((tag) => (
+                        <span
+                          key={tag}
+                          className="bg-[#e8e2d2] border border-[#d6ceb8] rounded-md h-5 px-1.5 inline-flex items-center justify-center text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]"
+                        >
+                          {tag}
+                        </span>
+                      ))}
+                      {item.royaltyFree !== false && (
+                        <span className="bg-[#e8e2d2] border border-[#d6ceb8] rounded-md h-5 px-1.5 inline-flex items-center justify-center text-[#161410] text-[10px] font-medium leading-3 tracking-[0.3px]">
+                          Royalty-Free
+                        </span>
+                      )}
+                      {item.premium && (
+                        <span className="bg-[#f3c16c] border border-[#eaaa3e] rounded-md h-5 px-1.5 inline-flex items-center justify-center">
+                          <Crown className="size-3 shrink-0 text-[#161410]" aria-hidden />
+                        </span>
+                      )}
+                    </div>
+                    {/* Metadata: BPM • Key */}
+                    {(item.bpm != null || item.key) && (
+                      <div className="flex gap-2 items-center justify-center text-[#5e584b] text-xs leading-4 tracking-[0.2px]">
+                        {item.bpm != null && <span>{item.bpm} BPM</span>}
+                        {item.bpm != null && item.key && (
+                          <span className="size-1 rounded-full bg-[#5e584b]" aria-hidden />
+                        )}
+                        {item.key && <span>{item.key}</span>}
+                      </div>
+                    )}
+                    {/* Action icons: Repeat, Heart, Download, More */}
+                    <div className="flex gap-4 items-center justify-center">
+                      <button
+                        type="button"
+                        className="size-6 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2]"
+                        aria-label="Loop"
+                      >
+                        <Repeat className="size-5" />
+                      </button>
+                      <button
+                        type="button"
+                        className="size-6 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2]"
+                        aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                      >
+                        <Heart className={`size-5 ${isFavorited ? 'fill-current' : ''}`} />
+                      </button>
+                      <button
+                        type="button"
+                        className="size-6 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2]"
+                        aria-label="Download"
+                      >
+                        <Download className="size-5" />
+                      </button>
+                      <button
+                        type="button"
+                        className="size-6 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2]"
+                        aria-label="More options"
+                      >
+                        <MoreVertical className="size-5" />
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Sound wave + duration — Figma 1396-167380 */}
+            <div className="w-full">
+              <SoundWave
+                duration={item.duration}
+                progress={audioProgress}
+                waveformBars={item.waveformBars}
+                timeDisplay="remaining"
+                emphasized={false}
+                className="w-full"
+              />
+            </div>
+          </div>
+        </div>
+      </DrawerContent>
+    </Drawer>
+    </>
   );
 }
