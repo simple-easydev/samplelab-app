@@ -1,5 +1,6 @@
 import { Link } from 'react-router-dom';
 import { DiscoverCarousel } from '@/components/DiscoverCarousel';
+import { DiscoverCarouselMobile } from '@/components/DiscoverCarouselMobile';
 import { DiscoverListColumn } from '@/components/DiscoverListColumn';
 import { SimilarSamplesSection } from '@/components/SimilarSamplesSection';
 import { CardCarousel } from '@/components/CardCarousel';
@@ -28,7 +29,10 @@ export function DiscoverTabContent({ variant = 'default' }: DiscoverTabContentPr
 
   return (
     <div className="mb-8 flex flex-col gap-8">
-      <DiscoverCarousel />
+      <DiscoverCarouselMobile />
+      <div className="hidden md:block">
+        <DiscoverCarousel />
+      </div>
       <div className="flex gap-6 items-start w-full">
         <DiscoverListColumn
           title="Trending samples"
