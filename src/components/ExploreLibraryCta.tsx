@@ -19,7 +19,7 @@ export interface ExploreLibraryCtaProps {
 function LibraryCoversStrip() {
   const desktopConfig = [
     { size: 182, left: 'calc(50% - 363px)', bg: '#878d96', center: true },
-    { size: 182, right: 0, left: undefined, bg: '#878d96', center: false },
+    { size: 182, left: 'calc(50% + 363px)', bg: '#878d96', center: true },
     { size: 209, left: 'calc(50% + 257.5px)', bg: '#a2a9b0', center: true },
     { size: 209, left: 'calc(50% - 257.5px)', bg: '#a2a9b0', center: true },
     { size: 234, left: 'calc(50% + 128px)', bg: '#c1c7cd', center: true },
@@ -30,7 +30,7 @@ function LibraryCoversStrip() {
   /** Mobile: same 7-cover layout scaled to fit narrow viewport (~140px height, positions scaled). */
   const mobileConfig = [
     { size: 98, left: 'calc(50% - 158px)', bg: '#878d96', center: true },
-    { size: 98, right: 0, left: undefined, bg: '#878d96', center: false },
+    { size: 98, left: 'calc(50% + 158px)', bg: '#878d96', center: true },
     { size: 112, left: 'calc(50% + 111px)', bg: '#a2a9b0', center: true },
     { size: 112, left: 'calc(50% - 111px)', bg: '#a2a9b0', center: true },
     { size: 126, left: 'calc(50% + 55px)', bg: '#c1c7cd', center: true },
@@ -38,21 +38,16 @@ function LibraryCoversStrip() {
     { size: 140, left: '50%', bg: '#dde1e6', center: true },
   ];
 
-  const renderStrip = (config: typeof desktopConfig, height: number, maxWidth: string) => (
-    <div
-      className="relative w-full mx-auto"
-      style={{ height, maxWidth }}
-      aria-hidden
-    >
-      {config.map(({ size, left, right, bg, center }, idx) => (
+  const stripContent = (config: typeof desktopConfig, height: number) => (
+    <div className="relative w-full h-full" style={{ height }} aria-hidden>
+      {config.map(({ size, left, bg, center }, idx) => (
         <div
           key={idx}
           className="absolute bottom-0 overflow-hidden rounded-t-sm"
           style={{
             width: size,
             height: size,
-            left: right === 0 ? undefined : left,
-            right: right === 0 ? 0 : undefined,
+            left,
             transform: center ? 'translateX(-50%)' : undefined,
             backgroundColor: bg,
           }}
@@ -63,13 +58,17 @@ function LibraryCoversStrip() {
 
   return (
     <>
-      {/* Mobile: scaled strip */}
-      <div className="md:hidden w-full px-4">
-        {renderStrip(mobileConfig, 140, '100%')}
+      {/* Mobile: scaled strip — fixed width so 50% / right:0 center correctly */}
+      <div className="md:hidden w-full flex justify-center px-4">
+        <div className="w-[414px] max-w-full" style={{ height: 140 }}>
+          {stripContent(mobileConfig, 140)}
+        </div>
       </div>
-      {/* Desktop: original strip */}
-      <div className="hidden md:block w-full">
-        {renderStrip(desktopConfig, 258, '910px')}
+      {/* Desktop: fixed 910px width so strip is symmetric and centered */}
+      <div className="hidden md:flex md:justify-center w-full">
+        <div className="w-[910px]" style={{ height: 258 }}>
+          {stripContent(desktopConfig, 258)}
+        </div>
       </div>
     </>
   );
