@@ -1,14 +1,7 @@
 import { useState, useCallback } from 'react';
 import { ChevronLeft, ChevronRight, Play, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
-
-const PLACEHOLDER_SLIDES = [
-  { title: 'Sample Pack Name', creator: 'Creator Name', packs: '50 Packs', genre: 'Hip-Hop', released: 'Released 2w ago' },
-  { title: 'Lo-Fi Essentials Vol. 2', creator: 'Beat Lab', packs: '24 Packs', genre: 'Lo-Fi', released: 'Released 1w ago' },
-  { title: 'Trap Drums & Melodies', creator: 'Sound Factory', packs: '32 Packs', genre: 'Trap', released: 'Released 3d ago' },
-  { title: 'Soul Chops Collection', creator: 'Vinyl Revival', packs: '18 Packs', genre: 'Soul', released: 'Released 5d ago' },
-  { title: 'Electronic Textures', creator: 'Synth Wave', packs: '40 Packs', genre: 'Electronic', released: 'Released 1w ago' },
-];
+import { DISCOVER_CAROUSEL_SLIDES } from '@/pages/dashboard/constants';
 
 function PaginationDot({ selected }: { selected: boolean }) {
   return (
@@ -24,7 +17,7 @@ function PaginationDot({ selected }: { selected: boolean }) {
 
 export function DiscoverCarousel() {
   const [current, setCurrent] = useState(0);
-  const total = PLACEHOLDER_SLIDES.length;
+  const total = DISCOVER_CAROUSEL_SLIDES.length;
 
   const goTo = useCallback((index: number) => {
     setCurrent(() => {
@@ -34,7 +27,7 @@ export function DiscoverCarousel() {
     });
   }, [total]);
 
-  const slide = PLACEHOLDER_SLIDES[current];
+  const slide = DISCOVER_CAROUSEL_SLIDES[current];
 
   return (
     <div className="bg-[#f2f4f8] h-80 overflow-hidden rounded p-6 relative w-full">
@@ -109,7 +102,7 @@ export function DiscoverCarousel() {
         role="tablist"
         aria-label="Carousel pagination"
       >
-        {PLACEHOLDER_SLIDES.map((_, index) => (
+        {DISCOVER_CAROUSEL_SLIDES.map((_, index) => (
           <button
             key={index}
             type="button"

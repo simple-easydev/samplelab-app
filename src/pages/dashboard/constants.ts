@@ -34,6 +34,26 @@ export const CREATORS_ITEMS = [
   { rank: 5, name: 'Creator name', creator: '8 packs' },
 ];
 
+/** Discover hero carousel (mobile + desktop) – shared slides. */
+export interface DiscoverCarouselSlide {
+  title: string;
+  creator: string;
+  packs: string;
+  genre: string;
+  released: string;
+  imageUrl?: string;
+}
+
+export const DISCOVER_CAROUSEL_SLIDES: DiscoverCarouselSlide[] = [
+  { title: 'Sample Pack Name', creator: 'Creator Name', packs: '50 Packs', genre: 'Hip-Hop', released: 'Released 2w ago' },
+  { title: 'Lo-Fi Essentials Vol. 2', creator: 'Beat Lab', packs: '24 Packs', genre: 'Lo-Fi', released: 'Released 1w ago' },
+  { title: 'Trap Drums & Melodies', creator: 'Sound Factory', packs: '32 Packs', genre: 'Trap', released: 'Released 3d ago' },
+  { title: 'Soul Chops Collection', creator: 'Vinyl Revival', packs: '18 Packs', genre: 'Soul', released: 'Released 5d ago' },
+  { title: 'Electronic Textures', creator: 'Synth Wave', packs: '40 Packs', genre: 'Electronic', released: 'Released 1w ago' },
+  { title: 'Electronic Textures', creator: 'Synth Wave', packs: '40 Packs', genre: 'Electronic', released: 'Released 1w ago' },
+  { title: 'Electronic Textures', creator: 'Synth Wave', packs: '40 Packs', genre: 'Electronic', released: 'Released 1w ago' },
+];
+
 /** Slug for pack URL (e.g. "sample-pack-name-goes-here") */
 export function packTitleToId(title: string): string {
   return title

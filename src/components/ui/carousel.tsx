@@ -106,11 +106,11 @@ const Carousel = React.forwardRef<
           data-slot="carousel"
           {...props}
         >
-          <div
-            ref={carouselRef}
-            className="overflow-hidden"
-            data-slot="carousel-viewport"
-          >
+        <div
+          ref={carouselRef}
+          className="overflow-hidden h-full"
+          data-slot="carousel-viewport"
+        >
             {children}
           </div>
         </div>

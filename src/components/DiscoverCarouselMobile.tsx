@@ -3,42 +3,27 @@
  * Slider: Figma 1382-149520. Each item: Figma 1392-153411.
  * Visible on small viewports only (md:hidden).
  */
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Play, ArrowRight } from 'lucide-react';
 import {
   Carousel,
   CarouselContent,
   CarouselItem,
-  CarouselNext,
-  CarouselPrevious,
   type CarouselApi,
 } from '@/components/ui/carousel';
-import { cn } from '@/lib/utils';
+import {
+  DISCOVER_CAROUSEL_SLIDES,
+  type DiscoverCarouselSlide,
+} from '@/pages/dashboard/constants';
 
-export interface MobileCarouselSlide {
-  title: string;
-  creator: string;
-  packs: string;
-  genre: string;
-  released: string;
-  /** Optional cover image URL — Figma 1392-153411 */
-  imageUrl?: string;
-}
+const CAROUSEL_HEIGHT = 320;
 
-export const MOBILE_CAROUSEL_SLIDES: MobileCarouselSlide[] = [
-  { title: 'Sample Pack Name', creator: 'Creator Name', packs: '50 Packs', genre: 'Hip-Hop', released: 'Released 2w ago' },
-  { title: 'Lo-Fi Essentials Vol. 2', creator: 'Beat Lab', packs: '24 Packs', genre: 'Lo-Fi', released: 'Released 1w ago' },
-  { title: 'Trap Drums & Melodies', creator: 'Sound Factory', packs: '32 Packs', genre: 'Trap', released: 'Released 3d ago' },
-  { title: 'Soul Chops Collection', creator: 'Vinyl Revival', packs: '18 Packs', genre: 'Soul', released: 'Released 5d ago' },
-  { title: 'Electronic Textures', creator: 'Synth Wave', packs: '40 Packs', genre: 'Electronic', released: 'Released 1w ago' },
-];
-
-/** Single carousel item layout — Figma 1392-153411 */
-function DiscoverCarouselMobileItem({ slide }: { slide: MobileCarouselSlide }) {
+/** Carousel item — Figma 1392-153411: full-bleed card with background image, title/meta top-left, play + Browse pack bottom-left. */
+function DiscoverCarouselMobileItem({ slide }: { slide: DiscoverCarouselSlide }) {
   return (
-    <div className="relative z-10 flex h-full w-full items-stretch gap-3 p-4">
-      {/* Cover — left-aligned, fixed size */}
-      <div className="size-[72px] shrink-0 overflow-hidden rounded-xs bg-[#161410]/40 border border-[#fffbf0]/10">
+    <div className="relative h-full w-full overflow-hidden rounded-xl bg-[#161410]">
+      {/* Background image or placeholder */}
+      <div className="absolute inset-0 z-0">
         {slide.imageUrl ? (
           <img
             src={slide.imageUrl}
@@ -46,72 +31,73 @@ function DiscoverCarouselMobileItem({ slide }: { slide: MobileCarouselSlide }) {
             className="h-full w-full object-cover"
           />
         ) : (
-          <div className="flex h-full w-full items-center justify-center text-[#fffbf0]/30" aria-hidden>
-            <Play className="size-6" />
-          </div>
+          <div
+            className="h-full w-full bg-[#161410]"
+            aria-hidden
+          />
         )}
+        {/* Dark gradient overlay for text contrast */}
+        <div
+          className="absolute inset-0 bg-linear-to-t from-black/70 via-black/20 to-transparent"
+          aria-hidden
+        />
       </div>
-      {/* Title + meta */}
-      <div className="flex min-w-0 flex-1 flex-col justify-center gap-1.5">
-        <h2 className="text-[#fffbf0] text-[18px] font-bold leading-[24px] tracking-[-0.4px] line-clamp-2">
-          {slide.title}
-        </h2>
-        <div className="flex flex-wrap items-center gap-1.5 text-[11px] text-[#d6ceb8] tracking-[0.2px]">
-          <span>{slide.creator}</span>
-          <span className="size-1 shrink-0 rounded-full bg-[#d6ceb8]" aria-hidden />
-          <span>{slide.packs}</span>
-          <span className="size-1 shrink-0 rounded-full bg-[#d6ceb8]" aria-hidden />
-          <span>{slide.genre}</span>
-          <span className="size-1 shrink-0 rounded-full bg-[#d6ceb8]" aria-hidden />
-          <span>{slide.released}</span>
+
+      {/* Content overlay — Figma layout */}
+      <div className="relative z-10 flex h-full flex-col justify-between p-5">
+        {/* Top-left: title + meta */}
+        <div className="flex flex-col gap-2">
+          <h2 className="text-[#fffbf0] text-xl font-bold leading-[26px] tracking-[-0.4px] line-clamp-2">
+            {slide.title}
+          </h2>
+          <div className="flex flex-wrap items-center gap-[6px] text-xs leading-[14px] text-[#fffbf0]/90 tracking-[0.2px]">
+            <span>{slide.creator}</span>
+            <span className="size-1 shrink-0 rounded-full bg-[#fffbf0]/80" aria-hidden />
+            <span>{slide.packs}</span>
+            <span className="size-1 shrink-0 rounded-full bg-[#fffbf0]/80" aria-hidden />
+            <span>{slide.genre}</span>
+          </div>
+        </div>
+
+        {/* Bottom-left: play button + Browse pack */}
+        <div className="flex items-center gap-4">
+          <button
+            type="button"
+            className="size-14 shrink-0 flex items-center justify-center rounded-full bg-white text-[#161410] shadow-lg hover:bg-white/95 transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-transparent"
+            aria-label="Play"
+          >
+            <Play className="size-7 fill-current pl-0.5" />
+          </button>
+          <button
+            type="button"
+            className="flex items-center gap-1.5 text-[#fffbf0] text-sm font-medium tracking-[0.1px] hover:text-white transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-[#fffbf0] focus-visible:ring-offset-2 focus-visible:ring-offset-transparent rounded"
+          >
+            Browse pack
+            <ArrowRight className="size-5 shrink-0" />
+          </button>
         </div>
       </div>
     </div>
   );
 }
 
-function PaginationDot({ selected }: { selected: boolean }) {
-  return (
-    <div
-      className={cn(
-        'size-2 rounded-full shrink-0 transition-colors',
-        selected ? 'bg-[#fffbf0]' : 'bg-[#fffbf0]/40'
-      )}
-      aria-hidden
-    />
-  );
-}
-
-const buttonOverlayClass =
-  'border-[#fffbf0]/30 text-[#fffbf0] hover:bg-[#fffbf0]/10 disabled:opacity-50';
-
 export function DiscoverCarouselMobile() {
-  const [api, setApi] = useState<CarouselApi>(undefined);
-  const [current, setCurrent] = useState(0);
-
-  useEffect(() => {
-    if (!api) return;
-    const onSelect = () => setCurrent(api.selectedScrollSnap());
-    api.on('select', onSelect);
-    queueMicrotask(onSelect);
-    return () => {
-      api.off('select', onSelect);
-    };
-  }, [api]);
+  const [, setApi] = useState<CarouselApi>(undefined);
 
   return (
     <Carousel
       setApi={setApi}
-      opts={{ align: 'start', loop: true }}
-      className="w-full md:hidden"
+      opts={{ align: 'center', loop: true }}
+      className="w-screen relative left-1/2 -translate-x-1/2 md:hidden"
+      style={{ height: `${CAROUSEL_HEIGHT}px` }}
     >
-
-        {/* Sliding content — one slide per item */}
-        <CarouselContent className="absolute inset-0 ml-0 h-full">
-          {MOBILE_CAROUSEL_SLIDES.map((s, index) => (
+        {/* Sliding content — side padding = half of gap so loop seam matches gap between items */}
+        <CarouselContent className="h-full ml-0 gap-2 pl-2 pr-2">
+          {DISCOVER_CAROUSEL_SLIDES.map((s, index) => (
             <CarouselItem
               key={index}
-              className="pl-0 basis-full h-full"
+              className="h-full basis-2/3 shrink-0 pl-0"
+              style={{ minHeight: `${CAROUSEL_HEIGHT}px` }}
             >
               <DiscoverCarouselMobileItem slide={s} />
             </CarouselItem>
