@@ -1,16 +1,13 @@
 import { Link } from 'react-router-dom';
 import { DiscoverCarousel } from '@/components/DiscoverCarousel';
 import { DiscoverCarouselMobile } from '@/components/DiscoverCarouselMobile';
-import { DiscoverListColumn } from '@/components/DiscoverListColumn';
+import { TopFeed } from '@/components/TopFeed';
 import { SimilarSamplesSection } from '@/components/SimilarSamplesSection';
 import { CardCarousel } from '@/components/CardCarousel';
 import { SamplePackCard } from '@/components/SamplePackCard';
 import { CreatorCard } from '@/components/CreatorCard';
 import { GenreCard } from '@/components/GenreCard';
 import {
-  TRENDING_ITEMS,
-  NEW_RELEASES_ITEMS,
-  CREATORS_ITEMS,
   FEATURED_PACKS,
   SIMILAR_PACKS_TO_LIKES,
   LIKED_PACK_NAME,
@@ -33,32 +30,7 @@ export function DiscoverTabContent({ variant = 'default' }: DiscoverTabContentPr
       <div className="hidden md:block">
         <DiscoverCarousel />
       </div>
-      <div className="w-screen relative left-1/2 -translate-x-1/2 md:w-full md:left-0 md:translate-x-0 flex gap-6 items-start overflow-x-auto md:overflow-visible pb-2 px-4 md:px-0">
-        <div className="shrink-0 w-[340px] min-w-[340px] md:w-auto md:min-w-0 md:flex-1">
-          <DiscoverListColumn
-            title="Trending samples"
-            subtitle="The most downloaded samples right now"
-            items={TRENDING_ITEMS}
-            ctaLabel="View all Trending samples"
-          />
-        </div>
-        <div className="shrink-0 w-[340px] min-w-[340px] md:w-auto md:min-w-0 md:flex-1">
-          <DiscoverListColumn
-            title="New releases"
-            subtitle="Fresh samples added this week"
-            items={NEW_RELEASES_ITEMS}
-            ctaLabel="View new releases"
-          />
-        </div>
-        <div className="shrink-0 w-[340px] min-w-[340px] md:w-auto md:min-w-0 md:flex-1">
-          <DiscoverListColumn
-            title="Top creators"
-            subtitle="Most downloaded creators this month"
-            items={CREATORS_ITEMS}
-            ctaLabel="View all creators"
-          />
-        </div>
-      </div>
+      <TopFeed />
       {isSubscribed && <SimilarSamplesSection />}
       {isSubscribed && (
         <CardCarousel

@@ -10,30 +10,6 @@ export const DASHBOARD_TABS = [
   { id: 'genres', label: 'Genres' },
 ] as const;
 
-export const TRENDING_ITEMS = [
-  { rank: 1, name: 'Sample name goes here', creator: 'Creator name' },
-  { rank: 2, name: 'Lo-Fi Keys Loop', creator: 'Beat Lab' },
-  { rank: 3, name: 'Trap Hi-Hat Sequence', creator: 'Sound Factory' },
-  { rank: 4, name: 'Soul Chop 04', creator: 'Vinyl Revival' },
-  { rank: 5, name: 'Synth Pad Texture', creator: 'Synth Wave' },
-];
-
-export const NEW_RELEASES_ITEMS = [
-  { rank: 1, name: 'Fresh Drop Vol. 1', creator: 'Beat Lab' },
-  { rank: 2, name: 'Weekend Pack', creator: 'Sound Factory' },
-  { rank: 3, name: 'Midnight Loops', creator: 'Vinyl Revival' },
-  { rank: 4, name: '808 Essentials', creator: 'Synth Wave' },
-  { rank: 5, name: 'Chill Vibes Pack', creator: 'Creator name' },
-];
-
-export const CREATORS_ITEMS = [
-  { rank: 1, name: 'Beat Lab', creator: '24 packs' },
-  { rank: 2, name: 'Sound Factory', creator: '18 packs' },
-  { rank: 3, name: 'Vinyl Revival', creator: '31 packs' },
-  { rank: 4, name: 'Synth Wave', creator: '12 packs' },
-  { rank: 5, name: 'Creator name', creator: '8 packs' },
-];
-
 /** Discover hero carousel (mobile + desktop) – shared slides. */
 export interface DiscoverCarouselSlide {
   title: string;
