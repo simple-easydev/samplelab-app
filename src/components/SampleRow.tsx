@@ -141,8 +141,6 @@ function SoundWave({
   );
 }
 
-const ROW_GRID_COLUMNS = 'minmax(0, 280px) minmax(260px, 340px) minmax(160px, 1fr) 140px';
-
 export interface SampleRowProps {
   item: SampleRowItem;
   /** When "compact", only thumbnail + name + creator (and optional rank) are shown. Default "full". */
@@ -280,8 +278,7 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
       onMouseLeave={() => setFullRowHovered(false)}
     >
       <div
-        className="grid w-full gap-4 items-center"
-        style={{ gridTemplateColumns: ROW_GRID_COLUMNS }}
+        className="grid w-full gap-4 items-center grid-cols-2 md:grid-cols-[minmax(0,280px)_minmax(260px,340px)_minmax(160px,1fr)_140px]"
       >
         {/* Column 1: Thumbnail (with hover play overlay) + sample name + creator – Figma 804-36336 */}
         <div className="flex gap-4 h-14 items-center min-w-0">
@@ -328,8 +325,8 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
           </div>
         </div>
 
-        {/* Column 2: Waveform + time (darker on hover) */}
-        <div className="hidden sm:flex items-center gap-2 min-w-0 w-full">
+        {/* Column 2: Waveform + time (darker on hover) — hidden on mobile */}
+        <div className="hidden md:flex items-center gap-2 min-w-0 w-full">
           <SoundWave
             duration={item.duration}
             progress={audioProgress}
@@ -340,8 +337,8 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
           />
         </div>
 
-        {/* Column 3: Tags */}
-        <div className="flex flex-col gap-2 items-start justify-center min-w-0">
+        {/* Column 3: Tags — hidden on mobile */}
+        <div className="hidden md:flex flex-col gap-2 items-start justify-center min-w-0">
           <div className="flex flex-wrap gap-2 items-center">
             {item.tags.map((tag) => (
               <span
@@ -369,7 +366,7 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
         {/* Column 4: BPM • Key + action icons (visible on hover) */}
         <div className="flex items-center gap-3 justify-end min-w-[140px]">
           {item.bpm != null && (
-            <div className="flex gap-2 items-center shrink-0">
+            <div className="hidden md:flex gap-2 items-center shrink-0">
               <span className="text-[#5e584b] text-xs leading-4 tracking-[0.2px]">
                 {item.bpm} BPM
               </span>
@@ -383,7 +380,7 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
               )}
             </div>
           )}
-          <div className="flex gap-1 items-center shrink-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <div className="flex gap-1 items-center shrink-0 opacity-100 md:opacity-0 md:transition-opacity md:duration-200 md:group-hover:opacity-100">
             <button
               type="button"
               onClick={(e) => e.stopPropagation()}
@@ -443,22 +440,6 @@ export function SampleRow({ item, variant = 'full', rank, isFavorited = false }:
             </DropdownMenu>
           </div>
         </div>
-      </div>
-      {/* Mobile: show duration under name when waveform is hidden */}
-      <div className="sm:hidden mt-2 flex items-center gap-2">
-        <span className="text-[#5e584b] text-xs">{item.duration}</span>
-        {item.bpm != null && (
-          <>
-            <span className="text-[#5e584b] size-1 rounded-full bg-[#5e584b]" />
-            <span className="text-[#5e584b] text-xs">{item.bpm} BPM</span>
-          </>
-        )}
-        {item.key && (
-          <>
-            <span className="text-[#5e584b] size-1 rounded-full bg-[#5e584b]" />
-            <span className="text-[#5e584b] text-xs">{item.key}</span>
-          </>
-        )}
       </div>
     </div>
   );

@@ -83,7 +83,7 @@ export default function DashboardPage({ tabFromUrl, isSearch = false }: Dashboar
 
   return (
     <div className="min-h-screen bg-[#fffbf0]">
-      <div className="px-8 pt-8 pb-32 w-full max-w-full">
+      <div className="px-4 py-4 md:px-8 md:pt-8 md:pb-32 w-full max-w-full">
         {isActive && (
           <div className="max-w-6xl mx-auto mb-8 rounded-lg bg-[#161410] px-6 py-4 flex flex-wrap items-center justify-between gap-4">
             <div>
