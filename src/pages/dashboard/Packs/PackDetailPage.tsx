@@ -13,7 +13,7 @@ import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
 import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
 import { getPackById, type PackDetail } from '@/lib/supabase/packs';
 import { mapAllSampleToRowItem } from '@/lib/utils';
-import { SamplesFilterBar } from './SamplesFilterBar';
+import { SamplesFilterBar } from '../Samples/SamplesFilterBar';
 
 function formatReleasedAt(createdAt: string): string {
   const date = new Date(createdAt);

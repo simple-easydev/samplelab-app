@@ -1,10 +1,10 @@
 import { useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { ChevronsUpDown, Search, Check } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { SearchQueryChip } from '@/components/SearchQueryChip';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { FilterBarDropdown } from '@/components/FilterBarDropdown';
+import { usePacksFilterBar } from '../../../contexts/PacksFilterContext';
 import {
   TOP_GENRES,
   KEYWORDS_OPTIONS,
@@ -12,7 +12,7 @@ import {
   LICENSE_OPTIONS,
   CREATOR_FILTER_OPTIONS,
   RELEASED_OPTIONS,
-} from './constants';
+} from '../constants';
 
 /** Sort options for packs – Figma 778-55100 */
 const SORT_OPTIONS = [
@@ -23,23 +23,41 @@ const SORT_OPTIONS = [
   { id: 'name-za', label: 'Name Z–A' },
 ] as const;
 
+/** Desktop-only packs filter bar (dropdowns + search). Consumes PacksFilterContext. */
 export function PacksFilterBar() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const qFromUrl = searchParams.get('q') ?? '';
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortId, setSortId] = useState<(typeof SORT_OPTIONS)[number]['id']>('newest');
   const [genreDropdownOpen, setGenreDropdownOpen] = useState(false);
-  const [selectedGenres, setSelectedGenres] = useState<Set<string>>(new Set());
-  const [genreSearch, setGenreSearch] = useState('');
   const [keywordsDropdownOpen, setKeywordsDropdownOpen] = useState(false);
-  const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
-  const [keywordSearch, setKeywordSearch] = useState('');
-  const [accessId, setAccessId] = useState<(typeof ACCESS_OPTIONS)[number]['id']>('all');
-  const [licenseId, setLicenseId] = useState<(typeof LICENSE_OPTIONS)[number]['id']>('all');
   const [creatorDropdownOpen, setCreatorDropdownOpen] = useState(false);
-  const [selectedCreators, setSelectedCreators] = useState<Set<string>>(new Set());
-  const [creatorSearch, setCreatorSearch] = useState('');
-  const [releasedId, setReleasedId] = useState<(typeof RELEASED_OPTIONS)[number]['id']>('all');
+
+  const {
+    searchQuery,
+    onSearchQueryChange,
+    sortId,
+    onSortIdChange,
+    selectedGenres,
+    onToggleGenre,
+    genreSearch,
+    onGenreSearchChange,
+    selectedKeywords,
+    onToggleKeyword,
+    keywordSearch,
+    onKeywordSearchChange,
+    accessId,
+    onAccessIdChange,
+    licenseId,
+    onLicenseIdChange,
+    selectedCreators,
+    onToggleCreator,
+    creatorSearch,
+    onCreatorSearchChange,
+    releasedId,
+    onReleasedIdChange,
+    onClearAllFilters,
+    showSearchChip,
+    searchChipQuery,
+    onClearSearchQuery,
+    searchResultCount,
+  } = usePacksFilterBar();
 
   const filteredGenres = useMemo(() => {
     const q = genreSearch.trim().toLowerCase();
@@ -58,72 +76,29 @@ export function PacksFilterBar() {
       : CREATOR_FILTER_OPTIONS;
   }, [creatorSearch]);
 
-  const toggleGenre = (genre: string) => {
-    setSelectedGenres((prev) => {
-      const next = new Set(prev);
-      if (next.has(genre)) next.delete(genre);
-      else next.add(genre);
-      return next;
-    });
-  };
-
-  const toggleKeyword = (keyword: string) => {
-    setSelectedKeywords((prev) => {
-      const next = new Set(prev);
-      if (next.has(keyword)) next.delete(keyword);
-      else next.add(keyword);
-      return next;
-    });
-  };
-
   const handleGenreClear = () => {
-    setSelectedGenres(new Set());
-    setGenreSearch('');
-  };
-
-  const handleGenreApply = () => {
+    selectedGenres.forEach((g) => onToggleGenre(g));
+    onGenreSearchChange('');
     setGenreDropdownOpen(false);
   };
 
-  const handleKeywordsClear = () => {
-    setSelectedKeywords(new Set());
-    setKeywordSearch('');
-  };
+  const handleGenreApply = () => setGenreDropdownOpen(false);
 
-  const handleKeywordsApply = () => {
+  const handleKeywordsClear = () => {
+    selectedKeywords.forEach((k) => onToggleKeyword(k));
+    onKeywordSearchChange('');
     setKeywordsDropdownOpen(false);
   };
 
-  const toggleCreator = (creator: string) => {
-    setSelectedCreators((prev) => {
-      const next = new Set(prev);
-      if (next.has(creator)) next.delete(creator);
-      else next.add(creator);
-      return next;
-    });
-  };
+  const handleKeywordsApply = () => setKeywordsDropdownOpen(false);
 
   const handleCreatorsClear = () => {
-    setSelectedCreators(new Set());
-    setCreatorSearch('');
-  };
-
-  const handleCreatorsApply = () => {
+    selectedCreators.forEach((c) => onToggleCreator(c));
+    onCreatorSearchChange('');
     setCreatorDropdownOpen(false);
   };
 
-  const handleClearAllFilters = () => {
-    setSortId('newest');
-    setSelectedGenres(new Set());
-    setGenreSearch('');
-    setSelectedKeywords(new Set());
-    setKeywordSearch('');
-    setAccessId('all');
-    setLicenseId('all');
-    setSelectedCreators(new Set());
-    setCreatorSearch('');
-    setReleasedId('all');
-  };
+  const handleCreatorsApply = () => setCreatorDropdownOpen(false);
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 w-full">
@@ -137,7 +112,7 @@ export function PacksFilterBar() {
             {SORT_OPTIONS.map((option) => (
               <DropdownMenuItem
                 key={option.id}
-                onClick={() => setSortId(option.id)}
+                onClick={() => onSortIdChange(option.id)}
                 className="flex items-center justify-between"
               >
                 {option.label}
@@ -162,7 +137,7 @@ export function PacksFilterBar() {
             <FilterBarDropdown.Content width={280}>
               <FilterBarDropdown.Search
                 value={genreSearch}
-                onChange={setGenreSearch}
+                onChange={onGenreSearchChange}
                 placeholder="Search genre"
                 ariaLabel="Search genre"
               />
@@ -177,7 +152,7 @@ export function PacksFilterBar() {
                       key={genre.name}
                       label={genre.name}
                       checked={selectedGenres.has(genre.name)}
-                      onToggle={() => toggleGenre(genre.name)}
+                      onToggle={() => onToggleGenre(genre.name)}
                     />
                   ))
                 )}
@@ -202,7 +177,7 @@ export function PacksFilterBar() {
             <FilterBarDropdown.Content width={280}>
               <FilterBarDropdown.Search
                 value={keywordSearch}
-                onChange={setKeywordSearch}
+                onChange={onKeywordSearchChange}
                 placeholder="Search keywords"
                 ariaLabel="Search keywords"
               />
@@ -217,7 +192,7 @@ export function PacksFilterBar() {
                       key={keyword.name}
                       label={keyword.name}
                       checked={selectedKeywords.has(keyword.name)}
-                      onToggle={() => toggleKeyword(keyword.name)}
+                      onToggle={() => onToggleKeyword(keyword.name)}
                     />
                   ))
                 )}
@@ -242,7 +217,7 @@ export function PacksFilterBar() {
               {ACCESS_OPTIONS.map((option) => (
                 <DropdownMenuItem
                   key={option.id}
-                  onClick={() => setAccessId(option.id)}
+                  onClick={() => onAccessIdChange(option.id)}
                   className="flex items-center justify-between"
                 >
                   {option.label}
@@ -265,7 +240,7 @@ export function PacksFilterBar() {
               {LICENSE_OPTIONS.map((option) => (
                 <DropdownMenuItem
                   key={option.id}
-                  onClick={() => setLicenseId(option.id)}
+                  onClick={() => onLicenseIdChange(option.id)}
                   className="flex items-center justify-between gap-2"
                 >
                   <span>{option.label}</span>
@@ -290,7 +265,7 @@ export function PacksFilterBar() {
             <FilterBarDropdown.Content width={280}>
               <FilterBarDropdown.Search
                 value={creatorSearch}
-                onChange={setCreatorSearch}
+                onChange={onCreatorSearchChange}
                 placeholder="Search creator"
                 ariaLabel="Search creator"
               />
@@ -305,7 +280,7 @@ export function PacksFilterBar() {
                       key={creator.name}
                       label={creator.name}
                       checked={selectedCreators.has(creator.name)}
-                      onToggle={() => toggleCreator(creator.name)}
+                      onToggle={() => onToggleCreator(creator.name)}
                     />
                   ))
                 )}
@@ -330,7 +305,7 @@ export function PacksFilterBar() {
               {RELEASED_OPTIONS.map((option) => (
                 <DropdownMenuItem
                   key={option.id}
-                  onClick={() => setReleasedId(option.id)}
+                  onClick={() => onReleasedIdChange(option.id)}
                   className="flex items-center justify-between"
                 >
                   {option.label}
@@ -345,32 +320,26 @@ export function PacksFilterBar() {
 
         <button
           type="button"
-          onClick={handleClearAllFilters}
+          onClick={onClearAllFilters}
           className="text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] underline hover:no-underline shrink-0"
         >
           Clear Filters
         </button>
       </div>
 
-      {qFromUrl.trim() ? (
+      {showSearchChip && searchChipQuery ? (
         <SearchQueryChip
-          query={qFromUrl}
-          resultCount={1000}
-          onClear={() => {
-            setSearchParams((prev) => {
-              const next = new URLSearchParams(prev);
-              next.delete('q');
-              return next;
-            });
-          }}
+          query={searchChipQuery}
+          resultCount={searchResultCount ?? 0}
+          onClear={onClearSearchQuery ?? (() => {})}
         />
       ) : (
-        <div className="border border-[#d6ceb8] flex h-10 items-center gap-2 px-3 rounded-[2px] w-[250px] shrink-0 bg-transparent">
+        <div className="border border-[#d6ceb8] flex h-10 items-center gap-2 px-3 rounded-xs w-[250px] shrink-0 bg-transparent">
           <Search className="size-5 shrink-0 text-[#7f7766]" aria-hidden />
           <Input
             type="search"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => onSearchQueryChange(e.target.value)}
             placeholder="Search packs"
             className="border-0 bg-transparent h-auto py-0 text-sm text-[#161410] placeholder:text-[#7f7766] focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none flex-1 min-w-0"
             aria-label="Search packs"

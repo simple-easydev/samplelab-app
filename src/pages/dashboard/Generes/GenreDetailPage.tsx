@@ -17,8 +17,8 @@ import {
   PACKS_GRID_ITEMS,
   CREATORS_GRID_ITEMS,
   SAMPLES_LIST,
-} from './constants';
-import { SamplesFilterBar } from './SamplesFilterBar';
+} from '../constants';
+import { SamplesFilterBar } from '../Samples/SamplesFilterBar';
 
 function mapSampleToList(sample: (typeof SAMPLES_LIST)[number], index: number): SampleRowItem {
   const tags: string[] = [];

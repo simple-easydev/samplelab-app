@@ -14,7 +14,7 @@ export {
 } from './constants';
 export type { DiscoverTabContentProps } from './DiscoverTabContent';
 export { DiscoverTabContent } from './DiscoverTabContent';
-export { PacksTabContent } from './PacksTabContent';
-export { SamplesTabContent } from './SamplesTabContent';
-export { CreatorsTabContent } from './CreatorsTabContent';
-export { GenresTabContent } from './GenresTabContent';
+export { PacksTabContent } from './Packs/PacksTabContent';
+export { SamplesTabContent } from './Samples/SamplesTabContent';
+export { CreatorsTabContent } from './Creators/CreatorsTabContent';
+export { GenresTabContent } from './Generes/GenresTabContent';

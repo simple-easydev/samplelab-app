@@ -6,9 +6,9 @@ import { supabase } from '@/lib/supabase/client';
 import { authManager } from '@/lib/supabase/auth-manager';
 import DashboardPage from './DashboardPage';
 import SearchResultPage from './SearchResultPage';
-import PackDetailPage from './PackDetailPage';
-import CreatorDetailPage from './CreatorDetailPage';
-import GenreDetailPage from './GenreDetailPage';
+import PackDetailPage from './Packs/PackDetailPage';
+import CreatorDetailPage from './Creators/CreatorDetailPage';
+import GenreDetailPage from './Generes/GenreDetailPage';
 import AccountSettingsPage from './AccountSettingsPage';
 import { DASHBOARD_TABS } from './DashboardTabContent';
 

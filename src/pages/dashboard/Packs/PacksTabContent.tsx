@@ -1,5 +1,7 @@
 import { useState, useEffect } from 'react';
 import { PacksFilterBar } from './PacksFilterBar';
+import { PacksFilterBarMobile } from './PacksFilterBarMobile';
+import { PacksFilterProvider } from '@/contexts/PacksFilterContext';
 import { SamplePackCard } from '@/components/SamplePackCard';
 import { AccessGate } from '@/components/AccessGate';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -31,8 +33,15 @@ export function PacksTabContent() {
   }, []);
 
   const content = (
-    <>
-      <PacksFilterBar />
+    <PacksFilterProvider>
+      {/* Mobile: full-screen filters modal + search */}
+      <div className="md:hidden w-full">
+        <PacksFilterBarMobile />
+      </div>
+      {/* Desktop: dropdown filter bar + search */}
+      <div className="hidden md:block w-full">
+        <PacksFilterBar />
+      </div>
       {/* Grid of sample pack cards – Figma 756-50536 */}
       <section className="w-full" aria-label="Sample packs">
         <div className="grid gap-6 grid-cols-[repeat(auto-fill,minmax(209px,1fr))]">
@@ -54,7 +63,7 @@ export function PacksTabContent() {
           )}
         </div>
       </section>
-    </>
+    </PacksFilterProvider>
   );
 
   if (isActive) {

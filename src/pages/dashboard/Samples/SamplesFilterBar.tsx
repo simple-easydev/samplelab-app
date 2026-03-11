@@ -20,7 +20,7 @@ import {
   KEY_FILTER_FLAT_KEYS,
   KEY_FILTER_SHARP_KEYS,
   KEY_QUALITY_OPTIONS,
-} from './constants';
+} from '../constants';
 
 const SORT_OPTIONS = [
   { id: 'newest', label: 'Newest first' },

@@ -13,7 +13,7 @@ import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
 import { CreatorCard } from '@/components/CreatorCard';
 import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
 import { getCreatorById, type CreatorDetail } from '@/lib/supabase/creators';
-import { SamplesFilterBar } from './SamplesFilterBar';
+import { SamplesFilterBar } from '../Samples/SamplesFilterBar';
 
 function mapSampleToRowItem(
   sample: CreatorDetail['samples'][number],

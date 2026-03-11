@@ -1,38 +1,38 @@
+/**
+ * Creators tab – Figma 812-85001.
+ * Filter bar (Trending, Popular, Recent, A-Z), search, and grid of CreatorCards.
+ * When URL has ?q=..., shows SearchQueryChip instead of the search input.
+ * Data from Supabase RPC get_creators_with_counts (creators joined with packs/samples counts).
+ */
 import { useState, useMemo, useEffect } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
 import { Search } from 'lucide-react';
-import { GenreCard } from '@/components/GenreCard';
-import { getAllGenres } from '@/lib/supabase/genres';
-import { genreNameToSlug } from './constants';
+import { AccessGate } from '@/components/AccessGate';
+import { CreatorCard } from '@/components/CreatorCard';
 import { Input } from '@/components/ui/input';
 import { SearchQueryChip } from '@/components/SearchQueryChip';
-import { GENRES_SORT_OPTIONS } from './constants';
+import { useSubscription } from '@/hooks/useSubscription';
+import { getCreatorsWithCounts } from '@/lib/supabase/creators';
+import { CREATORS_SORT_OPTIONS } from '../constants';
 
-function getDisplayName(name: string): string {
-  if (!name) return name;
-  return name
-    .split(' ')
-    .map((part) => part.charAt(0).toUpperCase() + part.slice(1))
-    .join(' ');
-}
-
-export function GenresTabContent() {
+export function CreatorsTabContent() {
+  const { isActive } = useSubscription();
   const [searchParams, setSearchParams] = useSearchParams();
   const qFromUrl = searchParams.get('q') ?? '';
-  const [sortId, setSortId] = useState<string>('curated');
+  const [sortId, setSortId] = useState<string>('trending');
   const [searchQuery, setSearchQuery] = useState('');
-   const [genres, setGenres] = useState<Awaited<ReturnType<typeof getAllGenres>>>([]);
-   const [loading, setLoading] = useState(true);
+  const [creators, setCreators] = useState<Awaited<ReturnType<typeof getCreatorsWithCounts>>>([]);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     let cancelled = false;
     queueMicrotask(() => {
       if (!cancelled) setLoading(true);
     });
-    getAllGenres()
+    getCreatorsWithCounts({ p_search: qFromUrl.trim() || searchQuery.trim() || undefined })
       .then((data) => {
         if (!cancelled) {
-          setGenres(data);
+          setCreators(data);
           setLoading(false);
         }
       })
@@ -42,34 +42,32 @@ export function GenresTabContent() {
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [qFromUrl, searchQuery]);
 
-  const filteredGenres = useMemo(() => {
-    const raw = qFromUrl.trim() || searchQuery.trim();
-    const q = raw.toLowerCase();
-    const list = q
-      ? genres.filter((g) => g.name.toLowerCase().includes(q))
-      : genres;
+  const filteredCreators = useMemo(() => {
+    const list = [...creators];
     if (sortId === 'a-z') {
-      return [...list].sort((a, b) => a.name.localeCompare(b.name));
+      return list.sort((a, b) => a.name.localeCompare(b.name));
     }
     return list;
-  }, [qFromUrl, searchQuery, sortId, genres]);
+  }, [creators, sortId]);
 
   return (
     <div className="mb-8 flex flex-col gap-8 relative">
+      {!isActive && <AccessGate />}
+
       <div className="flex flex-col gap-8">
-        {/* Filters + search – Figma 821-38780 */}
+        {/* Filters + search – Figma 812-85009 */}
         <div className="flex items-center justify-between gap-4 flex-wrap">
           <div className="flex gap-2 items-center">
-            {GENRES_SORT_OPTIONS.map((option) => {
+            {CREATORS_SORT_OPTIONS.map((option) => {
               const isSelected = sortId === option.id;
               return (
                 <button
                   key={option.id}
                   type="button"
                   onClick={() => setSortId(option.id)}
-                  className={`flex h-10 items-center justify-center px-3 rounded-xs border shrink-0 font-medium text-sm leading-5 tracking-[0.1px] whitespace-nowrap transition-colors ${
+                  className={`flex h-10 items-center justify-center gap-1.5 px-3 rounded-xs border shrink-0 font-medium text-sm leading-5 tracking-[0.1px] whitespace-nowrap transition-colors ${
                     isSelected
                       ? 'bg-[#e8e2d2] border-[#161410] text-[#161410]'
                       : 'border-[#d6ceb8] text-[#5e584b] bg-transparent hover:border-[#161410] hover:text-[#161410]'
@@ -83,7 +81,7 @@ export function GenresTabContent() {
           {qFromUrl.trim() ? (
             <SearchQueryChip
               query={qFromUrl}
-              resultCount={filteredGenres.length}
+              resultCount={filteredCreators.length}
               onClear={() => {
                 setSearchParams((prev) => {
                   const next = new URLSearchParams(prev);
@@ -99,35 +97,31 @@ export function GenresTabContent() {
                 type="search"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="Search genres"
+                placeholder="Search creators"
                 className="border-0 bg-transparent h-auto py-0 text-sm text-[#161410] placeholder:text-[#7f7766] focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none flex-1 min-w-0"
-                aria-label="Search genres"
+                aria-label="Search creators"
               />
             </div>
           )}
         </div>
 
-        {/* Genre cards grid – Figma 821-38787, gap 24px */}
-        <section className="w-full" aria-label="Genres">
-          <div className="flex flex-wrap gap-6 items-center content-center w-full">
-            {loading ? (
-              <p className="text-[#5e584b] text-sm">Loading genres…</p>
-            ) : (
-              filteredGenres.map((genre) => (
-                <Link
-                  key={genre.id}
-                  to={`/dashboard/genres/${genreNameToSlug(genre.name)}`}
-                  className="contents"
-                >
-                  <GenreCard
-                    name={getDisplayName(genre.name)}
-                    imageUrl={genre.thumbnail_url ?? undefined}
-                  />
-                </Link>
-              ))
-            )}
-          </div>
-        </section>
+        {/* Creator cards grid – Figma 821-34268, gap 24px */}
+        <div className="flex flex-wrap gap-6 items-center content-center w-full">
+          {loading ? (
+            <p className="text-[#5e584b] text-sm">Loading creators…</p>
+          ) : (
+            filteredCreators.map((creator) => (
+              <CreatorCard
+                key={creator.id}
+                creatorId={creator.id}
+                name={creator.name}
+                samplesCount={String(creator.samples_count)}
+                packsCount={String(creator.packs_count)}
+                imageUrl={creator.avatar_url ?? undefined}
+              />
+            ))
+          )}
+        </div>
       </div>
     </div>
   );
