@@ -21,8 +21,9 @@ function DashboardTabs({
   onTabChange: (tabId: DashboardTabId) => void;
 }) {
   return (
-    <div className="border-b border-[#e8e2d2] flex gap-4 items-center max-w-6xl mx-auto mb-8">
-      {DASHBOARD_TABS.map((tab) => {
+    <div className="border-b border-[#e8e2d2] overflow-x-auto overflow-y-hidden md:overflow-visible max-w-6xl mb-8 -mx-4 px-4 md:mx-auto md:px-0">
+      <div className="flex gap-4 items-center flex-nowrap min-w-max md:min-w-0">
+        {DASHBOARD_TABS.map((tab) => {
         const isSelected = activeTab === tab.id;
         return (
           <button
@@ -39,6 +40,7 @@ function DashboardTabs({
           </button>
         );
       })}
+      </div>
     </div>
   );
 }
