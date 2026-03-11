@@ -11,7 +11,7 @@ export function PacksFilterProvider({ children }: { children: React.ReactNode })
   const [searchParams, setSearchParams] = useSearchParams();
   const qFromUrl = searchParams.get('q') ?? '';
   const [searchQuery, setSearchQuery] = useState('');
-  const [sortId, setSortId] = useState<PacksFilterBarMobileProps['sortId']>('newest');
+  const [sortId, setSortId] = useState<PacksFilterBarMobileProps['sortId']>('trending');
   const [selectedGenres, setSelectedGenres] = useState<Set<string>>(new Set());
   const [genreSearch, setGenreSearch] = useState('');
   const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
@@ -50,7 +50,7 @@ export function PacksFilterProvider({ children }: { children: React.ReactNode })
   };
 
   const handleClearAllFilters = () => {
-    setSortId('newest');
+    setSortId('trending');
     setSelectedGenres(new Set());
     setGenreSearch('');
     setSelectedKeywords(new Set());
