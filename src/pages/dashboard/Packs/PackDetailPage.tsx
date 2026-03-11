@@ -14,6 +14,8 @@ import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
 import { getPackById, type PackDetail } from '@/lib/supabase/packs';
 import { mapAllSampleToRowItem } from '@/lib/utils';
 import { SamplesFilterBar } from '../Samples/SamplesFilterBar';
+import { SamplesFilterBarMobile } from '../Samples/SamplesFilterBarMobile';
+import { SamplesFilterProvider } from '@/contexts/SamplesFilterContext';
 
 function formatReleasedAt(createdAt: string): string {
   const date = new Date(createdAt);
@@ -226,7 +228,14 @@ export default function PackDetailPage() {
 
         {/* Sample list: filter bar + rows (same as Samples tab) */}
         <div className="flex flex-col gap-8 mb-12">
-          <SamplesFilterBar />
+          <SamplesFilterProvider>
+            <div className="md:hidden w-full">
+              <SamplesFilterBarMobile />
+            </div>
+            <div className="hidden md:block w-full">
+              <SamplesFilterBar />
+            </div>
+          </SamplesFilterProvider>
           <section className="w-full" aria-label="Samples in this pack">
             <div className="border border-[#e8e2d2] rounded overflow-hidden flex flex-col">
               {sampleItems.length > 0 ? (

@@ -2,15 +2,16 @@
  * Samples tab filter bar – Figma 812-47896 (filters+search).
  * Sort button, filter group (Genre, Keywords, Instrument, Type, Stems, Key, BPM), Clear Filters, search bar.
  * When URL has ?q=..., shows SearchQueryChip instead of the search input.
+ * Uses SamplesFilterContext so state is shared with SamplesFilterBarMobile.
  */
 import { useState, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
 import { ChevronsUpDown, Search, Check } from 'lucide-react';
 import { SearchQueryChip } from '@/components/SearchQueryChip';
 import { Input } from '@/components/ui/input';
 import { Slider } from '@/components/ui/slider';
 import { DropdownMenuItem } from '@/components/ui/dropdown-menu';
 import { FilterBarDropdown } from '@/components/FilterBarDropdown';
+import { useSamplesFilterBar } from '@/contexts/SamplesFilterContext';
 import {
   TOP_GENRES,
   KEYWORDS_OPTIONS,
@@ -30,29 +31,51 @@ const SORT_OPTIONS = [
   { id: 'name-za', label: 'Name Z–A' },
 ] as const;
 
+const BPM_MIN = 0;
+const BPM_MAX = 240;
+
 export function SamplesFilterBar() {
-  const [searchParams, setSearchParams] = useSearchParams();
-  const qFromUrl = searchParams.get('q') ?? '';
-  const [searchQuery, setSearchQuery] = useState('');
-  const [sortId, setSortId] = useState<(typeof SORT_OPTIONS)[number]['id']>('newest');
   const [genreDropdownOpen, setGenreDropdownOpen] = useState(false);
-  const [selectedGenres, setSelectedGenres] = useState<Set<string>>(new Set());
-  const [genreSearch, setGenreSearch] = useState('');
   const [keywordsDropdownOpen, setKeywordsDropdownOpen] = useState(false);
-  const [selectedKeywords, setSelectedKeywords] = useState<Set<string>>(new Set());
-  const [keywordSearch, setKeywordSearch] = useState('');
-  const [instrumentId, setInstrumentId] = useState<(typeof SAMPLE_INSTRUMENT_OPTIONS)[number]['id']>('all');
-  const [typeId, setTypeId] = useState<(typeof SAMPLE_TYPE_OPTIONS)[number]['id']>('all');
-  const [stemsId, setStemsId] = useState<(typeof SAMPLE_STEMS_OPTIONS)[number]['id']>('all');
   const [keyDropdownOpen, setKeyDropdownOpen] = useState(false);
   const [keyTab, setKeyTab] = useState<'flat' | 'sharp'>('flat');
-  const [selectedKeys, setSelectedKeys] = useState<Set<string>>(new Set());
-  const [keyQuality, setKeyQuality] = useState<(typeof KEY_QUALITY_OPTIONS)[number]['id']>('all');
   const [bpmDropdownOpen, setBpmDropdownOpen] = useState(false);
-  const [bpmTab, setBpmTab] = useState<'range' | 'exact'>('range');
-  const [bpmRangeMin, setBpmRangeMin] = useState(0);
-  const [bpmRangeMax, setBpmRangeMax] = useState(240);
-  const [bpmExact, setBpmExact] = useState('');
+  const {
+    searchQuery,
+    onSearchQueryChange,
+    sortId,
+    onSortIdChange,
+    selectedGenres,
+    onToggleGenre,
+    genreSearch,
+    onGenreSearchChange,
+    selectedKeywords,
+    onToggleKeyword,
+    keywordSearch,
+    onKeywordSearchChange,
+    instrumentId,
+    onInstrumentIdChange,
+    typeId,
+    onTypeIdChange,
+    stemsId,
+    onStemsIdChange,
+    selectedKeys,
+    onToggleKey,
+    keyQuality,
+    onKeyQualityChange,
+    bpmTab,
+    onBpmTabChange,
+    bpmRangeMin,
+    bpmRangeMax,
+    onBpmRangeChange,
+    bpmExact,
+    onBpmExactChange,
+    onClearAllFilters,
+    showSearchChip,
+    searchChipQuery,
+    onClearSearchQuery,
+    searchResultCount,
+  } = useSamplesFilterBar();
 
   const filteredGenres = useMemo(() => {
     const q = genreSearch.trim().toLowerCase();
@@ -64,83 +87,39 @@ export function SamplesFilterBar() {
     return q ? KEYWORDS_OPTIONS.filter((k) => k.name.toLowerCase().includes(q)) : KEYWORDS_OPTIONS;
   }, [keywordSearch]);
 
-  const toggleGenre = (genre: string) => {
-    setSelectedGenres((prev) => {
-      const next = new Set(prev);
-      if (next.has(genre)) next.delete(genre);
-      else next.add(genre);
-      return next;
-    });
-  };
-
-  const toggleKeyword = (keyword: string) => {
-    setSelectedKeywords((prev) => {
-      const next = new Set(prev);
-      if (next.has(keyword)) next.delete(keyword);
-      else next.add(keyword);
-      return next;
-    });
-  };
-
   const handleGenreClear = () => {
-    setSelectedGenres(new Set());
-    setGenreSearch('');
+    selectedGenres.forEach((g) => onToggleGenre(g));
+    onGenreSearchChange('');
   };
 
   const handleGenreApply = () => setGenreDropdownOpen(false);
 
   const handleKeywordsClear = () => {
-    setSelectedKeywords(new Set());
-    setKeywordSearch('');
+    selectedKeywords.forEach((k) => onToggleKeyword(k));
+    onKeywordSearchChange('');
   };
 
   const handleKeywordsApply = () => setKeywordsDropdownOpen(false);
 
   const handleKeyClear = () => {
-    setSelectedKeys(new Set());
-    setKeyQuality('all');
+    selectedKeys.forEach((k) => onToggleKey(k));
+    onKeyQualityChange('all');
   };
 
   const handleKeyApply = () => setKeyDropdownOpen(false);
 
   const handleBpmClear = () => {
-    setBpmRangeMin(0);
-    setBpmRangeMax(240);
-    setBpmExact('');
+    onBpmTabChange('range');
+    onBpmRangeChange(BPM_MIN, BPM_MAX);
+    onBpmExactChange('');
   };
 
   const handleBpmApply = () => setBpmDropdownOpen(false);
-
-  const handleClearAllFilters = () => {
-    setSortId('newest');
-    setSelectedGenres(new Set());
-    setGenreSearch('');
-    setSelectedKeywords(new Set());
-    setKeywordSearch('');
-    setInstrumentId('all');
-    setTypeId('all');
-    setStemsId('all');
-    setSelectedKeys(new Set());
-    setKeyQuality('all');
-    handleBpmClear();
-  };
-
-  const BPM_MIN = 0;
-  const BPM_MAX = 240;
 
   const bpmHasActiveFilter =
     bpmTab === 'range'
       ? bpmRangeMin > BPM_MIN || bpmRangeMax < BPM_MAX
       : bpmExact.trim() !== '';
-
-  const toggleKey = (keyName: string) => {
-    setSelectedKeys((prev) => {
-      const next = new Set(prev);
-      if (next.has(keyName)) next.delete(keyName);
-      else next.add(keyName);
-      return next;
-    });
-  };
 
   return (
     <div className="flex flex-wrap items-center justify-between gap-4 w-full">
@@ -153,7 +132,7 @@ export function SamplesFilterBar() {
             {SORT_OPTIONS.map((option) => (
               <DropdownMenuItem
                 key={option.id}
-                onClick={() => setSortId(option.id)}
+                onClick={() => onSortIdChange(option.id)}
                 className="flex items-center justify-between"
               >
                 {option.label}
@@ -176,7 +155,7 @@ export function SamplesFilterBar() {
             <FilterBarDropdown.Content width={280}>
               <FilterBarDropdown.Search
                 value={genreSearch}
-                onChange={setGenreSearch}
+                onChange={onGenreSearchChange}
                 placeholder="Search genre"
                 ariaLabel="Search genre"
               />
@@ -191,7 +170,7 @@ export function SamplesFilterBar() {
                       key={genre.name}
                       label={genre.name}
                       checked={selectedGenres.has(genre.name)}
-                      onToggle={() => toggleGenre(genre.name)}
+                      onToggle={() => onToggleGenre(genre.name)}
                     />
                   ))
                 )}
@@ -215,7 +194,7 @@ export function SamplesFilterBar() {
             <FilterBarDropdown.Content width={280}>
               <FilterBarDropdown.Search
                 value={keywordSearch}
-                onChange={setKeywordSearch}
+                onChange={onKeywordSearchChange}
                 placeholder="Search keywords"
                 ariaLabel="Search keywords"
               />
@@ -230,7 +209,7 @@ export function SamplesFilterBar() {
                       key={keyword.name}
                       label={keyword.name}
                       checked={selectedKeywords.has(keyword.name)}
-                      onToggle={() => toggleKeyword(keyword.name)}
+                      onToggle={() => onToggleKeyword(keyword.name)}
                     />
                   ))
                 )}
@@ -254,7 +233,7 @@ export function SamplesFilterBar() {
               {SAMPLE_INSTRUMENT_OPTIONS.map((option) => (
                 <DropdownMenuItem
                   key={option.id}
-                  onClick={() => setInstrumentId(option.id)}
+                  onClick={() => onInstrumentIdChange(option.id)}
                   className="flex items-center justify-between"
                 >
                   {option.label}
@@ -276,7 +255,7 @@ export function SamplesFilterBar() {
               {SAMPLE_TYPE_OPTIONS.map((option) => (
                 <DropdownMenuItem
                   key={option.id}
-                  onClick={() => setTypeId(option.id)}
+                  onClick={() => onTypeIdChange(option.id)}
                   className="flex items-center justify-between"
                 >
                   {option.label}
@@ -298,7 +277,7 @@ export function SamplesFilterBar() {
               {SAMPLE_STEMS_OPTIONS.map((option) => (
                 <DropdownMenuItem
                   key={option.id}
-                  onClick={() => setStemsId(option.id)}
+                  onClick={() => onStemsIdChange(option.id)}
                   className="flex items-center justify-between"
                 >
                   {option.label}
@@ -357,7 +336,7 @@ export function SamplesFilterBar() {
                                 <button
                                   key={keyName}
                                   type="button"
-                                  onClick={() => toggleKey(keyName)}
+                                  onClick={() => onToggleKey(keyName)}
                                   className={`shrink-0 size-10 flex items-center justify-center rounded-[2px] border text-sm font-medium tracking-[0.1px] transition-colors
                                     ${selected
                                       ? 'bg-[#e8e2d2] border-[#161410] text-[#161410]'
@@ -375,7 +354,7 @@ export function SamplesFilterBar() {
                                 <button
                                   key={keyName}
                                   type="button"
-                                  onClick={() => toggleKey(keyName)}
+                                  onClick={() => onToggleKey(keyName)}
                                   className={`shrink-0 size-10 flex items-center justify-center rounded-[2px] border text-sm font-medium tracking-[0.1px] transition-colors
                                     ${selected
                                       ? 'bg-[#e8e2d2] border-[#161410] text-[#161410]'
@@ -396,7 +375,7 @@ export function SamplesFilterBar() {
                                 <button
                                   key={keyName}
                                   type="button"
-                                  onClick={() => toggleKey(keyName)}
+                                  onClick={() => onToggleKey(keyName)}
                                   className={`shrink-0 size-10 flex items-center justify-center rounded-[2px] border text-sm font-medium tracking-[0.1px] transition-colors
                                     ${selected
                                       ? 'bg-[#e8e2d2] border-[#161410] text-[#161410]'
@@ -414,7 +393,7 @@ export function SamplesFilterBar() {
                                 <button
                                   key={keyName}
                                   type="button"
-                                  onClick={() => toggleKey(keyName)}
+                                  onClick={() => onToggleKey(keyName)}
                                   className={`shrink-0 size-10 flex items-center justify-center rounded-[2px] border text-sm font-medium tracking-[0.1px] transition-colors
                                     ${selected
                                       ? 'bg-[#e8e2d2] border-[#161410] text-[#161410]'
@@ -440,7 +419,7 @@ export function SamplesFilterBar() {
                         type="button"
                         role="radio"
                         aria-checked={selected}
-                        onClick={() => setKeyQuality(opt.id)}
+                        onClick={() => onKeyQualityChange(opt.id)}
                         className="flex items-center gap-1.5 text-sm font-medium text-[#161410] tracking-[0.1px]"
                       >
                         <span
@@ -477,7 +456,7 @@ export function SamplesFilterBar() {
                   type="button"
                   role="tab"
                   aria-selected={bpmTab === 'range'}
-                  onClick={() => setBpmTab('range')}
+                  onClick={() => onBpmTabChange('range')}
                   className={bpmTab === 'range'
                     ? 'flex-1 h-12 flex items-center justify-center px-2 border-b-2 border-[#161410] text-[#161410] text-base font-medium leading-6'
                     : 'flex-1 h-12 flex items-center justify-center px-2 text-[#5e584b] text-base font-medium leading-6'}
@@ -488,7 +467,7 @@ export function SamplesFilterBar() {
                   type="button"
                   role="tab"
                   aria-selected={bpmTab === 'exact'}
-                  onClick={() => setBpmTab('exact')}
+                  onClick={() => onBpmTabChange('exact')}
                   className={bpmTab === 'exact'
                     ? 'flex-1 h-12 flex items-center justify-center px-2 border-b-2 border-[#161410] text-[#161410] text-base font-medium leading-6'
                     : 'flex-1 h-12 flex items-center justify-center px-2 text-[#5e584b] text-base font-medium leading-6'}
@@ -505,10 +484,9 @@ export function SamplesFilterBar() {
                     </span>
                     <Slider
                       value={[bpmRangeMin, bpmRangeMax]}
-                      onValueChange={(v) => {
-                        setBpmRangeMin(v[0] ?? BPM_MIN);
-                        setBpmRangeMax(v[1] ?? BPM_MAX);
-                      }}
+                      onValueChange={(v) =>
+                        onBpmRangeChange(v[0] ?? BPM_MIN, v[1] ?? BPM_MAX)
+                      }
                       min={BPM_MIN}
                       max={BPM_MAX}
                       step={1}
@@ -527,7 +505,7 @@ export function SamplesFilterBar() {
                       max={BPM_MAX}
                       placeholder="0 - 203"
                       value={bpmExact}
-                      onChange={(e) => setBpmExact(e.target.value)}
+                      onChange={(e) => onBpmExactChange(e.target.value)}
                       className="h-12 rounded-[2px] border-[#d6ceb8] text-sm text-[#161410] placeholder:text-[#7f7766] tracking-[0.1px]"
                       aria-label="Exact BPM value"
                     />
@@ -546,24 +524,18 @@ export function SamplesFilterBar() {
 
         <button
           type="button"
-          onClick={handleClearAllFilters}
+          onClick={onClearAllFilters}
           className="text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] underline hover:no-underline shrink-0"
         >
           Clear Filters
         </button>
       </div>
 
-      {qFromUrl.trim() ? (
+      {showSearchChip && onClearSearchQuery ? (
         <SearchQueryChip
-          query={qFromUrl}
-          resultCount={1000}
-          onClear={() => {
-            setSearchParams((prev) => {
-              const next = new URLSearchParams(prev);
-              next.delete('q');
-              return next;
-            });
-          }}
+          query={searchChipQuery ?? ''}
+          resultCount={searchResultCount}
+          onClear={onClearSearchQuery}
         />
       ) : (
         <div className="border border-[#d6ceb8] flex h-10 items-center gap-2 px-3 rounded-[2px] w-[250px] shrink-0 bg-transparent">
@@ -571,7 +543,7 @@ export function SamplesFilterBar() {
           <Input
             type="search"
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => onSearchQueryChange(e.target.value)}
             placeholder="Search samples"
             className="border-0 bg-transparent h-auto py-0 text-sm text-[#161410] placeholder:text-[#7f7766] focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none flex-1 min-w-0"
             aria-label="Search samples"

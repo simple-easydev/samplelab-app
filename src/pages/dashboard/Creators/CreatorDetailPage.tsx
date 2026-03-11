@@ -14,6 +14,8 @@ import { CreatorCard } from '@/components/CreatorCard';
 import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
 import { getCreatorById, type CreatorDetail } from '@/lib/supabase/creators';
 import { SamplesFilterBar } from '../Samples/SamplesFilterBar';
+import { SamplesFilterBarMobile } from '../Samples/SamplesFilterBarMobile';
+import { SamplesFilterProvider } from '@/contexts/SamplesFilterContext';
 
 function mapSampleToRowItem(
   sample: CreatorDetail['samples'][number],
@@ -211,7 +213,14 @@ export default function CreatorDetailPage() {
           <h2 className="text-[#161410] text-[28px] font-bold leading-9 tracking-[-0.2px]">
             Samples
           </h2>
-          <SamplesFilterBar />
+          <SamplesFilterProvider>
+            <div className="md:hidden w-full">
+              <SamplesFilterBarMobile />
+            </div>
+            <div className="hidden md:block w-full">
+              <SamplesFilterBar />
+            </div>
+          </SamplesFilterProvider>
           <section className="w-full" aria-label="Samples by this creator">
             <div className="border border-[#e8e2d2] rounded overflow-hidden flex flex-col">
               {sampleItems.length > 0 ? (

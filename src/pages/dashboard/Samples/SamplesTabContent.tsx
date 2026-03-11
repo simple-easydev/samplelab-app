@@ -4,6 +4,8 @@ import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
 import { useSubscription } from '@/hooks/useSubscription';
 import { getAllSamples } from '@/lib/supabase/samples';
 import { SamplesFilterBar } from './SamplesFilterBar';
+import { SamplesFilterBarMobile } from './SamplesFilterBarMobile';
+import { SamplesFilterProvider } from '@/contexts/SamplesFilterContext';
 import { mapAllSampleToRowItem } from '@/lib/utils';
 
 
@@ -45,7 +47,16 @@ export function SamplesTabContent() {
 
   const content = (
     <>
-      <SamplesFilterBar />
+      <SamplesFilterProvider>
+        {/* Mobile: full-screen filters modal + search */}
+        <div className="md:hidden w-full">
+          <SamplesFilterBarMobile />
+        </div>
+        {/* Desktop: dropdown filter bar + search */}
+        <div className="hidden md:block w-full">
+          <SamplesFilterBar />
+        </div>
+      </SamplesFilterProvider>
       <section className="w-full" aria-label="Samples list">
         <div className="border border-[#e8e2d2] rounded overflow-hidden flex flex-col">
           {loading ? (

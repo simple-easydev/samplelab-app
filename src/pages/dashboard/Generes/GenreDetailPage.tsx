@@ -19,6 +19,8 @@ import {
   SAMPLES_LIST,
 } from '../constants';
 import { SamplesFilterBar } from '../Samples/SamplesFilterBar';
+import { SamplesFilterBarMobile } from '../Samples/SamplesFilterBarMobile';
+import { SamplesFilterProvider } from '@/contexts/SamplesFilterContext';
 
 function mapSampleToList(sample: (typeof SAMPLES_LIST)[number], index: number): SampleRowItem {
   const tags: string[] = [];
@@ -184,7 +186,14 @@ export default function GenreDetailPage() {
         {activeTab === 'samples' && (
           <div className="flex flex-col gap-6 mb-12">
             <div className="flex items-center justify-between gap-4 flex-wrap">
-              <SamplesFilterBar />
+              <SamplesFilterProvider>
+                <div className="md:hidden w-full">
+                  <SamplesFilterBarMobile />
+                </div>
+                <div className="hidden md:block w-full">
+                  <SamplesFilterBar />
+                </div>
+              </SamplesFilterProvider>
               <div className="flex gap-3 h-10 items-center">
                 <span className="text-[#161410] text-sm leading-5 tracking-[0.1px]">
                   Genre
