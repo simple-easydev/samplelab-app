@@ -63,6 +63,8 @@ export default function DashboardPage({ tabFromUrl, isSearch = false }: Dashboar
   const { isActive, isTrialing } = useSubscription();
   const [credits, setCredits] = useState<number | null>(null);
 
+  console.log({ isTrialing, credits})
+
   const activeTab: DashboardTabId = tabFromUrl ?? DASHBOARD_TABS[0].id;
 
   const handleTabChange = (tabId: DashboardTabId) => {

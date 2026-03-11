@@ -3,7 +3,7 @@
  * Circular avatar, "Creator" overline, name, tag pills (e.g. followers, packs).
  */
 import { Link } from 'react-router-dom';
-import { Music2, FolderOpen } from 'lucide-react';
+import { FolderOpen } from 'lucide-react';
 import { AudioBarIcon } from './icons';
 
 export interface CreatorCardProps {
