@@ -6,7 +6,7 @@
  */
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { ArrowLeft, Share2, Download, Play, Heart } from 'lucide-react';
+import { ArrowLeft, Share2, Download, Play, Heart, Crown } from 'lucide-react';
 import { SamplePackCard } from '@/components/SamplePackCard';
 import { CardCarousel } from '@/components/CardCarousel';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
@@ -89,19 +89,147 @@ export default function PackDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#fffbf0]">
-      <div className="px-8 pt-8 pb-32 max-w-6xl mx-auto">
-        {/* Back */}
-        <button
-          type="button"
-          onClick={() => navigate('/dashboard/packs')}
-          className="flex items-center gap-1.5 text-[#161410] text-sm font-medium tracking-[0.1px] hover:opacity-80 mb-8"
-        >
-          <ArrowLeft className="size-5" />
-          Back
-        </button>
+      <div className="px-4 md:px-8 pt-8 pb-32 max-w-6xl mx-auto">
+        {/* Mobile header – Figma 1597-164912 (pack detail header mobile) */}
+        <header className="md:hidden flex flex-col gap-6 py-8">
+          <div className="flex items-center justify-between w-full">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard/packs')}
+              className="flex items-center gap-1.5 text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] rounded-xs hover:opacity-80"
+            >
+              <ArrowLeft className="size-5" />
+              Back
+            </button>
+            <button
+              type="button"
+              className="flex items-center gap-1.5 text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] rounded-xs hover:opacity-80"
+            >
+              <Share2 className="size-5" />
+              Share
+            </button>
+          </div>
 
-        {/* Hero: cover + details */}
-        <div className="flex gap-8 items-start flex-wrap">
+          <div className="bg-[#dde1e6] rounded overflow-hidden shrink-0 size-[190px] relative">
+            {pack.cover_url ? (
+              <img src={pack.cover_url} alt="" className="absolute inset-0 w-full h-full object-cover" />
+            ) : (
+              <div className="absolute inset-0 bg-[#e8e2d2]" aria-hidden />
+            )}
+            {pack.is_premium && (
+              <div className="absolute top-3 right-3 bg-[#f3c16c] border border-[#eaaa3e] flex items-center justify-center size-5 rounded-md">
+                <Crown className="size-3 text-[#161410]" aria-hidden />
+              </div>
+            )}
+          </div>
+
+          <div className="flex flex-col gap-6 w-full">
+            <div className="flex flex-col gap-4">
+              <p className="text-[#7f7766] text-xs leading-4 tracking-[1px] uppercase">
+                Sample pack
+              </p>
+              <h1 className="text-[#161410] text-[28px] font-bold leading-9 tracking-[-0.2px]">
+                {pack.name}
+              </h1>
+              <div className="flex gap-2.5 items-center">
+                <div className="size-7 rounded-full bg-[#e8e2d2] shrink-0 overflow-hidden" aria-hidden />
+                <span className="text-[#161410] text-base font-medium leading-6 truncate">
+                  {pack.creator_name}
+                </span>
+              </div>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-1.5 text-[#5e584b] text-xs leading-4 tracking-[0.2px]">
+              <span>{pack.samples_count} Samples</span>
+              <span className="size-1 rounded-full bg-[#5e584b] shrink-0" aria-hidden />
+              <span>{genreLabel}</span>
+              <span className="size-1 rounded-full bg-[#5e584b] shrink-0" aria-hidden />
+              <span>Royalty-Free</span>
+              <span className="size-1 rounded-full bg-[#5e584b] shrink-0" aria-hidden />
+              <span>{formatReleasedAt(pack.created_at)}</span>
+            </div>
+
+            <div className="border-t border-[#e8e2d2] w-full" aria-hidden />
+
+            <div className="flex flex-col gap-6">
+              <div className="flex gap-3 items-center">
+                <button
+                  type="button"
+                  className="bg-[#161410] text-[#fffbf0] h-10 px-3 rounded-xs flex items-center gap-1.5 text-sm font-medium hover:opacity-90"
+                >
+                  <Download className="size-5" />
+                  Get Pack
+                </button>
+                <button
+                  type="button"
+                  className="border border-[#a49a84] h-10 px-3 rounded-xs flex items-center gap-1.5 text-[#161410] text-sm font-medium hover:bg-[#e8e2d2] transition-colors"
+                >
+                  <Play className="size-5" />
+                  Preview
+                </button>
+                <button
+                  type="button"
+                  className="border border-[#a49a84] size-10 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors"
+                  aria-label="Add to favorites"
+                >
+                  <Heart className="size-5" />
+                </button>
+              </div>
+
+              {displayTags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {displayTags.slice(0, 7).map((tag) => (
+                    <span
+                      key={tag}
+                      className="bg-[#e8e2d2] border border-[#d6ceb8] h-6 px-1.5 rounded-md flex items-center justify-center text-[#161410] text-xs font-medium tracking-[0.2px]"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                  {displayTags.length > 7 && (
+                    <span className="bg-[#e8e2d2] border border-[#d6ceb8] h-6 px-1.5 rounded-md flex items-center justify-center text-[#161410] text-xs font-medium tracking-[0.2px]">
+                      +{displayTags.length - 7} more
+                    </span>
+                  )}
+                </div>
+              )}
+
+              {description && (
+                <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
+                  {descriptionExpanded
+                    ? description
+                    : `${description.slice(0, 180)}${description.length > 180 ? '... ' : ''}`}
+                  {description.length > 180 && (
+                    <button
+                      type="button"
+                      onClick={() => setDescriptionExpanded(!descriptionExpanded)}
+                      className="text-[#161410] font-medium underline hover:no-underline"
+                    >
+                      {descriptionExpanded ? 'Show less' : 'Show more'}
+                    </button>
+                  )}
+                </p>
+              )}
+            </div>
+
+            <div className="border-t border-[#e8e2d2] w-full" aria-hidden />
+          </div>
+        </header>
+
+        {/* Desktop: Back + Hero */}
+        <div className="hidden md:block">
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard/packs')}
+            className="flex items-center gap-1.5 text-[#161410] text-sm font-medium tracking-[0.1px] hover:opacity-80 mb-8"
+          >
+            <ArrowLeft className="size-5" />
+            Back
+          </button>
+        </div>
+
+        {/* Hero: cover + details (desktop) */}
+        <div className="hidden md:flex gap-8 items-start flex-wrap">
           {/* Cover */}
           <div className="bg-[#dde1e6] rounded overflow-hidden shrink-0 w-[326px] h-[326px] relative">
             {pack.cover_url ? (
