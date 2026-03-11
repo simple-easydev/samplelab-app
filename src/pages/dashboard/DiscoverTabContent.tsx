@@ -33,25 +33,31 @@ export function DiscoverTabContent({ variant = 'default' }: DiscoverTabContentPr
       <div className="hidden md:block">
         <DiscoverCarousel />
       </div>
-      <div className="flex gap-6 items-start w-full">
-        <DiscoverListColumn
-          title="Trending samples"
-          subtitle="The most downloaded samples right now"
-          items={TRENDING_ITEMS}
-          ctaLabel="View all Trending samples"
-        />
-        <DiscoverListColumn
-          title="New releases"
-          subtitle="Fresh samples added this week"
-          items={NEW_RELEASES_ITEMS}
-          ctaLabel="View new releases"
-        />
-        <DiscoverListColumn
-          title="Top creators"
-          subtitle="Most downloaded creators this month"
-          items={CREATORS_ITEMS}
-          ctaLabel="View all creators"
-        />
+      <div className="w-screen relative left-1/2 -translate-x-1/2 md:w-full md:left-0 md:translate-x-0 flex gap-6 items-start overflow-x-auto md:overflow-visible pb-2 px-4 md:px-0">
+        <div className="shrink-0 w-[340px] min-w-[340px] md:w-auto md:min-w-0 md:flex-1">
+          <DiscoverListColumn
+            title="Trending samples"
+            subtitle="The most downloaded samples right now"
+            items={TRENDING_ITEMS}
+            ctaLabel="View all Trending samples"
+          />
+        </div>
+        <div className="shrink-0 w-[340px] min-w-[340px] md:w-auto md:min-w-0 md:flex-1">
+          <DiscoverListColumn
+            title="New releases"
+            subtitle="Fresh samples added this week"
+            items={NEW_RELEASES_ITEMS}
+            ctaLabel="View new releases"
+          />
+        </div>
+        <div className="shrink-0 w-[340px] min-w-[340px] md:w-auto md:min-w-0 md:flex-1">
+          <DiscoverListColumn
+            title="Top creators"
+            subtitle="Most downloaded creators this month"
+            items={CREATORS_ITEMS}
+            ctaLabel="View all creators"
+          />
+        </div>
       </div>
       {isSubscribed && <SimilarSamplesSection />}
       {isSubscribed && (
