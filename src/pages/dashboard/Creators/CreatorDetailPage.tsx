@@ -75,98 +75,172 @@ export default function CreatorDetailPage() {
 
   return (
     <div className="min-h-screen bg-[#fffbf0]">
-      <div className="px-8 pt-8 pb-32 max-w-6xl mx-auto">
-        {/* Back */}
-        <button
-          type="button"
-          onClick={() => navigate('/dashboard/creators')}
-          className="flex items-center gap-1.5 text-[#161410] text-sm font-medium tracking-[0.1px] hover:opacity-80 mb-8"
-        >
-          <ArrowLeft className="size-5" />
-          Back
-        </button>
-
-        {/* Hero: avatar + details */}
-        <div className="flex gap-8 items-start flex-wrap">
-          {/* Circular avatar – Figma 326px */}
-          <div className="rounded-full w-[326px] h-[326px] shrink-0 overflow-hidden bg-[#e8e2d2]">
-            {creator.avatar_url ? (
-              <img
-                src={creator.avatar_url}
-                alt=""
-                className="w-full h-full object-cover"
-              />
-            ) : (
-              <div className="w-full h-full bg-[#dde1e6]" aria-hidden />
-            )}
+      <div className="px-4 md:px-8 pt-8 pb-32 max-w-6xl mx-auto">
+        {/* Mobile header – Figma 1602-173556 */}
+        <header className="md:hidden flex flex-col gap-6 items-start w-full">
+          <div className="flex items-center justify-between w-full">
+            <button
+              type="button"
+              onClick={() => navigate('/dashboard/creators')}
+              className="flex items-center gap-1.5 text-[#161410] text-sm font-medium tracking-[0.1px] hover:opacity-80"
+            >
+              <ArrowLeft className="size-5" />
+              Back
+            </button>
+            <button
+              type="button"
+              className="flex items-center gap-1.5 text-[#161410] text-sm font-medium tracking-[0.1px] shrink-0 hover:opacity-80"
+            >
+              <Share2 className="size-5" />
+              Share
+            </button>
           </div>
-
-          <div className="flex flex-col gap-8 flex-1 min-w-0 max-w-[911px]">
-            {/* Overline + Share */}
-            <div className="flex items-start justify-between gap-4">
-              <p className="text-[#7f7766] text-sm tracking-[0.9px] uppercase">
+          <div className="flex flex-col gap-6 items-center w-full">
+            <div className="rounded-full w-[190px] h-[190px] shrink-0 overflow-hidden bg-[#e8e2d2]">
+              {creator.avatar_url ? (
+                <img
+                  src={creator.avatar_url}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-[#dde1e6]" aria-hidden />
+              )}
+            </div>
+            <div className="flex flex-col gap-4 items-center w-full text-center">
+              <p className="text-[#7f7766] text-xs tracking-[1px] uppercase">
                 Creator
               </p>
-              <button
-                type="button"
-                className="flex items-center gap-1.5 text-[#161410] text-sm font-medium tracking-[0.1px] shrink-0 hover:opacity-80"
-              >
-                <Share2 className="size-5" />
-                Share
-              </button>
-            </div>
-
-            <div className="flex flex-col gap-4">
-              <h1 className="text-[#161410] text-[32px] sm:text-[48px] font-bold leading-tight tracking-[-0.6px]">
+              <h1 className="text-[#161410] text-[28px] font-bold leading-9 tracking-[-0.2px]">
                 {creator.name}
               </h1>
-              <div className="flex items-center gap-2 text-[#5e584b] text-sm tracking-[0.1px]">
+              <div className="flex items-center justify-center gap-1.5 text-[#5e584b] text-xs tracking-[0.2px]">
                 <span>{creator.samples_count} Samples</span>
                 <span className="size-1 rounded-full bg-[#5e584b]" aria-hidden />
                 <span>{creator.packs_count} Packs</span>
               </div>
             </div>
-
-            <div className="border-t border-[#e8e2d2] w-full" aria-hidden />
-
-            {/* Tags / genres */}
-            {displayTags.length > 0 && (
-              <div className="flex flex-wrap gap-2">
-                {displayTags.map((tag, i) => (
-                  <span
-                    key={`${tag}-${i}`}
-                    className="bg-[#e8e2d2] border border-[#d6ceb8] h-6 px-1.5 rounded-md flex items-center justify-center text-[#161410] text-xs font-medium tracking-[0.2px]"
-                  >
-                    {tag}
-                  </span>
-                ))}
-              </div>
-            )}
-
-            {/* Description */}
-            {descriptionText && (
-              <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
-                {descriptionExpanded
-                  ? descriptionText
-                  : `${descriptionText.slice(0, descriptionPreviewLen)}${descriptionText.length > descriptionPreviewLen ? '... ' : ''}`}
-                {descriptionText.length > descriptionPreviewLen && (
-                  <button
-                    type="button"
-                    onClick={() => setDescriptionExpanded(!descriptionExpanded)}
-                    className="text-[#161410] font-medium underline hover:no-underline"
-                  >
-                    {descriptionExpanded ? 'Show less' : 'Show more'}
-                  </button>
-                )}
-              </p>
-            )}
           </div>
+          <div className="border-t border-[#e8e2d2] w-full" aria-hidden />
+          {displayTags.length > 0 && (
+            <div className="flex flex-wrap gap-2 justify-center">
+              {displayTags.map((tag, i) => (
+                <span
+                  key={`${tag}-${i}`}
+                  className="bg-[#e8e2d2] border border-[#d6ceb8] h-6 px-1.5 rounded-md flex items-center justify-center text-[#161410] text-xs font-medium tracking-[0.2px]"
+                >
+                  {tag}
+                </span>
+              ))}
+            </div>
+          )}
+          {descriptionText && (
+            <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px] w-full">
+              {descriptionExpanded
+                ? descriptionText
+                : `${descriptionText.slice(0, descriptionPreviewLen)}${descriptionText.length > descriptionPreviewLen ? '... ' : ''}`}
+              {descriptionText.length > descriptionPreviewLen && (
+                <button
+                  type="button"
+                  onClick={() => setDescriptionExpanded(!descriptionExpanded)}
+                  className="text-[#161410] font-medium underline hover:no-underline"
+                >
+                  {descriptionExpanded ? 'Show less' : 'Show more'}
+                </button>
+              )}
+            </p>
+          )}
+          <div className="border-t border-[#e8e2d2] w-full" aria-hidden />
+        </header>
+
+        {/* Desktop: Back + Hero */}
+        <div className="hidden md:block">
+          <button
+            type="button"
+            onClick={() => navigate('/dashboard/creators')}
+            className="flex items-center gap-1.5 text-[#161410] text-sm font-medium tracking-[0.1px] hover:opacity-80 mb-8"
+          >
+            <ArrowLeft className="size-5" />
+            Back
+          </button>
+
+          <div className="flex gap-8 items-start flex-wrap">
+            <div className="rounded-full w-[326px] h-[326px] shrink-0 overflow-hidden bg-[#e8e2d2]">
+              {creator.avatar_url ? (
+                <img
+                  src={creator.avatar_url}
+                  alt=""
+                  className="w-full h-full object-cover"
+                />
+              ) : (
+                <div className="w-full h-full bg-[#dde1e6]" aria-hidden />
+              )}
+            </div>
+
+            <div className="flex flex-col gap-8 flex-1 min-w-0 max-w-[911px]">
+              <div className="flex items-start justify-between gap-4">
+                <p className="text-[#7f7766] text-sm tracking-[0.9px] uppercase">
+                  Creator
+                </p>
+                <button
+                  type="button"
+                  className="flex items-center gap-1.5 text-[#161410] text-sm font-medium tracking-[0.1px] shrink-0 hover:opacity-80"
+                >
+                  <Share2 className="size-5" />
+                  Share
+                </button>
+              </div>
+
+              <div className="flex flex-col gap-4">
+                <h1 className="text-[#161410] text-[32px] sm:text-[48px] font-bold leading-tight tracking-[-0.6px]">
+                  {creator.name}
+                </h1>
+                <div className="flex items-center gap-2 text-[#5e584b] text-sm tracking-[0.1px]">
+                  <span>{creator.samples_count} Samples</span>
+                  <span className="size-1 rounded-full bg-[#5e584b]" aria-hidden />
+                  <span>{creator.packs_count} Packs</span>
+                </div>
+              </div>
+
+              <div className="border-t border-[#e8e2d2] w-full" aria-hidden />
+
+              {displayTags.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {displayTags.map((tag, i) => (
+                    <span
+                      key={`${tag}-${i}`}
+                      className="bg-[#e8e2d2] border border-[#d6ceb8] h-6 px-1.5 rounded-md flex items-center justify-center text-[#161410] text-xs font-medium tracking-[0.2px]"
+                    >
+                      {tag}
+                    </span>
+                  ))}
+                </div>
+              )}
+
+              {descriptionText && (
+                <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
+                  {descriptionExpanded
+                    ? descriptionText
+                    : `${descriptionText.slice(0, descriptionPreviewLen)}${descriptionText.length > descriptionPreviewLen ? '... ' : ''}`}
+                  {descriptionText.length > descriptionPreviewLen && (
+                    <button
+                      type="button"
+                      onClick={() => setDescriptionExpanded(!descriptionExpanded)}
+                      className="text-[#161410] font-medium underline hover:no-underline"
+                    >
+                      {descriptionExpanded ? 'Show less' : 'Show more'}
+                    </button>
+                  )}
+                </p>
+              )}
+            </div>
+          </div>
+
+          <div className="border-t border-[#e8e2d2] w-full my-8" aria-hidden />
         </div>
 
-        <div className="border-t border-[#e8e2d2] w-full my-8" aria-hidden />
-
         {/* Packs carousel */}
-        <div className="flex flex-col gap-8 mb-12">
+        <div className="flex flex-col gap-8 mb-12 md:mt-0 mt-8">
           <CardCarousel title="Packs">
             {creator.packs.length > 0 ? (
               creator.packs.map((p) => (
@@ -181,6 +255,7 @@ export default function CreatorDetailPage() {
                     category_name: p.tags?.[0] ?? undefined,
                     is_premium: p.is_premium ?? false,
                   }}
+                  lockDesktop
                 />
               ))
             ) : (
