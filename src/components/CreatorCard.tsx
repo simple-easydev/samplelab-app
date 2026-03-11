@@ -78,7 +78,7 @@ export function CreatorCard({
   );
 
   const className =
-    'bg-[#f6f2e6] border border-[#e8e2d2] rounded-[4px] flex flex-col gap-2 overflow-hidden pb-4 shrink-0 w-[209px] min-h-[325px] items-center transition-[border-color,box-shadow] hover:border-[#d6ceb8] hover:shadow-[0_6px_18px_0_rgba(0,0,0,0.10),0_2px_6px_0_rgba(0,0,0,0.06)]';
+    'bg-[#f6f2e6] border border-[#e8e2d2] rounded-[4px] flex flex-col gap-2 overflow-hidden pb-4 shrink-0 min-h-[325px] items-center transition-[border-color,box-shadow] hover:border-[#d6ceb8] hover:shadow-[0_6px_18px_0_rgba(0,0,0,0.10),0_2px_6px_0_rgba(0,0,0,0.06)]';
 
   const commonProps = {
     className,
