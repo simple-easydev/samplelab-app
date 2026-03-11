@@ -86,24 +86,6 @@ export default function DashboardPage({ tabFromUrl, isSearch = false }: Dashboar
   return (
     <div className="min-h-screen bg-[#fffbf0]">
       <div className="px-4 py-4 md:px-8 md:pt-8 md:pb-32 w-full max-w-full">
-        {isActive && (
-          <div className="max-w-6xl mx-auto mb-8 rounded-lg bg-[#161410] px-6 py-4 flex flex-wrap items-center justify-between gap-4">
-            <div>
-              <p className="text-[#e8e2d2] text-base font-medium">
-                Welcome back. You have full access to the library.
-              </p>
-              {isTrialing && (
-                <p className="text-[#e8e2d2] text-sm mt-1 opacity-90">
-                  You're on a free trial. Subscribe to keep access after it ends.
-                </p>
-              )}
-            </div>
-            <p className="text-[#e8e2d2] text-sm">
-              Credits: <span className="font-semibold text-white">{credits ?? '—'}</span>
-            </p>
-          </div>
-        )}
-
         <DashboardTabs activeTab={activeTab} onTabChange={handleTabChange} />
         <div className="max-w-6xl mx-auto">
           {activeTab === 'discover' && (
