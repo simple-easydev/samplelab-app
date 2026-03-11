@@ -15,11 +15,20 @@ const MENU_ITEM_CLASS =
 const SECTION_HEADER_CLASS =
   'flex h-6 items-center rounded-xs border border-[#f6f2e6] bg-[#fffbf0] px-3 text-[10px] font-normal uppercase tracking-[1px] text-[#7f7766]';
 
-export function UserDropdownMenu({ onLogout }: { onLogout?: () => void }) {
+const TRIGGER_CLASS =
+  'border border-[#a49a84] flex items-center justify-center size-10 rounded-xs shrink-0 text-[#161410] hover:bg-[#e8e2d2] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#161410]/20 focus-visible:ring-offset-2';
+
+export function UserDropdownMenu({
+  onLogout,
+  triggerClassName,
+}: {
+  onLogout?: () => void;
+  triggerClassName?: string;
+}) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
-        className="border border-[#a49a84] flex items-center justify-center size-10 rounded-xs shrink-0 text-[#161410] hover:bg-[#e8e2d2] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#161410]/20 focus-visible:ring-offset-2"
+        className={triggerClassName ?? TRIGGER_CLASS}
         aria-label="Account menu"
       >
         <User className="size-5" />
