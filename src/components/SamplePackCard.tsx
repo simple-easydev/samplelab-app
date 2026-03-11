@@ -30,6 +30,8 @@ export interface SamplePackCardProps {
   onGetPack?: () => void;
   onViewCreator?: () => void;
   onShare?: () => void;
+  /** When true, always use desktop card style (vertical layout, fixed size) on all viewports including mobile. */
+  lockDesktop?: boolean;
 }
 
 const cardBase =
@@ -50,6 +52,7 @@ export function SamplePackCard({
   onGetPack,
   onViewCreator,
   onShare,
+  lockDesktop = false,
 }: SamplePackCardProps) {
   const navigate = useNavigate();
 
@@ -201,13 +204,15 @@ export function SamplePackCard({
             }
           : undefined
       }
-      className={`${cardBase} ${packId ? 'cursor-pointer' : 'cursor-default'}
-        flex flex-col gap-2 pb-4 shrink-0 w-full min-h-[160px] rounded-md
-        md:flex-col md:gap-2 md:pb-4 md:w-[209px] md:min-h-[345px]
-      `}
+      className={`${cardBase} ${packId ? 'cursor-pointer' : 'cursor-default'} flex flex-col gap-2 pb-4 shrink-0 rounded-md
+        ${lockDesktop
+          ? 'w-[209px] min-h-[345px]'
+          : 'w-full min-h-[160px] md:w-[209px] md:min-h-[345px]'
+        }`}
     >
-      {/* Mobile: horizontal — cover left, data right */}
-      <div className="flex flex-row gap-2 p-2 items-stretch md:hidden w-full">
+      {/* Mobile: horizontal — cover left, data right (only when not lockDesktop, hidden from md up) */}
+      {!lockDesktop && (
+      <div className="flex flex-row gap-2 p-2 items-stretch w-full md:hidden">
         <div className="flex flex-col shrink-0 relative">
           <div className="bg-[#dde1e6] size-[128px] overflow-hidden rounded-xs relative">
             {coverImage}
@@ -220,9 +225,9 @@ export function SamplePackCard({
           {tagsAndMenu}
         </div>
       </div>
-
-      {/* Desktop: vertical — cover top, data below */}
-      <div className="hidden md:flex flex-col gap-2 w-full h-full">
+      )}
+      {/* Desktop: vertical — cover top, data below (always when lockDesktop; from md up when responsive) */}
+      <div className={`flex flex-col gap-2 w-full h-full ${lockDesktop ? '' : 'hidden md:flex'}`}>
         <div className="flex flex-col h-[209px] p-2 w-full shrink-0 relative">
           <div className="bg-[#dde1e6] flex-1 min-h-0 overflow-hidden rounded-xs w-full relative">
             {coverImage}

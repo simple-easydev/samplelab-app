@@ -88,6 +88,7 @@ export function DiscoverTabContent({ variant = 'default' }: DiscoverTabContentPr
             playCount={pack.playCount}
             genre={pack.genre}
             premium={pack.premium}
+            lockDesktop
           />
         ))}
       </CardCarousel>
@@ -98,6 +99,7 @@ export function DiscoverTabContent({ variant = 'default' }: DiscoverTabContentPr
             name={creator.name}
             samplesCount={creator.samplesCount}
             packsCount={creator.packsCount}
+            lockDesktop
           />
         ))}
       </CardCarousel>
@@ -108,7 +110,7 @@ export function DiscoverTabContent({ variant = 'default' }: DiscoverTabContentPr
             to={`/dashboard/genres/${genreNameToSlug(genre.name)}`}
             className="contents"
           >
-            <GenreCard name={genre.name} />
+            <GenreCard name={genre.name} fixedWidth />
           </Link>
         ))}
       </CardCarousel>
