@@ -17,7 +17,7 @@ export { MusicRecordIcon } from './MusicRecordIcon';
 export { LayerIcon } from './LayerIcon';
 export { HeadsetIcon } from './HeadsetIcon';
 export { CoinsIcon } from './CoinsIcon';
-
+export { CoinsStack } from './CoinsStack';
 export { FoldersIcon } from './FoldersIcon';
 export { StackCoinsIcon } from './StackCoinsIcon';
 export { RepeatIcon } from './RepeatIcon';

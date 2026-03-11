@@ -14,7 +14,7 @@ import {
   DrawerTitle,
   DrawerTrigger,
 } from '@/components/ui/drawer';
-import { CoinsIcon } from '@/components/icons';
+import { CoinsStack } from '@/components/icons';
 
 const NAV_LINKS = [
   { label: 'Browse', to: '/dashboard/discover' },
@@ -133,7 +133,7 @@ export function Navbar() {
                 to="/dashboard/discover"
                 className="border border-[#a49a84] flex h-8 items-center justify-center gap-1 px-2 rounded-xs text-[#161410] text-xs font-medium tracking-[0.2px] hover:bg-[#e8e2d2] transition-colors"
               >
-                <CoinsIcon className="size-4 shrink-0" />
+                <CoinsStack className="size-4 shrink-0" />
                 <span>{credits != null ? credits : '—'}</span>
               </Link>
             )}
