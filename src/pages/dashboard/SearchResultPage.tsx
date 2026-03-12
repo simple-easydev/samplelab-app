@@ -36,6 +36,7 @@ export default function SearchResultPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const navigate = useNavigate();
   const q = searchParams.get('q') ?? '';
+  const p_context = searchParams.get('context') ?? '';
   const activeTab = (searchParams.get('tab') as (typeof SEARCH_RESULT_TABS)[number]['id']) ?? 'all';
 
   const [result, setResult] = useState<SearchLibraryResult | null>(null);
@@ -54,7 +55,6 @@ export default function SearchResultPage() {
       return;
     }
     let cancelled = false;
-    const p_context = activeTab === 'all' ? undefined : activeTab;
     const run = async () => {
       setLoading(true);
       setError(null);
@@ -106,13 +106,6 @@ export default function SearchResultPage() {
   const genres = result?.genres ?? [];
   const totalCount = samples.length + packs.length + creators.length + genres.length;
 
-  const showEmptyState =
-    (activeTab === 'all' && totalCount === 0) ||
-    (activeTab === 'samples' && samples.length === 0) ||
-    (activeTab === 'packs' && packs.length === 0) ||
-    (activeTab === 'creators' && creators.length === 0) ||
-    (activeTab === 'genres' && genres.length === 0);
-
   const emptyStateSecondary: Record<(typeof SEARCH_RESULT_TABS)[number]['id'], { label: string; path: string }> = {
     all: { label: 'Browse all samples', path: '/dashboard/samples' },
     samples: { label: 'Browse all samples', path: '/dashboard/samples' },
@@ -152,7 +145,6 @@ export default function SearchResultPage() {
           onClick={() => {
             setError(null);
             setLoading(true);
-            const p_context = activeTab === 'all' ? undefined : activeTab;
             searchLibrary(trimmedQuery, { p_context })
               .then(setResult)
               .catch((err) => setError(err instanceof Error ? err : new Error(String(err))))
@@ -198,13 +190,7 @@ export default function SearchResultPage() {
             })}
           </div>
 
-          {showEmptyState ? (
-            <EmptySearchState
-              secondaryLabel={emptyStateSecondary[activeTab].label}
-              secondaryPath={emptyStateSecondary[activeTab].path}
-            />
-          ) : (
-            <>
+          
           {/* Samples section */}
           <div ref={samplesRef} className="flex flex-col gap-8 mb-8 scroll-mt-4">
             <div className="flex md:hidden items-center justify-end w-full gap-3">
@@ -374,8 +360,7 @@ export default function SearchResultPage() {
               )}
             </CardCarousel>
           </div>
-            </>
-          )}
+            
         </div>
       </div>
       <ExploreLibraryCta />

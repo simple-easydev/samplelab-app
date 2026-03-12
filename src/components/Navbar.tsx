@@ -60,7 +60,7 @@ export function Navbar() {
           <SearchBar
             onSuggestionSelect={(term, section) => {
               const url = section === 'genres'
-                ? `/dashboard?q=${encodeURIComponent(term)}&tab=genres`
+                ? `/dashboard?q=${encodeURIComponent(term)}&context=genres`
                 : `/dashboard?q=${encodeURIComponent(term)}`;
               navigate(url);
             }}
@@ -149,7 +149,7 @@ export function Navbar() {
             className="w-full max-w-none"
             onSuggestionSelect={(term, section) => {
               const url = section === 'genres'
-                ? `/dashboard?q=${encodeURIComponent(term)}&tab=genres`
+                ? `/dashboard?q=${encodeURIComponent(term)}&context=genres`
                 : `/dashboard?q=${encodeURIComponent(term)}`;
               navigate(url);
             }}
