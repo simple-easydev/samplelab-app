@@ -86,7 +86,7 @@ export default function DashboardPage({ tabFromUrl, isSearch = false }: Dashboar
   }, [isActive]);
 
   return (
-    <div className="min-h-screen bg-[#fffbf0]">
+    <div className="min-h-screen bg-[#fffbf0] z-0">
       <div className="px-4 py-4 md:px-8 md:pt-8 md:pb-32 w-full max-w-full">
         <DashboardTabs activeTab={activeTab} onTabChange={handleTabChange} />
         <div className="max-w-6xl mx-auto">

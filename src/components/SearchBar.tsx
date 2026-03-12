@@ -19,23 +19,29 @@ const DEFAULT_SUGGESTIONS: Required<SearchBarSuggestions> = {
   topGenres: ['Hip-Hop', 'Trap', 'RnB', 'Drums', 'Soul'],
 };
 
+/** Section identifier so the parent can set URL params (e.g. tab=genres for Top genres). */
+export type SearchSuggestionSection = 'recent' | 'popular' | 'genres';
+
 export interface SearchBarProps {
   placeholder?: string;
   ariaLabel?: string;
   className?: string;
   suggestions?: SearchBarSuggestions;
   onSearch?: (query: string) => void;
-  onSuggestionSelect?: (term: string) => void;
+  /** term and optional section (e.g. "genres" for Top genres). */
+  onSuggestionSelect?: (term: string, section?: SearchSuggestionSection) => void;
 }
 
 function SuggestionSection({
   title,
   tags,
+  section,
   onSelect,
 }: {
   title: string;
   tags: string[];
-  onSelect: (term: string) => void;
+  section?: SearchSuggestionSection;
+  onSelect: (term: string, section?: SearchSuggestionSection) => void;
 }) {
   if (tags.length === 0) return null;
   return (
@@ -50,7 +56,7 @@ function SuggestionSection({
             type="button"
             onMouseDown={(e) => {
               e.preventDefault();
-              onSelect(label);
+              onSelect(label, section);
             }}
             className={cn(
               'h-5 px-1.5 rounded-md border border-[#e8e2d2] bg-[#f6f2e6]',
@@ -88,16 +94,16 @@ export function SearchBar({
 
   const handleBlur = useCallback(() => {
     // Delay so mousedown on a suggestion can fire before we close
-    window.setTimeout(() => setIsPanelOpen(false), 150);
+    // window.setTimeout(() => setIsPanelOpen(false), 150);
   }, []);
 
   const handleSelect = useCallback(
-    (term: string) => {
-      onSuggestionSelect?.(term);
-      onSearch?.(term);
+    (term: string, section?: SearchSuggestionSection) => {
+      onSuggestionSelect?.(term, section);
+      // Do not call onSearch here: it would navigate again without tab and overwrite onSuggestionSelect's URL.
       setIsPanelOpen(false);
     },
-    [onSuggestionSelect, onSearch]
+    [onSuggestionSelect]
   );
 
   return (
@@ -134,16 +140,19 @@ export function SearchBar({
             <SuggestionSection
               title="Recent searches"
               tags={suggestions.recentSearches}
+              section="recent"
               onSelect={handleSelect}
             />
             <SuggestionSection
               title="Popular searches"
               tags={suggestions.popularSearches}
+              section="popular"
               onSelect={handleSelect}
             />
             <SuggestionSection
               title="Top genres"
               tags={suggestions.topGenres}
+              section="genres"
               onSelect={handleSelect}
             />
           </div>

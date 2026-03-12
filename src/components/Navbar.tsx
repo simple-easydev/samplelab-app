@@ -58,7 +58,12 @@ export function Navbar() {
 
         <div className="flex gap-6 items-center">
           <SearchBar
-            onSuggestionSelect={(term) => navigate(`/dashboard?q=${encodeURIComponent(term)}`)}
+            onSuggestionSelect={(term, section) => {
+              const url = section === 'genres'
+                ? `/dashboard?q=${encodeURIComponent(term)}&tab=genres`
+                : `/dashboard?q=${encodeURIComponent(term)}`;
+              navigate(url);
+            }}
             onSearch={(q) => q && navigate(`/dashboard?q=${encodeURIComponent(q)}`)}
           />
           <div className="flex gap-3 items-center">
@@ -142,7 +147,12 @@ export function Navbar() {
         <div className="px-4 pb-3">
           <SearchBar
             className="w-full max-w-none"
-            onSuggestionSelect={(term) => navigate(`/dashboard?q=${encodeURIComponent(term)}`)}
+            onSuggestionSelect={(term, section) => {
+              const url = section === 'genres'
+                ? `/dashboard?q=${encodeURIComponent(term)}&tab=genres`
+                : `/dashboard?q=${encodeURIComponent(term)}`;
+              navigate(url);
+            }}
             onSearch={(q) => q && navigate(`/dashboard?q=${encodeURIComponent(q)}`)}
           />
         </div>

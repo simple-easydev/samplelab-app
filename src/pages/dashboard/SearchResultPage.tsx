@@ -1,9 +1,9 @@
 /**
  * Search result page – Figma 821-69479 (Search Result - All).
  * Tabs (All, Packs, Samples, Creators, Genres), samples grid with result count + filter chip,
- * then Packs, Creators, Genres carousels.
+ * then Packs, Creators, Genres carousels. Uses Supabase RPC search_library.
  */
-import { useRef } from 'react';
+import { useRef, useEffect, useState } from 'react';
 import { Link, useSearchParams, useNavigate } from 'react-router-dom';
 import { ArrowRight, X } from 'lucide-react';
 import { SampleSearchRow } from '@/components/SampleSearchRow';
@@ -11,12 +11,7 @@ import { CardCarousel } from '@/components/CardCarousel';
 import { SamplePackCard } from '@/components/SamplePackCard';
 import { CreatorCard } from '@/components/CreatorCard';
 import { GenreCard } from '@/components/GenreCard';
-import {
-  FEATURED_PACKS,
-  FEATURED_CREATORS,
-  GENRES_GRID_ITEMS,
-  genreNameToSlug,
-} from './constants';
+import { searchLibrary, type SearchLibraryResult } from '@/lib/supabase/search';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
 
 const SEARCH_RESULT_TABS = [
@@ -26,25 +21,6 @@ const SEARCH_RESULT_TABS = [
   { id: 'creators', label: 'Creators' },
   { id: 'genres', label: 'Genres' },
 ] as const;
-
-/** Mock sample items for search grid (name, creator, imageUrl); split into columns. */
-const SEARCH_SAMPLE_ITEMS: { name: string; creator: string; imageUrl: string | null }[] = [
-  { name: 'Sample name goes here', creator: 'Creator name', imageUrl: null },
-  { name: 'Lo-Fi Keys Loop', creator: 'Beat Lab', imageUrl: null },
-  { name: 'Trap Hi-Hat Sequence', creator: 'Sound Factory', imageUrl: null },
-  { name: 'Soul Chop 04', creator: 'Vinyl Revival', imageUrl: null },
-  { name: 'Synth Pad Texture', creator: 'Synth Wave', imageUrl: null },
-  { name: 'Fresh Drop Vol. 1', creator: 'Beat Lab', imageUrl: null },
-  { name: 'Weekend Pack', creator: 'Sound Factory', imageUrl: null },
-  { name: 'Midnight Loops', creator: 'Vinyl Revival', imageUrl: null },
-  { name: '808 Essentials', creator: 'Synth Wave', imageUrl: null },
-  { name: 'Chill Vibes Pack', creator: 'Creator name', imageUrl: null },
-  { name: 'Soul Chop 04', creator: 'Vinyl Revival', imageUrl: null },
-  { name: 'Synth Pad Texture', creator: 'Synth Wave', imageUrl: null },
-  { name: '808 Essentials', creator: 'Synth Wave', imageUrl: null },
-  { name: 'Chill Vibes Pack', creator: 'Creator name', imageUrl: null },
-  { name: 'Boom Bap Classics', creator: 'Beat Lab', imageUrl: null },
-].slice(0, 15);
 
 function splitIntoColumns<T>(items: T[], columns: number): T[][] {
   const perColumn = Math.ceil(items.length / columns);
@@ -61,10 +37,43 @@ export default function SearchResultPage() {
   const q = searchParams.get('q') ?? '';
   const activeTab = (searchParams.get('tab') as (typeof SEARCH_RESULT_TABS)[number]['id']) ?? 'all';
 
+  const [result, setResult] = useState<SearchLibraryResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<Error | null>(null);
+
   const samplesRef = useRef<HTMLDivElement>(null);
   const packsRef = useRef<HTMLDivElement>(null);
   const creatorsRef = useRef<HTMLDivElement>(null);
   const genresRef = useRef<HTMLDivElement>(null);
+
+  const trimmedQuery = q.trim();
+
+  useEffect(() => {
+    if (!trimmedQuery) {
+      return;
+    }
+    let cancelled = false;
+    const p_context = activeTab === 'all' ? undefined : activeTab;
+    const run = async () => {
+      setLoading(true);
+      setError(null);
+      try {
+        const data = await searchLibrary(trimmedQuery, { p_context });
+        if (!cancelled) setResult(data);
+      } catch (err) {
+        if (!cancelled) {
+          setError(err instanceof Error ? err : new Error(String(err)));
+          setResult(null);
+        }
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [trimmedQuery, activeTab]);
 
   const clearSearch = () => {
     navigate('/dashboard/discover');
@@ -90,12 +99,63 @@ export default function SearchResultPage() {
     }
   };
 
-  const sampleColumns = splitIntoColumns(SEARCH_SAMPLE_ITEMS, 3);
-  const sampleColumnsMobile = splitIntoColumns(SEARCH_SAMPLE_ITEMS, 1);
-  const resultCount = 1000; // Mock
+  const samples = result?.samples ?? [];
+  const packs = result?.packs ?? [];
+  const creators = result?.creators ?? [];
+  const genres = result?.genres ?? [];
+  const totalCount = samples.length + packs.length + creators.length + genres.length;
+
+  const sampleColumns = splitIntoColumns(samples, 3);
+  const sampleColumnsMobile = splitIntoColumns(samples, 1);
 
   const tabUrl = (tabName: string) =>
-    q.trim() ? `/dashboard/${tabName}?q=${encodeURIComponent(q.trim())}` : `/dashboard/${tabName}`;
+    trimmedQuery ? `/dashboard?q=${encodeURIComponent(trimmedQuery)}&tab=${tabName}` : `/dashboard`;
+
+  if (!trimmedQuery) {
+    return (
+      <div className="min-h-screen bg-[#fffbf0] flex items-center justify-center p-4">
+        <p className="text-[#7f7766] text-sm">Enter a search term to find samples, packs, creators, and genres.</p>
+      </div>
+    );
+  }
+
+  if (loading && !result) {
+    return (
+      <div className="min-h-screen bg-[#fffbf0] flex items-center justify-center p-4">
+        <p className="text-[#7f7766] text-sm">Searching…</p>
+      </div>
+    );
+  }
+
+  if (error) {
+    return (
+      <div className="min-h-screen bg-[#fffbf0] flex flex-col items-center justify-center p-4 gap-4">
+        <p className="text-[#161410] text-sm">Search failed. Please try again.</p>
+        <button
+          type="button"
+          onClick={() => {
+            setError(null);
+            setLoading(true);
+            const p_context = activeTab === 'all' ? undefined : activeTab;
+            searchLibrary(trimmedQuery, { p_context })
+              .then(setResult)
+              .catch((err) => setError(err instanceof Error ? err : new Error(String(err))))
+              .finally(() => setLoading(false));
+          }}
+          className="bg-[#161410] text-[#fffbf0] h-10 px-4 rounded-md text-sm font-medium hover:opacity-90"
+        >
+          Retry
+        </button>
+        <button
+          type="button"
+          onClick={clearSearch}
+          className="text-[#7f7766] text-sm hover:text-[#161410]"
+        >
+          Clear search
+        </button>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#fffbf0] relative">
@@ -122,12 +182,11 @@ export default function SearchResultPage() {
             })}
           </div>
 
-          {/* Samples section: mobile has separate chip row (chip on right); desktop has title left, filter right */}
+          {/* Samples section */}
           <div ref={samplesRef} className="flex flex-col gap-8 mb-8 scroll-mt-4">
-            {/* Mobile only: filter chip row with chip on the right */}
             <div className="flex md:hidden items-center justify-end w-full gap-3">
               <span className="text-[#161410] text-sm leading-5 tracking-[0.1px]">
-                {resultCount} results for
+                {totalCount} results for
               </span>
               <button
                 type="button"
@@ -141,7 +200,6 @@ export default function SearchResultPage() {
             </div>
 
             <div className="flex flex-col md:flex-row md:items-start md:justify-between w-full gap-4">
-              {/* Title + View more */}
               <div className="flex gap-6 h-10 items-center w-full md:w-auto justify-between">
                 <h2 className="text-[#161410] text-[28px] font-bold leading-9 tracking-[-0.2px]">
                   Samples
@@ -154,10 +212,9 @@ export default function SearchResultPage() {
                   <ArrowRight className="size-5 shrink-0" />
                 </Link>
               </div>
-              {/* Filter chip section: desktop only */}
               <div className="hidden md:flex gap-3 h-10 items-center shrink-0">
                 <span className="text-[#161410] text-sm leading-5 tracking-[0.1px]">
-                  {resultCount} results for
+                  {totalCount} results for
                 </span>
                 <button
                   type="button"
@@ -171,91 +228,116 @@ export default function SearchResultPage() {
               </div>
             </div>
 
-            {/* Sample grid: 1 column on mobile, 3 columns from md up */}
-            <div className="flex flex-col gap-6 w-full md:hidden">
-              {sampleColumnsMobile.map((columnItems, colIndex) => (
-                <div
-                  key={colIndex}
-                  className="flex-1 min-w-0 border border-[#e8e2d2] rounded-[4px] overflow-hidden flex flex-col"
-                >
-                  {columnItems.map((item, i) => (
-                    <SampleSearchRow
-                      key={`${colIndex}-${i}`}
-                      name={item.name}
-                      creator={item.creator}
-                      imageUrl={item.imageUrl}
-                    />
+            {samples.length === 0 ? (
+              <p className="text-[#7f7766] text-sm">No samples found.</p>
+            ) : (
+              <>
+                <div className="flex flex-col gap-6 w-full md:hidden">
+                  {sampleColumnsMobile.map((columnItems, colIndex) => (
+                    <div
+                      key={colIndex}
+                      className="flex-1 min-w-0 border border-[#e8e2d2] rounded-[4px] overflow-hidden flex flex-col"
+                    >
+                      {columnItems.map((sample) => (
+                        <SampleSearchRow
+                          key={sample.id}
+                          name={sample.name}
+                          creator={sample.creator_name}
+                          imageUrl={sample.thumbnail_url}
+                        />
+                      ))}
+                    </div>
                   ))}
                 </div>
-              ))}
-            </div>
-            <div className="hidden md:flex gap-6 w-full">
-              {sampleColumns.map((columnItems, colIndex) => (
-                <div
-                  key={colIndex}
-                  className="flex-1 min-w-0 border border-[#e8e2d2] rounded-[4px] overflow-hidden flex flex-col"
-                >
-                  {columnItems.map((item, i) => (
-                    <SampleSearchRow
-                      key={`${colIndex}-${i}`}
-                      name={item.name}
-                      creator={item.creator}
-                      imageUrl={item.imageUrl}
-                    />
+                <div className="hidden md:flex gap-6 w-full">
+                  {sampleColumns.map((columnItems, colIndex) => (
+                    <div
+                      key={colIndex}
+                      className="flex-1 min-w-0 border border-[#e8e2d2] rounded-[4px] overflow-hidden flex flex-col"
+                    >
+                      {columnItems.map((sample) => (
+                        <SampleSearchRow
+                          key={sample.id}
+                          name={sample.name}
+                          creator={sample.creator_name}
+                          imageUrl={sample.thumbnail_url}
+                        />
+                      ))}
+                    </div>
                   ))}
                 </div>
-              ))}
-            </div>
+              </>
+            )}
           </div>
 
           {/* Packs carousel */}
           <div ref={packsRef} className="mb-8 scroll-mt-4">
             <CardCarousel title="Packs" ctaLabel="View more" onCtaClick={() => navigate(tabUrl('packs'))}>
-              {FEATURED_PACKS.map((pack) => (
-                <SamplePackCard
-                  key={pack.id}
-                  pack={{
-                    id: pack.id,
-                    name: pack.title,
-                    creator_name: pack.creator,
-                    download_count: pack.playCount ? parseInt(pack.playCount, 10) : undefined,
-                    category_name: pack.genre ?? undefined,
-                    is_premium: pack.premium ?? false,
-                  }}
-                  lockDesktop
-                />
-              ))}
+              {packs.length === 0 ? (
+                <p className="text-[#7f7766] text-sm">No packs found.</p>
+              ) : (
+                packs.map((pack) => (
+                  <SamplePackCard
+                    key={pack.id}
+                    pack={{
+                      id: pack.id,
+                      name: pack.name,
+                      creator_name: pack.creator_name,
+                      cover_url: pack.cover_url,
+                      download_count: pack.download_count,
+                      samples_count: pack.samples_count,
+                      category_name: pack.category_name,
+                      is_premium: pack.is_premium,
+                    }}
+                    lockDesktop
+                  />
+                ))
+              )}
             </CardCarousel>
           </div>
 
           {/* Creators carousel */}
           <div ref={creatorsRef} className="mb-8 scroll-mt-4">
             <CardCarousel title="Creators" ctaLabel="View more" onCtaClick={() => navigate(tabUrl('creators'))}>
-              {FEATURED_CREATORS.map((creator) => (
-                <CreatorCard
-                  key={creator.name}
-                  name={creator.name}
-                  samplesCount={creator.samplesCount}
-                  packsCount={creator.packsCount}
-                  lockDesktop
-                />
-              ))}
+              {creators.length === 0 ? (
+                <p className="text-[#7f7766] text-sm">No creators found.</p>
+              ) : (
+                creators.map((creator) => (
+                  <CreatorCard
+                    key={creator.id}
+                    name={creator.name}
+                    creatorId={creator.id}
+                    samplesCount={String(creator.samples_count)}
+                    packsCount={String(creator.packs_count)}
+                    imageUrl={creator.avatar_url ?? undefined}
+                    lockDesktop
+                  />
+                ))
+              )}
             </CardCarousel>
           </div>
 
           {/* Genres carousel */}
           <div ref={genresRef} className="scroll-mt-4">
-          <CardCarousel title="Genres" ctaLabel="View more" onCtaClick={() => navigate(tabUrl('genres'))}>
-            {GENRES_GRID_ITEMS.slice(0, 6).map((genre) => (
-              <Link
-                key={genre.name}
-                to={`/dashboard/genres/${genreNameToSlug(genre.name)}`}
-                className="contents"
-              >
-                <GenreCard name={genre.name} imageUrl={genre.imageUrl} lockDesktop />
-              </Link>
-            ))}
-          </CardCarousel>
+            <CardCarousel title="Genres" ctaLabel="View more" onCtaClick={() => navigate(tabUrl('genres'))}>
+              {genres.length === 0 ? (
+                <p className="text-[#7f7766] text-sm">No genres found.</p>
+              ) : (
+                genres.map((genre) => (
+                  <Link
+                    key={genre.id}
+                    to={`/dashboard/genres/${genre.id}`}
+                    className="contents"
+                  >
+                    <GenreCard
+                      name={genre.name}
+                      imageUrl={genre.thumbnail_url ?? undefined}
+                      lockDesktop
+                    />
+                  </Link>
+                ))
+              )}
+            </CardCarousel>
           </div>
         </div>
       </div>
