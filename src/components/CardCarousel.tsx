@@ -29,12 +29,29 @@ export function CardCarousel({ title, subtitle, ctaLabel, onCtaClick, children }
 
   return (
     <div className="flex flex-col gap-8 w-full">
-      {/* Section header: title (+ optional subtitle) left; CTA + arrows right */}
+      {/* Section header: desktop = title+CTA left, arrows right; mobile = title left, CTA right */}
       <div className="flex items-center justify-between w-full gap-4">
         <div className="flex flex-col gap-2 min-w-0">
-          <h2 className="text-[#161410] text-[28px] font-bold leading-9 tracking-[-0.2px]">
-            {title}
-          </h2>
+          <div className="flex flex-row items-center gap-4 flex-wrap">
+            <h2 className="text-[#161410] text-[28px] font-bold leading-9 tracking-[-0.2px]">
+              {title}
+            </h2>
+            {ctaLabel != null && ctaLabel !== '' && (
+              <a
+                href="#"
+                onClick={(e) => {
+                  if (onCtaClick) {
+                    e.preventDefault();
+                    onCtaClick();
+                  }
+                }}
+                className="hidden md:inline-flex items-center gap-1.5 text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] hover:opacity-80 transition-colors md:h-10 md:px-3 md:rounded-[2px] md:border md:border-[#a49a84] md:hover:bg-[#161410]/5 md:hover:opacity-100"
+              >
+                {ctaLabel}
+                <ArrowRight className="size-5 shrink-0" />
+              </a>
+            )}
+          </div>
           {subtitle != null && (
             <p className="text-[#7f7766] text-sm leading-5 tracking-[0.1px]">
               {subtitle}
@@ -51,7 +68,7 @@ export function CardCarousel({ title, subtitle, ctaLabel, onCtaClick, children }
                   onCtaClick();
                 }
               }}
-              className="inline-flex items-center gap-1.5 text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] hover:opacity-80 transition-colors md:h-10 md:px-3 md:rounded-[2px] md:border md:border-[#a49a84] md:hover:bg-[#161410]/5 md:hover:opacity-100"
+              className="md:hidden inline-flex items-center gap-1.5 text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] hover:opacity-80 transition-colors"
             >
               {ctaLabel}
               <ArrowRight className="size-5 shrink-0" />
