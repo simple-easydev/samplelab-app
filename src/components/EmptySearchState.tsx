@@ -4,6 +4,7 @@
  */
 import { useNavigate } from 'react-router-dom';
 import { SearchX, ArrowRight } from 'lucide-react';
+import { NoResultIcon } from './icons';
 
 export interface EmptySearchStateProps {
   /** Secondary button label (e.g. "Browse all samples", "Browse all packs"). Default: "Browse all samples" */
@@ -23,7 +24,7 @@ export function EmptySearchState({
       <div className="flex flex-col gap-6 items-center max-w-[442px] w-full text-center">
         <div className="flex flex-col gap-4 items-center w-full">
           <div className="size-12 flex items-center justify-center text-[#5e584b]" aria-hidden>
-            <SearchX className="size-12" strokeWidth={1.5} />
+            <NoResultIcon />
           </div>
           <div className="flex flex-col gap-2 items-center">
             <p className="text-[#5e584b] text-2xl font-bold leading-8 tracking-[-0.1px]">

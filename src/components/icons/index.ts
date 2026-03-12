@@ -25,4 +25,4 @@ export { LockIcon } from './LockIcon';
 export { HandsCoinsIcon } from './HandsCoinsIcon';
 export { AudioBarIcon } from './AudioBarIcon';
 export { BigLogo } from './BigLogo';
-
+export { NoResultIcon } from './NoResultIcon';
