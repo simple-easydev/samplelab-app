@@ -1,11 +1,24 @@
 /**
  * Context and hooks for packs filter state shared by mobile and desktop filter bars.
+ * Runs get_all_packs with current filters and exposes packs, loading, and result count.
  */
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import type { PacksFilterBarMobileProps } from '../pages/dashboard/Packs/PacksFilterBarMobile';
+import { getAllPacks, type PackRow } from '@/lib/supabase/packs';
 
-const PacksFilterContext = createContext<PacksFilterBarMobileProps | null>(null);
+const PacksFilterContext = createContext<PacksFilterContextValue | null>(null);
+
+/** Sort id from UI may be trending/random; RPC expects newest, oldest, popular, name-az, name-za */
+function mapSortToRpc(sortId: string): string {
+  if (sortId === 'trending' || sortId === 'random') return 'newest';
+  return sortId;
+}
+
+export interface PacksFilterContextValue extends PacksFilterBarMobileProps {
+  packs: PackRow[];
+  loading: boolean;
+}
 
 export function PacksFilterProvider({ children }: { children: React.ReactNode }) {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -62,7 +75,71 @@ export function PacksFilterProvider({ children }: { children: React.ReactNode })
     setReleasedId('all');
   };
 
-  const value: PacksFilterBarMobileProps = {
+  const effectiveSearch = qFromUrl.trim() || searchQuery.trim();
+
+  const fetchOptions = useMemo(
+    () => ({
+      p_search: (qFromUrl.trim() || searchQuery.trim()) || null,
+      p_sort: mapSortToRpc(sortId),
+      p_genres: selectedGenres.size ? Array.from(selectedGenres) : null,
+      p_keywords: selectedKeywords.size ? Array.from(selectedKeywords) : null,
+      p_access: accessId === 'regular' ? 'free' : accessId,
+      p_license: licenseId,
+      p_creators: selectedCreators.size ? Array.from(selectedCreators) : null,
+      p_released: releasedId,
+      p_limit: null,
+      p_offset: 0,
+    }),
+    [
+      qFromUrl,
+      searchQuery,
+      sortId,
+      selectedGenres,
+      selectedKeywords,
+      accessId,
+      licenseId,
+      selectedCreators,
+      releasedId,
+    ]
+  );
+
+  const [packs, setPacks] = useState<PackRow[]>([]);
+  const [loading, setLoading] = useState(true);
+  const optionsRef = useRef(fetchOptions);
+  optionsRef.current = fetchOptions;
+
+  const fetchKey = [
+    fetchOptions.p_search ?? '',
+    fetchOptions.p_sort,
+    fetchOptions.p_genres?.slice().sort().join(',') ?? '',
+    fetchOptions.p_keywords?.slice().sort().join(',') ?? '',
+    fetchOptions.p_access,
+    fetchOptions.p_license,
+    fetchOptions.p_creators?.slice().sort().join(',') ?? '',
+    fetchOptions.p_released,
+  ].join('|');
+
+  useEffect(() => {
+    let cancelled = false;
+    const options = optionsRef.current;
+    const run = async () => {
+      setLoading(true);
+      try {
+        const data = await getAllPacks(options);
+        if (!cancelled) setPacks(data);
+      } catch {
+        if (!cancelled) setPacks([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchKey]);
+
+  const value: PacksFilterContextValue = {
     searchQuery,
     onSearchQueryChange: setSearchQuery,
     sortId,
@@ -96,7 +173,9 @@ export function PacksFilterProvider({ children }: { children: React.ReactNode })
             return next;
           })
       : undefined,
-    searchResultCount: qFromUrl.trim() ? 1000 : undefined,
+    searchResultCount: effectiveSearch ? packs.length : undefined,
+    packs,
+    loading,
   };
 
   return (
@@ -104,7 +183,7 @@ export function PacksFilterProvider({ children }: { children: React.ReactNode })
   );
 }
 
-export function usePacksFilterBar(): PacksFilterBarMobileProps {
+export function usePacksFilterBar(): PacksFilterContextValue {
   const ctx = useContext(PacksFilterContext);
   if (ctx == null) {
     throw new Error('usePacksFilterBar must be used within PacksFilterProvider');

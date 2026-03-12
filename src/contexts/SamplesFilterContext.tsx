@@ -1,8 +1,10 @@
 /**
  * Context for Samples filter state shared by desktop and mobile filter bars.
+ * Runs get_all_samples with current filters and exposes samples, loading, and result count.
  */
-import { createContext, useContext, useState } from 'react';
+import { createContext, useContext, useState, useEffect, useMemo, useRef } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { getAllSamples, type SampleItem } from '@/lib/supabase/samples';
 
 const SORT_OPTIONS = [
   { id: 'newest', label: 'Newest first' },
@@ -49,6 +51,8 @@ export interface SamplesFilterContextValue {
   searchChipQuery?: string;
   onClearSearchQuery?: () => void;
   searchResultCount?: number;
+  samples: SampleItem[];
+  loading: boolean;
 }
 
 const SamplesFilterContext = createContext<SamplesFilterContextValue | null>(null);
@@ -119,6 +123,84 @@ export function SamplesFilterProvider({ children }: { children: React.ReactNode 
     setBpmExact('');
   };
 
+  const effectiveSearch = qFromUrl.trim() || searchQuery.trim();
+  const bpmExactNum = bpmTab === 'exact' && bpmExact.trim() !== '' ? parseInt(bpmExact, 10) : null;
+  const validBpmExact = bpmExactNum !== null && !Number.isNaN(bpmExactNum) ? bpmExactNum : null;
+
+  const fetchOptions = useMemo(
+    () => ({
+      p_search: effectiveSearch || null,
+      p_sort: sortId,
+      p_genres: selectedGenres.size ? Array.from(selectedGenres) : null,
+      p_keywords: selectedKeywords.size ? Array.from(selectedKeywords) : null,
+      p_instrument: instrumentId,
+      p_type: typeId,
+      p_stems: stemsId,
+      p_keys: selectedKeys.size ? Array.from(selectedKeys) : null,
+      p_key_quality: keyQuality,
+      p_bpm_min: validBpmExact != null ? null : bpmRangeMin,
+      p_bpm_max: validBpmExact != null ? null : bpmRangeMax,
+      p_bpm_exact: validBpmExact,
+      p_limit: null,
+      p_offset: 0,
+    }),
+    [
+      qFromUrl,
+      searchQuery,
+      sortId,
+      selectedGenres,
+      selectedKeywords,
+      instrumentId,
+      typeId,
+      stemsId,
+      selectedKeys,
+      keyQuality,
+      validBpmExact,
+      bpmRangeMin,
+      bpmRangeMax,
+    ]
+  );
+
+  const [samples, setSamples] = useState<SampleItem[]>([]);
+  const [loading, setLoading] = useState(true);
+  const optionsRef = useRef(fetchOptions);
+  optionsRef.current = fetchOptions;
+
+  const fetchKey = [
+    fetchOptions.p_search ?? '',
+    fetchOptions.p_sort,
+    fetchOptions.p_genres?.slice().sort().join(',') ?? '',
+    fetchOptions.p_keywords?.slice().sort().join(',') ?? '',
+    fetchOptions.p_instrument,
+    fetchOptions.p_type,
+    fetchOptions.p_stems,
+    fetchOptions.p_keys?.slice().sort().join(',') ?? '',
+    fetchOptions.p_key_quality,
+    fetchOptions.p_bpm_min,
+    fetchOptions.p_bpm_max,
+    fetchOptions.p_bpm_exact,
+  ].join('|');
+
+  useEffect(() => {
+    let cancelled = false;
+    const options = optionsRef.current;
+    const run = async () => {
+      setLoading(true);
+      try {
+        const data = await getAllSamples(options);
+        if (!cancelled) setSamples(data);
+      } catch {
+        if (!cancelled) setSamples([]);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchKey]);
+
   const value: SamplesFilterContextValue = {
     searchQuery,
     onSearchQueryChange: setSearchQuery,
@@ -163,7 +245,9 @@ export function SamplesFilterProvider({ children }: { children: React.ReactNode 
             return next;
           })
       : undefined,
-    searchResultCount: qFromUrl.trim() ? 1000 : undefined,
+    searchResultCount: effectiveSearch ? samples.length : undefined,
+    samples,
+    loading,
   };
 
   return (

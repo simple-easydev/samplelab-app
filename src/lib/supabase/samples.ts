@@ -34,11 +34,64 @@ export interface SampleItem {
 }
 
 /**
+ * Options for get_all_samples RPC (all optional; defaults = no filter / newest).
+ */
+export interface GetAllSamplesOptions {
+  p_search?: string | null;
+  p_sort?: string | null;
+  p_genres?: string[] | null;
+  p_keywords?: string[] | null;
+  p_instrument?: string | null;
+  p_type?: string | null;
+  p_stems?: string | null;
+  p_keys?: string[] | null;
+  p_key_quality?: string | null;
+  p_bpm_min?: number | null;
+  p_bpm_max?: number | null;
+  p_bpm_exact?: number | null;
+  p_limit?: number | null;
+  p_offset?: number | null;
+}
+
+/**
  * Fetch all samples with pack, creator, genre, and stem count via RPC get_all_samples.
+ * Supports optional filters and sort; all params default to "no filter" / newest.
  * Auth: authenticated or service_role.
  */
-export async function getAllSamples(): Promise<SampleItem[]> {
-  const { data, error } = await supabase.rpc('get_all_samples');
+export async function getAllSamples(options?: GetAllSamplesOptions): Promise<SampleItem[]> {
+  const {
+    p_search = null,
+    p_sort = 'newest',
+    p_genres = null,
+    p_keywords = null,
+    p_instrument = 'all',
+    p_type = 'all',
+    p_stems = 'all',
+    p_keys = null,
+    p_key_quality = 'all',
+    p_bpm_min = null,
+    p_bpm_max = null,
+    p_bpm_exact = null,
+    p_limit = null,
+    p_offset = 0,
+  } = options ?? {};
+
+  const { data, error } = await supabase.rpc('get_all_samples', {
+    p_search: p_search?.trim() || null,
+    p_sort: p_sort || 'newest',
+    p_genres: p_genres?.length ? p_genres : null,
+    p_keywords: p_keywords?.length ? p_keywords : null,
+    p_instrument: p_instrument || 'all',
+    p_type: p_type || 'all',
+    p_stems: p_stems || 'all',
+    p_keys: p_keys?.length ? p_keys : null,
+    p_key_quality: p_key_quality || 'all',
+    p_bpm_min: p_bpm_min ?? null,
+    p_bpm_max: p_bpm_max ?? null,
+    p_bpm_exact: p_bpm_exact ?? null,
+    p_limit: p_limit ?? null,
+    p_offset: p_offset ?? 0,
+  });
 
   if (error) {
     console.error('Error fetching samples:', error);

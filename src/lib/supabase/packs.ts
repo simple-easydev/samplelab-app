@@ -94,10 +94,56 @@ export async function getPackById(packId: string): Promise<PackDetail | null> {
 
 /**
  * Fetch all packs with creator, category, genres, and sample count via RPC get_all_packs.
+ * Supports optional filters and sort; all params default to "no filter" / newest.
  * Auth: authenticated or service_role.
  */
-export async function getAllPacks(): Promise<PackRow[]> {
-  const { data, error } = await supabase.rpc('get_all_packs');
+export interface GetAllPacksOptions {
+  /** Free-text search on pack name, creator name */
+  p_search?: string | null;
+  /** One of: newest, oldest, popular, name-az, name-za */
+  p_sort?: string | null;
+  /** Genre names (array overlap) */
+  p_genres?: string[] | null;
+  /** Tags/keywords (array overlap) */
+  p_keywords?: string[] | null;
+  /** all | premium | free */
+  p_access?: string | null;
+  /** Reserved (all) */
+  p_license?: string | null;
+  /** Creator names */
+  p_creators?: string[] | null;
+  /** all | 24h | 7d | 30d */
+  p_released?: string | null;
+  p_limit?: number | null;
+  p_offset?: number | null;
+}
+
+export async function getAllPacks(options?: GetAllPacksOptions): Promise<PackRow[]> {
+  const {
+    p_search = null,
+    p_sort = 'newest',
+    p_genres = null,
+    p_keywords = null,
+    p_access = 'all',
+    p_license = 'all',
+    p_creators = null,
+    p_released = 'all',
+    p_limit = null,
+    p_offset = 0,
+  } = options ?? {};
+
+  const { data, error } = await supabase.rpc('get_all_packs', {
+    p_search: p_search?.trim() || null,
+    p_sort: p_sort || 'newest',
+    p_genres: p_genres?.length ? p_genres : null,
+    p_keywords: p_keywords?.length ? p_keywords : null,
+    p_access: p_access || 'all',
+    p_license: p_license || 'all',
+    p_creators: p_creators?.length ? p_creators : null,
+    p_released: p_released || 'all',
+    p_limit: p_limit ?? null,
+    p_offset: p_offset ?? 0,
+  });
 
   if (error) {
     console.error('Error fetching packs:', error);
