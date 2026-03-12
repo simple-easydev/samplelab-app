@@ -13,6 +13,7 @@ import { CreatorCard } from '@/components/CreatorCard';
 import { GenreCard } from '@/components/GenreCard';
 import { searchLibrary, type SearchLibraryResult } from '@/lib/supabase/search';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
+import { EmptySearchState } from '@/components/EmptySearchState';
 
 const SEARCH_RESULT_TABS = [
   { id: 'all', label: 'All' },
@@ -105,6 +106,21 @@ export default function SearchResultPage() {
   const genres = result?.genres ?? [];
   const totalCount = samples.length + packs.length + creators.length + genres.length;
 
+  const showEmptyState =
+    (activeTab === 'all' && totalCount === 0) ||
+    (activeTab === 'samples' && samples.length === 0) ||
+    (activeTab === 'packs' && packs.length === 0) ||
+    (activeTab === 'creators' && creators.length === 0) ||
+    (activeTab === 'genres' && genres.length === 0);
+
+  const emptyStateSecondary: Record<(typeof SEARCH_RESULT_TABS)[number]['id'], { label: string; path: string }> = {
+    all: { label: 'Browse all samples', path: '/dashboard/samples' },
+    samples: { label: 'Browse all samples', path: '/dashboard/samples' },
+    packs: { label: 'Browse all packs', path: '/dashboard/packs' },
+    creators: { label: 'Browse all creators', path: '/dashboard/creators' },
+    genres: { label: 'Browse all genres', path: '/dashboard/genres' },
+  };
+
   const sampleColumns = splitIntoColumns(samples, 3);
   const sampleColumnsMobile = splitIntoColumns(samples, 1);
 
@@ -182,6 +198,13 @@ export default function SearchResultPage() {
             })}
           </div>
 
+          {showEmptyState ? (
+            <EmptySearchState
+              secondaryLabel={emptyStateSecondary[activeTab].label}
+              secondaryPath={emptyStateSecondary[activeTab].path}
+            />
+          ) : (
+            <>
           {/* Samples section */}
           <div ref={samplesRef} className="flex flex-col gap-8 mb-8 scroll-mt-4">
             <div className="flex md:hidden items-center justify-end w-full gap-3">
@@ -229,7 +252,10 @@ export default function SearchResultPage() {
             </div>
 
             {samples.length === 0 ? (
-              <p className="text-[#7f7766] text-sm">No samples found.</p>
+              <EmptySearchState
+                secondaryLabel="Browse all samples"
+                secondaryPath="/dashboard/samples"
+              />
             ) : (
               <>
                 <div className="flex flex-col gap-6 w-full md:hidden">
@@ -274,7 +300,10 @@ export default function SearchResultPage() {
           <div ref={packsRef} className="mb-8 scroll-mt-4">
             <CardCarousel title="Packs" ctaLabel="View more" onCtaClick={() => navigate(tabUrl('packs'))}>
               {packs.length === 0 ? (
-                <p className="text-[#7f7766] text-sm">No packs found.</p>
+                <EmptySearchState
+                  secondaryLabel="Browse all packs"
+                  secondaryPath="/dashboard/packs"
+                />
               ) : (
                 packs.map((pack) => (
                   <SamplePackCard
@@ -300,7 +329,10 @@ export default function SearchResultPage() {
           <div ref={creatorsRef} className="mb-8 scroll-mt-4">
             <CardCarousel title="Creators" ctaLabel="View more" onCtaClick={() => navigate(tabUrl('creators'))}>
               {creators.length === 0 ? (
-                <p className="text-[#7f7766] text-sm">No creators found.</p>
+                <EmptySearchState
+                  secondaryLabel="Browse all creators"
+                  secondaryPath="/dashboard/creators"
+                />
               ) : (
                 creators.map((creator) => (
                   <CreatorCard
@@ -321,7 +353,10 @@ export default function SearchResultPage() {
           <div ref={genresRef} className="scroll-mt-4">
             <CardCarousel title="Genres" ctaLabel="View more" onCtaClick={() => navigate(tabUrl('genres'))}>
               {genres.length === 0 ? (
-                <p className="text-[#7f7766] text-sm">No genres found.</p>
+                <EmptySearchState
+                  secondaryLabel="Browse all genres"
+                  secondaryPath="/dashboard/genres"
+                />
               ) : (
                 genres.map((genre) => (
                   <Link
@@ -339,6 +374,8 @@ export default function SearchResultPage() {
               )}
             </CardCarousel>
           </div>
+            </>
+          )}
         </div>
       </div>
       <ExploreLibraryCta />
