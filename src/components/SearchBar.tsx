@@ -94,7 +94,7 @@ export function SearchBar({
 
   const handleBlur = useCallback(() => {
     // Delay so mousedown on a suggestion can fire before we close
-    // window.setTimeout(() => setIsPanelOpen(false), 150);
+    window.setTimeout(() => setIsPanelOpen(false), 150);
   }, []);
 
   const handleSelect = useCallback(
