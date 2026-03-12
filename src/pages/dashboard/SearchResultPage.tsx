@@ -106,13 +106,6 @@ export default function SearchResultPage() {
   const genres = result?.genres ?? [];
   const totalCount = samples.length + packs.length + creators.length + genres.length;
 
-  const emptyStateSecondary: Record<(typeof SEARCH_RESULT_TABS)[number]['id'], { label: string; path: string }> = {
-    all: { label: 'Browse all samples', path: '/dashboard/samples' },
-    samples: { label: 'Browse all samples', path: '/dashboard/samples' },
-    packs: { label: 'Browse all packs', path: '/dashboard/packs' },
-    creators: { label: 'Browse all creators', path: '/dashboard/creators' },
-    genres: { label: 'Browse all genres', path: '/dashboard/genres' },
-  };
 
   const sampleColumns = splitIntoColumns(samples, 3);
   const sampleColumnsMobile = splitIntoColumns(samples, 1);

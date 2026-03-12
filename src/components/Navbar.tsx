@@ -1,4 +1,4 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useEffect, useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { SearchBar } from '@/components/SearchBar';
@@ -27,6 +27,8 @@ export function Navbar() {
   const [credits, setCredits] = useState<number | null>(null);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const searchQuery = searchParams.get('q') ?? '';
   const { isActive, loading } = useSubscription();
 
   useEffect(() => {
@@ -58,9 +60,11 @@ export function Navbar() {
 
         <div className="flex gap-6 items-center">
           <SearchBar
+            key={searchQuery}
+            searchQuery={searchQuery}
             onSuggestionSelect={(term, section) => {
               const url = section === 'genres'
-                ? `/dashboard?q=${encodeURIComponent(term)}&context=genres`
+                ? `/dashboard?q=${encodeURIComponent(term)}&tab=genres`
                 : `/dashboard?q=${encodeURIComponent(term)}`;
               navigate(url);
             }}
@@ -146,10 +150,12 @@ export function Navbar() {
         </div>
         <div className="px-4 pb-3">
           <SearchBar
+            key={searchQuery}
             className="w-full max-w-none"
+            searchQuery={searchQuery}
             onSuggestionSelect={(term, section) => {
               const url = section === 'genres'
-                ? `/dashboard?q=${encodeURIComponent(term)}&context=genres`
+                ? `/dashboard?q=${encodeURIComponent(term)}&tab=genres`
                 : `/dashboard?q=${encodeURIComponent(term)}`;
               navigate(url);
             }}

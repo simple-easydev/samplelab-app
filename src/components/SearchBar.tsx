@@ -27,6 +27,8 @@ export interface SearchBarProps {
   ariaLabel?: string;
   className?: string;
   suggestions?: SearchBarSuggestions;
+  /** Initial value from URL (e.g. ?q=Snare). Input stays in sync when this changes. */
+  searchQuery?: string;
   onSearch?: (query: string) => void;
   /** term and optional section (e.g. "genres" for Top genres). */
   onSuggestionSelect?: (term: string, section?: SearchSuggestionSection) => void;
@@ -77,6 +79,7 @@ export function SearchBar({
   ariaLabel = 'Search packs, samples, and creators',
   className,
   suggestions: customSuggestions,
+  searchQuery,
   onSearch,
   onSuggestionSelect,
 }: SearchBarProps) {
@@ -120,10 +123,11 @@ export function SearchBar({
           type="search"
           placeholder={placeholder}
           aria-label={ariaLabel}
+          defaultValue={searchQuery ?? ''}
           onFocus={handleFocus}
           onBlur={handleBlur}
           onKeyDown={(e) => {
-            if (e.key === 'Enter') onSearch?.((e.target as HTMLInputElement).value);
+            if (e.key === 'Enter') onSearch?.((e.target as HTMLInputElement).value.trim());
           }}
           className="border-0 bg-transparent h-auto py-0 text-sm text-[#161410] placeholder:text-[#7f7766] focus-visible:ring-0 focus-visible:ring-offset-0 shadow-none flex-1 min-w-0"
         />

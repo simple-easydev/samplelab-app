@@ -3,7 +3,7 @@
  * Icon, "No results found", subtitle, and Browse library / context-specific "Browse all X" actions.
  */
 import { useNavigate } from 'react-router-dom';
-import { SearchX, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import { NoResultIcon } from './icons';
 
 export interface EmptySearchStateProps {
