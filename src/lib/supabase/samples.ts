@@ -18,7 +18,10 @@ export interface SampleItem {
   pack_id: string;
   pack_name: string;
   creator_name: string;
+  /** Legacy field (may be absent after RPC change). */
   audio_url: string | null;
+  /** New field returned by RPC `get_all_samples` (used for previews). */
+  preview_audio_url?: string | null;
   thumbnail_url: string | null;
   genre: string | null;
   bpm: number | null;
@@ -98,7 +101,16 @@ export async function getAllSamples(options?: GetAllSamplesOptions): Promise<Sam
     return [];
   }
 
-  return Array.isArray(data) ? (data as SampleItem[]) : [];
+  // RPC `get_all_samples` now returns `preview_audio_url` instead of `audio_url`.
+  // Normalize to keep the rest of the UI using `sample.audio_url`.
+  if (!Array.isArray(data)) return [];
+  return (data as Array<Record<string, unknown>>).map((row) => {
+    const audioUrl = (row.audio_url as string | null | undefined) ?? (row.preview_audio_url as string | null | undefined) ?? null;
+    return {
+      ...(row as Record<string, unknown>),
+      audio_url: audioUrl,
+    } as SampleItem;
+  });
 }
 
 /** Parse metadata from row (handles JSON string from DB). */
