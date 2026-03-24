@@ -55,7 +55,7 @@ function sampleToDisplay(sample: SampleItem) {
     waveformBars,
     tags,
     imageUrl: sample.thumbnail_url ?? undefined,
-    audioUrl: sample.audio_url ?? undefined,
+    audioUrl: sample.preview_audio_url ?? sample.audio_url ?? undefined,
     bpm: sample.bpm ?? undefined,
     key: sample.key ?? undefined,
     royaltyFree: true as const,
@@ -190,6 +190,9 @@ export interface SampleRowProps {
 
 export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = false }: SampleRowProps) {
   const row = sample ? sampleToDisplay(sample) : item!;
+  if(row.name == "Wealth Fm 84 bpm"){
+    console.log('row', row);
+  }
   const [fullRowHovered, setFullRowHovered] = useState(false);
   const [audioProgress, setAudioProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
@@ -371,7 +374,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
             duration={row.duration}
             progress={audioProgress}
             waveformBars={row.waveformBars}
-            timeDisplay="passed"
+            timeDisplay="remaining"
             emphasized={fullRowHovered}
             className="h-10 shrink-0 flex-1 min-w-0"
           />

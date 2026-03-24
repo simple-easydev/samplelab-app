@@ -40,7 +40,7 @@ export function mapAllSampleToRowItem(sample: SampleRowItemInput): SampleRowItem
     creator: sample.creator_name,
     duration,
     waveformBars,
-    audioUrl: sample.audio_url ?? undefined,
+    audioUrl: sample.preview_audio_url ?? undefined,
     tags,
     royaltyFree: true,
     premium: false,
@@ -62,7 +62,7 @@ export function packDetailSampleToSampleItem(
     pack_id: s.pack_id,
     pack_name,
     creator_name,
-    audio_url: s.audio_url,
+    audio_url: s.preview_audio_url,
     thumbnail_url: null,
     genre: null,
     bpm: s.bpm,
@@ -73,7 +73,7 @@ export function packDetailSampleToSampleItem(
     has_stems: s.has_stems ?? false,
     stems_count: 0,
     created_at: s.created_at ?? '',
-    metadata: s.length ? { bars: [], duration_seconds: parseLengthToSeconds(s.length) } : undefined,
+    metadata: s.metadata,
   };
 }
 

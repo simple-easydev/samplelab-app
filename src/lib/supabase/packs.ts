@@ -26,7 +26,8 @@ export interface PackDetailSample {
   id: string;
   pack_id: string;
   name: string;
-  audio_url: string;
+  preview_audio_url: string;
+  metadata:any;
   bpm: number | null;
   key: string | null;
   type: string;
