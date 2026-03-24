@@ -12,6 +12,7 @@ import {
   DrawerClose,
 } from '@/components/ui/drawer';
 import { getSampleMetadata, formatDurationSeconds, type SampleItem } from '@/lib/supabase/samples';
+import { useNavigate } from 'react-router-dom';
 
 /**
  * @deprecated Use SampleItem from getAllSamples and pass as `sample` prop instead.
@@ -189,6 +190,7 @@ export interface SampleRowProps {
 }
 
 export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = false }: SampleRowProps) {
+  const navigate = useNavigate();
   const row = sample ? sampleToDisplay(sample) : item!;
   if(row.name == "Wealth Fm 84 bpm"){
     console.log('row', row);
@@ -238,6 +240,18 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
       audio.pause();
       setIsPlaying(false);
     }
+  };
+
+  const handleViewPack = () => {
+    const packId = sample?.pack_id;
+    if (!packId) return;
+    navigate(`/dashboard/packs/${packId}`);
+  };
+
+  const handleViewCreator = () => {
+    const creatorId = sample?.creator_id;
+    if (!creatorId) return;
+    navigate(`/dashboard/creators/${creatorId}`);
   };
 
   if (variant === 'compact') {
@@ -467,14 +481,20 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="flex h-10 cursor-pointer items-center gap-1.5 px-3 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]"
-                  onSelect={(e) => e.preventDefault()}
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    handleViewPack();
+                  }}
                 >
                   <FolderOpen className="size-5 shrink-0" aria-hidden />
                   View pack
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   className="flex h-10 cursor-pointer items-center gap-1.5 px-3 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]"
-                  onSelect={(e) => e.preventDefault()}
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    handleViewCreator();
+                  }}
                 >
                   <User className="size-5 shrink-0" aria-hidden />
                   View creator

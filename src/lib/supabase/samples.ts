@@ -16,6 +16,7 @@ export interface SampleItem {
   id: string;
   name: string;
   pack_id: string;
+  creator_id?: string | null;
   pack_name: string;
   creator_name: string;
   /** Legacy field (may be absent after RPC change). */
