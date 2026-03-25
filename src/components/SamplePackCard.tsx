@@ -2,16 +2,17 @@
  * Reusable sample pack card – Featured Packs section.
  * Desktop: vertical card (Figma 812-51974). Mobile: horizontal card (Figma 1462-156772).
  * Cover image, optional Premium badge, overline, title, creator, tag pills.
- * More options button opens context menu. When packId is set, clicking the card navigates to the pack detail page.
+ * More options button opens context menu. Pack title navigates to the pack detail page.
  */
-import { useNavigate } from 'react-router-dom';
-import { Play, MoreHorizontal, Music2, Heart, Download, User, Share2, Crown } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Play, Pause, MoreHorizontal, Music2, Heart, Download, User, Share2, Crown } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import { usePackPreviewPlayer } from '@/contexts/PackPreviewPlayerContext';
 import { AudioBarIcon } from './icons';
 
 /**
@@ -53,7 +54,7 @@ export function SamplePackCard({
   onShare,
   lockDesktop = false,
 }: SamplePackCardProps) {
-  const navigate = useNavigate();
+  const { activePackId, isPlaying, playPackPreview } = usePackPreviewPlayer();
 
   const id = pack.id;
   const displayTitle = pack.name;
@@ -63,13 +64,7 @@ export function SamplePackCard({
     pack.samples_count != null ? String(pack.samples_count) : undefined;
   const displayGenre = pack.category_name ?? undefined;
   const displayPremium = pack.is_premium ?? false;
-
-  const handleCardClick = (e: React.MouseEvent) => {
-    if (!id) return;
-    const target = e.target as HTMLElement;
-    if (target.closest('[data-dropdown-trigger]') || target.closest('button')) return;
-    navigate(`/dashboard/packs/${id}`);
-  };
+  const isActivePack = activePackId != null && id === activePackId;
 
   const moreButtonClass =
     'size-6 flex items-center justify-center rounded-xs text-[#161410] opacity-100 transition-opacity hover:bg-[#e8e2d2] data-[state=open]:opacity-100 data-[state=open]:bg-[#e8e2d2] md:opacity-0 md:group-hover:opacity-100';
@@ -96,23 +91,48 @@ export function SamplePackCard({
         <div className="absolute inset-0 bg-[#e8e2d2]" aria-hidden />
       )}
       <div
-        className="absolute inset-0 bg-[#161410] opacity-0 transition-opacity duration-200 group-hover:opacity-50 max-md:hidden md:block"
+        className={`absolute inset-0 bg-[#161410] transition-opacity duration-200 max-md:hidden md:block ${isActivePack && isPlaying ? 'opacity-50' : 'opacity-0 group-hover:opacity-50'}`}
         aria-hidden
       />
-      <div className="absolute inset-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100 pointer-events-none max-md:hidden md:flex items-center justify-center">
+      <div className={`absolute inset-0 transition-opacity duration-200 pointer-events-none max-md:hidden md:flex items-center justify-center ${isActivePack && isPlaying ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'}`}>
         <div className="flex size-14 items-center justify-center rounded-full bg-[#161410]/80 border border-[#e8e2d2]/20">
-          <Play className="size-7 text-white fill-white shrink-0" aria-hidden />
+          <Play className={`size-7 text-white fill-white shrink-0 ${isActivePack && isPlaying ? 'hidden' : ''}`} aria-hidden />
+          <Pause className={`size-7 text-white fill-white shrink-0 ${isActivePack && isPlaying ? '' : 'hidden'}`} aria-hidden />
         </div>
       </div>
+      {id && (
+        <button
+          type="button"
+          onClick={(e) => {
+            e.stopPropagation();
+            void playPackPreview({
+              id,
+              name: displayTitle,
+              creatorName: displayCreator,
+              coverUrl: displayImageUrl,
+              samplesCount: pack.samples_count,
+            });
+          }}
+          className="absolute inset-0 z-10 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d6ceb8] focus-visible:ring-inset"
+          aria-label={isActivePack && isPlaying ? `Pause ${displayTitle} preview` : `Play ${displayTitle} preview`}
+        />
+      )}
     </>
   );
 
   const textBlock = (
     <div className="flex flex-col gap-1 min-w-0 flex-1">
       <p className="text-[#7f7766] text-[8px] leading-3 tracking-[1.1px] uppercase">Sample pack</p>
-      <p className="text-[#161410] text-sm font-bold leading-5 tracking-[0.1px] truncate">
-        {displayTitle}
-      </p>
+      {id ? (
+        <Link
+          to={`/dashboard/packs/${id}`}
+          className="text-[#161410] text-sm font-bold leading-5 tracking-[0.1px] truncate focus:outline-none focus-visible:ring-2 focus-visible:ring-[#d6ceb8] focus-visible:ring-offset-2 focus-visible:ring-offset-[#f6f2e6]"
+        >
+          {displayTitle}
+        </Link>
+      ) : (
+        <p className="text-[#161410] text-sm font-bold leading-5 tracking-[0.1px] truncate">{displayTitle}</p>
+      )}
       <p className="text-[#5e584b] text-xs leading-4 tracking-[0.2px] truncate">{displayCreator}</p>
     </div>
   );
@@ -199,20 +219,7 @@ export function SamplePackCard({
 
   return (
     <article
-      role={id ? 'button' : undefined}
-      tabIndex={id ? 0 : undefined}
-      onClick={id ? handleCardClick : undefined}
-      onKeyDown={
-        id
-          ? (e) => {
-              if (e.key === 'Enter' || e.key === ' ') {
-                e.preventDefault();
-                navigate(`/dashboard/packs/${id}`);
-              }
-            }
-          : undefined
-      }
-      className={`${cardBase} ${id ? 'cursor-pointer' : 'cursor-default'} flex flex-col gap-2 pb-4 shrink-0 rounded-md
+      className={`${cardBase} flex flex-col gap-2 pb-4 shrink-0 rounded-md
         ${lockDesktop
           ? 'w-[209px] min-h-[345px]'
           : 'w-full min-h-[160px] md:w-[209px] md:min-h-[345px]'

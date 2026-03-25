@@ -11,6 +11,7 @@ import CreatorDetailPage from './Creators/CreatorDetailPage';
 import GenreDetailPage from './Generes/GenreDetailPage';
 import AccountSettingsPage from './Account/AccountSettingsPage';
 import { DASHBOARD_TABS } from './DashboardTabContent';
+import { PackPreviewPlayerProvider } from '@/contexts/PackPreviewPlayerContext';
 
 type DashboardTabId = (typeof DASHBOARD_TABS)[number]['id'];
 const VALID_TAB_IDS = new Set<string>(DASHBOARD_TABS.map((t) => t.id));
@@ -69,50 +70,52 @@ export default function DashboardRouter() {
   const hasStripeSession = searchParams.has('session_id');
 
   return (
-    <Routes>
-      {/* /dashboard -> /dashboard/discover; /dashboard?q=... -> SearchResultPage; keep URL when session_id for Stripe */}
-      <Route
-        index
-        element={
-          hasStripeSession ? (
-            <div className="min-h-screen bg-[#fffbf0] flex items-center justify-center">
-              <p className="text-[#7f7766]">Loading…</p>
-            </div>
-          ) : hasLegacySearch ? (
-            <SearchResultPage />
-          ) : (
-            <Navigate to="/dashboard/discover" replace />
-          )
-        }
-      />
+    <PackPreviewPlayerProvider>
+      <Routes>
+        {/* /dashboard -> /dashboard/discover; /dashboard?q=... -> SearchResultPage; keep URL when session_id for Stripe */}
+        <Route
+          index
+          element={
+            hasStripeSession ? (
+              <div className="min-h-screen bg-[#fffbf0] flex items-center justify-center">
+                <p className="text-[#7f7766]">Loading…</p>
+              </div>
+            ) : hasLegacySearch ? (
+              <SearchResultPage />
+            ) : (
+              <Navigate to="/dashboard/discover" replace />
+            )
+          }
+        />
 
-      {/* /dashboard/packs/:packId — sample pack detail page */}
-      <Route path="packs/:packId" element={<PackDetailPage />} />
+        {/* /dashboard/packs/:packId — sample pack detail page */}
+        <Route path="packs/:packId" element={<PackDetailPage />} />
 
-      {/* /dashboard/creators/:creatorId — creator detail page */}
-      <Route path="creators/:creatorId" element={<CreatorDetailPage />} />
+        {/* /dashboard/creators/:creatorId — creator detail page */}
+        <Route path="creators/:creatorId" element={<CreatorDetailPage />} />
 
-      {/* /dashboard/genres/:genreId — genre detail page */}
-      <Route path="genres/:genreId" element={<GenreDetailPage />} />
+        {/* /dashboard/genres/:genreId — genre detail page */}
+        <Route path="genres/:genreId" element={<GenreDetailPage />} />
 
-      {/* /dashboard/settings/account — account settings page */}
-      <Route path="settings/account" element={<AccountSettingsPage />} />
+        {/* /dashboard/settings/account — account settings page */}
+        <Route path="settings/account" element={<AccountSettingsPage />} />
 
-      {/* /dashboard/:tabName — tab content, optional ?q= & ?genre= etc. */}
-      <Route
-        path=":tabName"
-        element={<DashboardRoute />}
-      />
+        {/* /dashboard/:tabName — tab content, optional ?q= & ?genre= etc. */}
+        <Route
+          path=":tabName"
+          element={<DashboardRoute />}
+        />
 
-      {/* /dashboard/:tabName/search — same tab with search params (e.g. ?q=drake, ?genre=hip-hop) */}
-      <Route
-        path=":tabName/search"
-        element={<DashboardRoute isSearch />}
-      />
+        {/* /dashboard/:tabName/search — same tab with search params (e.g. ?q=drake, ?genre=hip-hop) */}
+        <Route
+          path=":tabName/search"
+          element={<DashboardRoute isSearch />}
+        />
 
-      {/* Invalid or unknown path -> discover */}
-      <Route path="*" element={<Navigate to="/dashboard/discover" replace />} />
-    </Routes>
+        {/* Invalid or unknown path -> discover */}
+        <Route path="*" element={<Navigate to="/dashboard/discover" replace />} />
+      </Routes>
+    </PackPreviewPlayerProvider>
   );
 }
 
