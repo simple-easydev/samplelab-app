@@ -9,15 +9,26 @@ export interface SearchQueryChipProps {
   query: string;
   /** Optional result count; when provided shows "N results for" */
   resultCount?: number;
+  /** When true with resultCount, shows "N+ results for" (more can load, e.g. infinite scroll). */
+  resultCountHasMore?: boolean;
   /** Called when the user clicks the chip X to clear the search */
   onClear: () => void;
 }
 
-export function SearchQueryChip({ query, resultCount, onClear }: SearchQueryChipProps) {
+export function SearchQueryChip({
+  query,
+  resultCount,
+  resultCountHasMore,
+  onClear,
+}: SearchQueryChipProps) {
+  const countLabel =
+    resultCount != null
+      ? `${resultCount}${resultCountHasMore ? '+' : ''} results for`
+      : 'Results for';
   return (
     <div className="flex gap-3 h-10 items-center">
       <span className="text-[#161410] text-sm leading-5 tracking-[0.1px]">
-        {resultCount != null ? `${resultCount} results for` : 'Results for'}
+        {countLabel}
       </span>
       <button
         type="button"

@@ -2,9 +2,20 @@
  * Context for Samples filter state shared by desktop and mobile filter bars.
  * Runs get_all_samples with current filters and exposes samples, loading, and result count.
  */
-import { createContext, useContext, useState, useEffect, useMemo, useRef } from 'react';
+import {
+  createContext,
+  useContext,
+  useState,
+  useEffect,
+  useMemo,
+  useRef,
+  useCallback,
+} from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { getAllSamples, type SampleItem } from '@/lib/supabase/samples';
+
+/** First page and each "infinite scroll" chunk size (RPC `p_limit` / `p_offset`). */
+export const SAMPLES_PAGE_SIZE = 30;
 
 const SORT_OPTIONS = [
   { id: 'newest', label: 'Newest first' },
@@ -50,9 +61,14 @@ export interface SamplesFilterContextValue {
   showSearchChip?: boolean;
   searchChipQuery?: string;
   onClearSearchQuery?: () => void;
+  /** Shown in search chip; when `searchResultHasMore`, count displays as "N+". */
   searchResultCount?: number;
+  searchResultHasMore?: boolean;
   samples: SampleItem[];
   loading: boolean;
+  loadingMore: boolean;
+  hasMore: boolean;
+  loadMore: () => void;
 }
 
 const SamplesFilterContext = createContext<SamplesFilterContextValue | null>(null);
@@ -141,8 +157,6 @@ export function SamplesFilterProvider({ children }: { children: React.ReactNode 
       p_bpm_min: validBpmExact != null ? null : bpmRangeMin,
       p_bpm_max: validBpmExact != null ? null : bpmRangeMax,
       p_bpm_exact: validBpmExact,
-      p_limit: null,
-      p_offset: 0,
     }),
     [
       qFromUrl,
@@ -163,8 +177,12 @@ export function SamplesFilterProvider({ children }: { children: React.ReactNode 
 
   const [samples, setSamples] = useState<SampleItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
   const optionsRef = useRef(fetchOptions);
   optionsRef.current = fetchOptions;
+  const filterEpochRef = useRef(0);
+  const loadMoreInFlightRef = useRef(false);
 
   const fetchKey = [
     fetchOptions.p_search ?? '',
@@ -183,16 +201,30 @@ export function SamplesFilterProvider({ children }: { children: React.ReactNode 
 
   useEffect(() => {
     let cancelled = false;
-    const options = optionsRef.current;
+    filterEpochRef.current += 1;
+    const epoch = filterEpochRef.current;
     const run = async () => {
       setLoading(true);
+      setSamples([]);
+      setHasMore(true);
       try {
-        const data = await getAllSamples(options);
-        if (!cancelled) setSamples(data);
+        const data = await getAllSamples({
+          ...optionsRef.current,
+          p_limit: SAMPLES_PAGE_SIZE,
+          p_offset: 0,
+        });
+        if (cancelled || epoch !== filterEpochRef.current) return;
+        setSamples(data);
+        setHasMore(data.length === SAMPLES_PAGE_SIZE);
       } catch {
-        if (!cancelled) setSamples([]);
+        if (!cancelled && epoch === filterEpochRef.current) {
+          setSamples([]);
+          setHasMore(false);
+        }
       } finally {
-        if (!cancelled) setLoading(false);
+        if (!cancelled && epoch === filterEpochRef.current) {
+          setLoading(false);
+        }
       }
     };
     run();
@@ -200,6 +232,29 @@ export function SamplesFilterProvider({ children }: { children: React.ReactNode 
       cancelled = true;
     };
   }, [fetchKey]);
+
+  const loadMore = useCallback(async () => {
+    if (loading || !hasMore || loadMoreInFlightRef.current) return;
+    const epoch = filterEpochRef.current;
+    const offset = samples.length;
+    loadMoreInFlightRef.current = true;
+    setLoadingMore(true);
+    try {
+      const data = await getAllSamples({
+        ...optionsRef.current,
+        p_limit: SAMPLES_PAGE_SIZE,
+        p_offset: offset,
+      });
+      if (epoch !== filterEpochRef.current) return;
+      setSamples((prev) => [...prev, ...data]);
+      setHasMore(data.length === SAMPLES_PAGE_SIZE);
+    } catch {
+      if (epoch === filterEpochRef.current) setHasMore(false);
+    } finally {
+      loadMoreInFlightRef.current = false;
+      if (epoch === filterEpochRef.current) setLoadingMore(false);
+    }
+  }, [loading, hasMore, samples.length]);
 
   const value: SamplesFilterContextValue = {
     searchQuery,
@@ -246,8 +301,12 @@ export function SamplesFilterProvider({ children }: { children: React.ReactNode 
           })
       : undefined,
     searchResultCount: effectiveSearch ? samples.length : undefined,
+    searchResultHasMore: effectiveSearch ? hasMore : undefined,
     samples,
     loading,
+    loadingMore,
+    hasMore,
+    loadMore,
   };
 
   return (

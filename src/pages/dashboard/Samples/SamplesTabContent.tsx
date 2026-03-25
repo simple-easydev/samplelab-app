@@ -1,3 +1,4 @@
+import { useEffect, useRef } from 'react';
 import { AccessGate } from '@/components/AccessGate';
 import { SampleRow } from '@/components/SampleRow';
 import { useSubscription } from '@/hooks/useSubscription';
@@ -5,9 +6,24 @@ import { SamplesFilterBar } from './SamplesFilterBar';
 import { SamplesFilterBarMobile } from './SamplesFilterBarMobile';
 import { SamplesFilterProvider, useSamplesFilterBar } from '@/contexts/SamplesFilterContext';
 
-/** Samples list; reads samples + loading from SamplesFilterContext. */
+/** Samples list with infinite scroll (paged RPC). */
 function SamplesList() {
-  const { samples, loading } = useSamplesFilterBar();
+  const { samples, loading, loadingMore, hasMore, loadMore } = useSamplesFilterBar();
+  const sentinelRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const el = sentinelRef.current;
+    if (!el || loading) return;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        const hit = entries[0]?.isIntersecting;
+        if (hit && hasMore && !loadingMore) void loadMore();
+      },
+      { root: null, rootMargin: '240px', threshold: 0 }
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [loading, hasMore, loadingMore, loadMore]);
 
   return (
     <section className="w-full" aria-label="Samples list">
@@ -15,7 +31,17 @@ function SamplesList() {
         {loading ? (
           <p className="text-[#5e584b] text-sm p-4">Loading samples…</p>
         ) : (
-          samples.map((s) => <SampleRow key={s.id} sample={s} />)
+          <>
+            {samples.map((s) => (
+              <SampleRow key={s.id} sample={s} />
+            ))}
+            <div ref={sentinelRef} className="h-1 w-full shrink-0" aria-hidden />
+            {loadingMore && (
+              <p className="text-[#5e584b] text-sm p-4 border-t border-[#e8e2d2]">
+                Loading more…
+              </p>
+            )}
+          </>
         )}
       </div>
     </section>

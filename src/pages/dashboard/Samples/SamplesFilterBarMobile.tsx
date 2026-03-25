@@ -146,6 +146,7 @@ export function SamplesFilterBarMobile() {
     searchChipQuery,
     onClearSearchQuery,
     searchResultCount,
+    searchResultHasMore,
   } = useSamplesFilterBar();
 
   const filteredGenres = useMemo(() => {
@@ -197,6 +198,7 @@ export function SamplesFilterBarMobile() {
             <SearchQueryChip
               query={searchChipQuery ?? ''}
               resultCount={searchResultCount}
+              resultCountHasMore={searchResultHasMore}
               onClear={onClearSearchQuery}
             />
           </div>
