@@ -1,6 +1,13 @@
 import { useMemo, useState } from 'react';
-import { Heart, MoreHorizontal, Pause, Play, Repeat, Volume2 } from 'lucide-react';
+import { Download, Heart, MoreHorizontal, Pause, Play, Repeat, Share2, User, Volume2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 export interface PackPreviewDrawerPack {
   id: string;
@@ -21,6 +28,9 @@ interface PackPreviewPlayerDrawerProps {
   onTogglePlayPause: () => void;
   onToggleRepeat: () => void;
   onViewPack: () => void;
+  onGetPack: () => void;
+  onViewCreator: () => void;
+  onShare: () => void;
 }
 
 export function PackPreviewPlayerDrawer({
@@ -34,13 +44,16 @@ export function PackPreviewPlayerDrawer({
   onTogglePlayPause,
   onToggleRepeat,
   onViewPack,
+  onGetPack,
+  onViewCreator,
+  onShare,
 }: PackPreviewPlayerDrawerProps) {
   const [isVolumeOpen, setIsVolumeOpen] = useState(false);
 
   const volumeLabel = useMemo(() => `${Math.round(volumePercent)}%`, [volumePercent]);
 
   return (
-    <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#d6ceb8] bg-[#fffbf0] p-0 shadow-[0px_-8px_24px_0px_rgba(0,0,0,0.1),0px_-2px_4px_0px_rgba(0,0,0,0.04)]">
+    <div className="fixed left-0 bottom-0 w-screen z-40 border-t border-[#d6ceb8] bg-[#fffbf0] p-0 shadow-[0px_-8px_24px_0px_rgba(0,0,0,0.1),0px_-2px_4px_0px_rgba(0,0,0,0.04)]">
       <div className="relative">
         <div className="absolute left-0 right-0 top-0 h-1 bg-[#e8e2d2]" aria-hidden>
           <div className="h-full bg-[#161410]" style={{ width: `${progressPercent}%` }} />
@@ -122,14 +135,58 @@ export function PackPreviewPlayerDrawer({
               )}
             </div>
             <Heart className="size-5" aria-hidden />
-            <button
-              type="button"
+            <Button
+              variant="outline"
               onClick={onViewPack}
-              className="h-10 rounded-xs border border-[#a49a84] px-5 text-sm font-medium leading-5 tracking-[0.1px] text-[#161410]"
             >
               View Pack
-            </button>
-            <MoreHorizontal className="size-5" aria-hidden />
+            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild aria-label="More options">
+                <button
+                  type="button"
+                  className="size-9 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors"
+                >
+                  <MoreHorizontal className="size-5" aria-hidden />
+                </button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={4}
+                className="min-w-[180px] rounded-xs border border-[#d6ceb8] bg-white py-1 shadow-[0px_6px_20px_rgba(0,0,0,0.14),0px_1px_3px_rgba(0,0,0,0.08)]"
+              >
+                <DropdownMenuItem
+                  className="flex h-10 cursor-pointer items-center gap-1.5 px-3 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    onGetPack();
+                  }}
+                >
+                  <Download className="size-5 shrink-0" aria-hidden />
+                  Get pack
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="flex h-10 cursor-pointer items-center gap-1.5 px-3 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    onViewCreator();
+                  }}
+                >
+                  <User className="size-5 shrink-0" aria-hidden />
+                  View creator
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  className="flex h-10 cursor-pointer items-center gap-1.5 px-3 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]"
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    onShare();
+                  }}
+                >
+                  <Share2 className="size-5 shrink-0" aria-hidden />
+                  Share
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>

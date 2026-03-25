@@ -134,6 +134,42 @@ export function PackPreviewPlayerProvider({ children }: { children: React.ReactN
 
   const progressPercent = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
   const previewTime = duration > 0 ? formatTime(duration) : previewLabel;
+
+  // Intentionally not memoized: these handlers depend on `activePack`,
+  // and the React Compiler in this repo prefers not to preserve manual memoization.
+  const onGetPack = () => {
+    if (!activePack?.id) return;
+    navigate(`/dashboard/packs/${activePack.id}`);
+  };
+
+  const onViewCreator = async () => {
+    if (!activePack?.id) return;
+    const detail = await getPackById(activePack.id);
+    if (detail?.creator_id) {
+      navigate(`/dashboard/creators/${detail.creator_id}`);
+    } else {
+      toast.error('Creator not found for this pack.');
+    }
+  };
+
+  const onShare = async () => {
+    if (!activePack?.id) return;
+    const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/dashboard/packs/${activePack.id}`;
+    const nav: any = typeof navigator !== 'undefined' ? navigator : null;
+
+    try {
+      if (nav?.share) {
+        await nav.share({ title: activePack.name, url });
+      } else if (nav?.clipboard?.writeText) {
+        await nav.clipboard.writeText(url);
+        toast.success('Link copied');
+      } else {
+        toast.error('Sharing is not supported in this browser.');
+      }
+    } catch {
+      toast.error('Unable to share.');
+    }
+  };
   const value = useMemo<PackPreviewPlayerContextValue>(() => ({
     activePackId: activePack?.id ?? null,
     isPlaying,
@@ -158,6 +194,9 @@ export function PackPreviewPlayerProvider({ children }: { children: React.ReactN
           onTogglePlayPause={togglePlayPause}
           onToggleRepeat={toggleRepeat}
           onViewPack={() => navigate(`/dashboard/packs/${activePack.id}`)}
+          onGetPack={onGetPack}
+          onViewCreator={onViewCreator}
+          onShare={onShare}
         />
       )}
     </PackPreviewPlayerContext.Provider>
