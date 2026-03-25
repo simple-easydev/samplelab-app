@@ -19,6 +19,7 @@ import {
   getSampleDownloadErrorMessage,
   triggerSignedDownload,
 } from '@/lib/supabase/sampleDownload';
+import { useCredits } from '@/contexts/CreditsContext';
 import { useNavigate } from 'react-router-dom';
 
 /**
@@ -198,6 +199,7 @@ export interface SampleRowProps {
 
 export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = false }: SampleRowProps) {
   const navigate = useNavigate();
+  const { refreshCredits } = useCredits();
   const row = sample ? sampleToDisplay(sample) : item!;
   const sampleId = sample?.id ?? item?.id;
   const [fullRowHovered, setFullRowHovered] = useState(false);
@@ -214,11 +216,28 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
     try {
       const result = await requestSampleDownloadWithRetry(sampleId);
       await triggerSignedDownload(result.signedUrl, result.filename);
-      const creditPart =
+      const used =
         result.creditsCharged > 0
-          ? ` · ${result.creditsCharged} credit${result.creditsCharged === 1 ? '' : 's'} used`
+          ? `${result.creditsCharged} credit${result.creditsCharged === 1 ? '' : 's'} used. `
           : '';
-      toast.success(`Download started${creditPart}`);
+      try {
+        const credits = await refreshCredits();
+        toast.success('Download complete', {
+          description: `${used}${credits} credits remaining.`,
+        });
+      } catch {
+        try {
+          await refreshCredits();
+        } catch {
+          /* ignore */
+        }
+        toast.success('Download complete', {
+          description:
+            result.creditsCharged > 0
+              ? `${result.creditsCharged} credit${result.creditsCharged === 1 ? '' : 's'} used. Refreshing credits…`
+              : 'Refreshing credits…',
+        });
+      }
     } catch (err) {
       if (err instanceof SampleDownloadError) {
         toast.error(getSampleDownloadErrorMessage(err.code));

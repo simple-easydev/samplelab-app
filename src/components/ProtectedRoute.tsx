@@ -1,5 +1,6 @@
 import { Navigate, Outlet, useLocation, useSearchParams } from 'react-router-dom';
 import { useAuth } from '@/contexts/AuthContext';
+import { CreditsProvider } from '@/contexts/CreditsContext';
 import { Navbar } from '@/components/Navbar';
 import { Footer } from '@/components/Footer';
 
@@ -36,11 +37,13 @@ export default function ProtectedRoute() {
 
   if (hasStripeSession && (location.pathname === '/dashboard' || location.pathname.startsWith('/dashboard/'))) {
     return (
-      <div className="min-h-screen flex flex-col">
-        <Navbar />
-        <Outlet />
-        <Footer />
-      </div>
+      <CreditsProvider>
+        <div className="min-h-screen flex flex-col">
+          <Navbar />
+          <Outlet />
+          <Footer />
+        </div>
+      </CreditsProvider>
     );
   }
 
@@ -54,10 +57,12 @@ export default function ProtectedRoute() {
   const showNavbar = location.pathname !== '/onboarding';
 
   return (
-    <div className="min-h-screen flex flex-col">
-      {showNavbar && <Navbar />}
-      <Outlet />
-      {showNavbar && <Footer />}
-    </div>
+    <CreditsProvider>
+      <div className="min-h-screen flex flex-col">
+        {showNavbar && <Navbar />}
+        <Outlet />
+        {showNavbar && <Footer />}
+      </div>
+    </CreditsProvider>
   );
 }

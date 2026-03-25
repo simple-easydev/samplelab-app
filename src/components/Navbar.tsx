@@ -1,10 +1,10 @@
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useEffect, useState } from 'react';
+import { useState } from 'react';
 import { Menu, X } from 'lucide-react';
 import { SearchBar } from '@/components/SearchBar';
 import { UserDropdownMenu } from '@/components/UserDropdownMenu';
 import { TryForFreeButton } from '@/components/ui/try-for-free-button';
-import { getUserCredits } from '@/lib/supabase/subscriptions';
+import { useCredits } from '@/contexts/CreditsContext';
 import { useSubscription } from '@/hooks/useSubscription';
 import {
   Drawer,
@@ -24,16 +24,12 @@ const NAV_LINKS = [
 ];
 
 export function Navbar() {
-  const [credits, setCredits] = useState<number | null>(null);
+  const { credits } = useCredits();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const searchQuery = searchParams.get('q') ?? '';
   const { isActive, loading } = useSubscription();
-
-  useEffect(() => {
-    getUserCredits().then(setCredits);
-  }, []);
 
   const isFreePlan = loading || !isActive;
 
