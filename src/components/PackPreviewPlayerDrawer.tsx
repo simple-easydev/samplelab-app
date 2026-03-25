@@ -1,4 +1,6 @@
+import { useMemo, useState } from 'react';
 import { Heart, MoreHorizontal, Pause, Play, Repeat, Volume2 } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
 
 export interface PackPreviewDrawerPack {
   id: string;
@@ -11,6 +13,8 @@ export interface PackPreviewDrawerPack {
 interface PackPreviewPlayerDrawerProps {
   pack: PackPreviewDrawerPack;
   isPlaying: boolean;
+  volumePercent: number; // 0..100
+  onSetVolumePercent: (next: number) => void;
   isRepeatOn: boolean;
   progressPercent: number;
   previewTime: string;
@@ -22,6 +26,8 @@ interface PackPreviewPlayerDrawerProps {
 export function PackPreviewPlayerDrawer({
   pack,
   isPlaying,
+  volumePercent,
+  onSetVolumePercent,
   isRepeatOn,
   progressPercent,
   previewTime,
@@ -29,6 +35,10 @@ export function PackPreviewPlayerDrawer({
   onToggleRepeat,
   onViewPack,
 }: PackPreviewPlayerDrawerProps) {
+  const [isVolumeOpen, setIsVolumeOpen] = useState(false);
+
+  const volumeLabel = useMemo(() => `${Math.round(volumePercent)}%`, [volumePercent]);
+
   return (
     <div className="fixed inset-x-0 bottom-0 z-40 border-t border-[#d6ceb8] bg-[#fffbf0] p-0 shadow-[0px_-8px_24px_0px_rgba(0,0,0,0.1),0px_-2px_4px_0px_rgba(0,0,0,0.04)]">
       <div className="relative">
@@ -73,7 +83,44 @@ export function PackPreviewPlayerDrawer({
             >
               <Repeat className="size-5" aria-hidden />
             </button>
-            <Volume2 className="size-5" aria-hidden />
+            <div className="relative">
+              <button
+                type="button"
+                onClick={() => setIsVolumeOpen((v) => !v)}
+                aria-label="Volume"
+                aria-pressed={isVolumeOpen}
+                className="rounded-xs size-6 flex items-center justify-center text-[#161410] hover:bg-[#e8e2d2]"
+              >
+                <Volume2 className="size-5" aria-hidden />
+              </button>
+              {isVolumeOpen && (
+                <div
+                  className="absolute bottom-full mb-2 right-0 bg-white border border-[#d6ceb8] rounded-[4px] shadow-[0px_6px_20px_0px_rgba(0,0,0,0.14),0px_1px_3px_0px_rgba(0,0,0,0.08)] w-[40px] h-[120px] p-[12px] flex items-end justify-center"
+                  style={
+                    {
+                      backgroundColor: 'white',
+                      // Make shadcn Slider colors match the player palette.
+                      ['--primary' as any]: '#161410',
+                      ['--muted' as any]: 'rgba(214,206,184,0.35)',
+                      ['--ring' as any]: 'rgba(214,206,184,0)',
+                    } as any
+                  }
+                >
+                  <div className="relative flex w-full h-[96px] items-center justify-center overflow-hidden">
+                    {/* Slider line + thumb rendered via shadcn/radix (no Figma images). */}
+                    <Slider
+                      orientation="vertical"
+                      min={0}
+                      max={100}
+                      value={[volumePercent]}
+                      onValueChange={(v) => onSetVolumePercent(v[0] ?? 0)}
+                      className="h-[80px]! min-h-0! w-2 **:data-[slot=slider-track]:w-[4px]! **:data-[slot=slider-thumb]:size-3! **:data-[slot=slider-thumb]:shadow-none! **:data-[slot=slider-thumb]:ring-0! **:data-[slot=slider-thumb]:hover:ring-0! **:data-[slot=slider-thumb]:focus-visible:ring-0!"
+                    />
+                  </div>
+                  <span className="sr-only">{`Volume ${volumeLabel}`}</span>
+                </div>
+              )}
+            </div>
             <Heart className="size-5" aria-hidden />
             <button
               type="button"

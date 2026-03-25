@@ -17,6 +17,8 @@ interface PackPreviewPlayerContextValue {
   isPlaying: boolean;
   playPackPreview: (pack: PlayablePack) => Promise<void>;
   togglePlayPause: () => void;
+  volumePercent: number; // 0..100
+  setVolumePercent: (next: number) => void;
 }
 
 const PackPreviewPlayerContext = createContext<PackPreviewPlayerContextValue | null>(null);
@@ -34,6 +36,7 @@ export function PackPreviewPlayerProvider({ children }: { children: React.ReactN
   const [activePack, setActivePack] = useState<PlayablePack | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRepeatOn, setIsRepeatOn] = useState(false);
+  const [volumePercent, setVolumePercentState] = useState(80);
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [previewLabel, setPreviewLabel] = useState('0:00');
@@ -86,6 +89,7 @@ export function PackPreviewPlayerProvider({ children }: { children: React.ReactN
 
     const audio = new Audio(firstSample.preview_audio_url);
     audio.loop = isRepeatOn;
+    audio.volume = Math.max(0, Math.min(1, volumePercent / 100));
     audioRef.current = audio;
     bindAudioEvents(audio);
     setActivePack(pack);
@@ -98,7 +102,7 @@ export function PackPreviewPlayerProvider({ children }: { children: React.ReactN
     } catch {
       toast.error('Unable to start audio preview.');
     }
-  }, [activePack?.id, bindAudioEvents, isRepeatOn]);
+  }, [activePack?.id, bindAudioEvents, isRepeatOn, volumePercent]);
 
   const togglePlayPause = useCallback(() => {
     const audio = audioRef.current;
@@ -120,6 +124,14 @@ export function PackPreviewPlayerProvider({ children }: { children: React.ReactN
     });
   }, []);
 
+  const setVolumePercent = useCallback((next: number) => {
+    const clamped = Math.max(0, Math.min(100, next));
+    setVolumePercentState(clamped);
+    if (audioRef.current) {
+      audioRef.current.volume = clamped / 100;
+    }
+  }, []);
+
   const progressPercent = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
   const previewTime = duration > 0 ? formatTime(duration) : previewLabel;
   const value = useMemo<PackPreviewPlayerContextValue>(() => ({
@@ -127,7 +139,9 @@ export function PackPreviewPlayerProvider({ children }: { children: React.ReactN
     isPlaying,
     playPackPreview,
     togglePlayPause,
-  }), [activePack?.id, isPlaying, playPackPreview, togglePlayPause]);
+    volumePercent,
+    setVolumePercent,
+  }), [activePack?.id, isPlaying, playPackPreview, togglePlayPause, volumePercent, setVolumePercent]);
 
   return (
     <PackPreviewPlayerContext.Provider value={value}>
@@ -136,6 +150,8 @@ export function PackPreviewPlayerProvider({ children }: { children: React.ReactN
         <PackPreviewPlayerDrawer
           pack={activePack}
           isPlaying={isPlaying}
+          volumePercent={volumePercent}
+          onSetVolumePercent={setVolumePercent}
           isRepeatOn={isRepeatOn}
           progressPercent={progressPercent}
           previewTime={previewTime}
