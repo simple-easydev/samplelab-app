@@ -2,21 +2,41 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { getPackById } from '@/lib/supabase/packs';
-import { PackPreviewPlayerDrawer } from '@/components/PackPreviewPlayerDrawer';
+import { AudioPlayerDrawer } from '@/components/AudioPlayerDrawer';
 
-interface PlayablePack {
-  id: string;
+type PreviewKind = 'pack' | 'sample';
+
+interface PlayablePreviewBase {
+  kind: PreviewKind;
+  id: string; // pack.id or sample.id
   name: string;
   creatorName: string;
   coverUrl?: string | null;
-  samplesCount?: number | null;
+  packId?: string | null;
+  creatorId?: string | null;
+  samplesCount?: number | null; // pack-only
+}
+
+interface PlayablePack extends PlayablePreviewBase {
+  kind: 'pack';
+}
+
+interface PlayableSample extends PlayablePreviewBase {
+  kind: 'sample';
+  previewAudioUrl: string;
+  durationLabel?: string;
+  bpm?: number | null;
+  key?: string | null;
 }
 
 interface PackPreviewPlayerContextValue {
-  activePackId: string | null;
+  activePreviewKind: PreviewKind | null;
+  activePreviewId: string | null;
   isPlaying: boolean;
   playPackPreview: (pack: PlayablePack) => Promise<void>;
+  playSamplePreview: (sample: PlayableSample) => Promise<void>;
   togglePlayPause: () => void;
+  progress01: number; // 0..1
   volumePercent: number; // 0..100
   setVolumePercent: (next: number) => void;
 }
@@ -33,7 +53,7 @@ function formatTime(seconds: number): string {
 export function PackPreviewPlayerProvider({ children }: { children: React.ReactNode }) {
   const navigate = useNavigate();
   const audioRef = useRef<HTMLAudioElement | null>(null);
-  const [activePack, setActivePack] = useState<PlayablePack | null>(null);
+  const [activePreview, setActivePreview] = useState<PlayablePreviewBase | null>(null);
   const [isPlaying, setIsPlaying] = useState(false);
   const [isRepeatOn, setIsRepeatOn] = useState(false);
   const [volumePercent, setVolumePercentState] = useState(80);
@@ -66,7 +86,7 @@ export function PackPreviewPlayerProvider({ children }: { children: React.ReactN
   const playPackPreview = useCallback(async (pack: PlayablePack) => {
     if (!pack.id) return;
 
-    if (activePack?.id === pack.id && audioRef.current) {
+    if (activePreview?.kind === 'pack' && activePreview?.id === pack.id && audioRef.current) {
       const audio = audioRef.current;
       if (audio.paused) {
         await audio.play();
@@ -92,7 +112,16 @@ export function PackPreviewPlayerProvider({ children }: { children: React.ReactN
     audio.volume = Math.max(0, Math.min(1, volumePercent / 100));
     audioRef.current = audio;
     bindAudioEvents(audio);
-    setActivePack(pack);
+    setActivePreview({
+      kind: 'pack',
+      id: pack.id,
+      name: pack.name,
+      creatorName: pack.creatorName,
+      coverUrl: pack.coverUrl,
+      samplesCount: pack.samplesCount,
+      packId: pack.id,
+      creatorId: detail?.creator_id ?? null,
+    });
     setCurrentTime(0);
     setDuration(0);
     setPreviewLabel(firstSample.length ?? '0:00');
@@ -102,7 +131,50 @@ export function PackPreviewPlayerProvider({ children }: { children: React.ReactN
     } catch {
       toast.error('Unable to start audio preview.');
     }
-  }, [activePack?.id, bindAudioEvents, isRepeatOn, volumePercent]);
+  }, [activePreview?.id, activePreview?.kind, bindAudioEvents, isRepeatOn, volumePercent]);
+
+  const playSamplePreview = useCallback(async (sample: PlayableSample) => {
+    if (!sample.previewAudioUrl) return;
+
+    if (activePreview?.kind === 'sample' && activePreview?.id === sample.id && audioRef.current) {
+      const audio = audioRef.current;
+      if (audio.paused) {
+        await audio.play();
+      } else {
+        audio.pause();
+      }
+      return;
+    }
+
+    if (audioRef.current) {
+      audioRef.current.pause();
+    }
+
+    const audio = new Audio(sample.previewAudioUrl);
+    audio.loop = isRepeatOn;
+    audio.volume = Math.max(0, Math.min(1, volumePercent / 100));
+    audioRef.current = audio;
+    bindAudioEvents(audio);
+    setActivePreview({
+      kind: 'sample',
+      id: sample.id,
+      name: sample.name,
+      creatorName: sample.creatorName,
+      coverUrl: sample.coverUrl,
+      packId: sample.packId ?? null,
+      creatorId: sample.creatorId ?? null,
+    });
+
+    setCurrentTime(0);
+    setDuration(0);
+    setPreviewLabel(sample.durationLabel ?? '0:00');
+
+    try {
+      await audio.play();
+    } catch {
+      toast.error('Unable to start audio preview.');
+    }
+  }, [activePreview?.id, activePreview?.kind, bindAudioEvents, isRepeatOn, volumePercent]);
 
   const togglePlayPause = useCallback(() => {
     const audio = audioRef.current;
@@ -133,33 +205,37 @@ export function PackPreviewPlayerProvider({ children }: { children: React.ReactN
   }, []);
 
   const progressPercent = duration > 0 ? Math.min(100, (currentTime / duration) * 100) : 0;
+  const progress01 = duration > 0 ? Math.min(1, currentTime / duration) : 0;
   const previewTime = duration > 0 ? formatTime(duration) : previewLabel;
 
   // Intentionally not memoized: these handlers depend on `activePack`,
   // and the React Compiler in this repo prefers not to preserve manual memoization.
   const onGetPack = () => {
-    if (!activePack?.id) return;
-    navigate(`/dashboard/packs/${activePack.id}`);
+    const packId = activePreview?.packId ?? (activePreview?.kind === 'pack' ? activePreview?.id : null);
+    if (!packId) return;
+    navigate(`/dashboard/packs/${packId}`);
   };
 
   const onViewCreator = async () => {
-    if (!activePack?.id) return;
-    const detail = await getPackById(activePack.id);
-    if (detail?.creator_id) {
-      navigate(`/dashboard/creators/${detail.creator_id}`);
-    } else {
-      toast.error('Creator not found for this pack.');
+    const creatorId =
+      activePreview?.creatorId ??
+      (activePreview?.kind === 'pack' ? (await getPackById(activePreview.id))?.creator_id ?? null : null);
+    if (creatorId) {
+      navigate(`/dashboard/creators/${creatorId}`);
+      return;
     }
+    toast.error('Creator not found for this preview.');
   };
 
   const onShare = async () => {
-    if (!activePack?.id) return;
-    const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/dashboard/packs/${activePack.id}`;
+    const packId = activePreview?.packId ?? (activePreview?.kind === 'pack' ? activePreview?.id : null);
+    if (!packId || !activePreview?.name) return;
+    const url = `${typeof window !== 'undefined' ? window.location.origin : ''}/dashboard/packs/${packId}`;
     const nav: any = typeof navigator !== 'undefined' ? navigator : null;
 
     try {
       if (nav?.share) {
-        await nav.share({ title: activePack.name, url });
+        await nav.share({ title: activePreview.name, url });
       } else if (nav?.clipboard?.writeText) {
         await nav.clipboard.writeText(url);
         toast.success('Link copied');
@@ -171,20 +247,33 @@ export function PackPreviewPlayerProvider({ children }: { children: React.ReactN
     }
   };
   const value = useMemo<PackPreviewPlayerContextValue>(() => ({
-    activePackId: activePack?.id ?? null,
+    activePreviewKind: activePreview?.kind ?? null,
+    activePreviewId: activePreview?.id ?? null,
     isPlaying,
     playPackPreview,
+    playSamplePreview,
     togglePlayPause,
+    progress01,
     volumePercent,
     setVolumePercent,
-  }), [activePack?.id, isPlaying, playPackPreview, togglePlayPause, volumePercent, setVolumePercent]);
+  }), [
+    activePreview?.id,
+    activePreview?.kind,
+    isPlaying,
+    playPackPreview,
+    playSamplePreview,
+    togglePlayPause,
+    progress01,
+    volumePercent,
+    setVolumePercent,
+  ]);
 
   return (
     <PackPreviewPlayerContext.Provider value={value}>
       {children}
-      {activePack && (
-        <PackPreviewPlayerDrawer
-          pack={activePack}
+      {activePreview && (
+        <AudioPlayerDrawer
+          pack={activePreview as any}
           isPlaying={isPlaying}
           volumePercent={volumePercent}
           onSetVolumePercent={setVolumePercent}
@@ -193,7 +282,10 @@ export function PackPreviewPlayerProvider({ children }: { children: React.ReactN
           previewTime={previewTime}
           onTogglePlayPause={togglePlayPause}
           onToggleRepeat={toggleRepeat}
-          onViewPack={() => navigate(`/dashboard/packs/${activePack.id}`)}
+          onViewPack={() => {
+            const packId = activePreview.packId ?? (activePreview.kind === 'pack' ? activePreview.id : null);
+            if (packId) navigate(`/dashboard/packs/${packId}`);
+          }}
           onGetPack={onGetPack}
           onViewCreator={onViewCreator}
           onShare={onShare}

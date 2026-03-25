@@ -54,7 +54,7 @@ export function SamplePackCard({
   onShare,
   lockDesktop = false,
 }: SamplePackCardProps) {
-  const { activePackId, isPlaying, playPackPreview } = usePackPreviewPlayer();
+  const { activePreviewKind, activePreviewId, isPlaying, playPackPreview } = usePackPreviewPlayer();
 
   const id = pack.id;
   const displayTitle = pack.name;
@@ -64,7 +64,7 @@ export function SamplePackCard({
     pack.samples_count != null ? String(pack.samples_count) : undefined;
   const displayGenre = pack.category_name ?? undefined;
   const displayPremium = pack.is_premium ?? false;
-  const isActivePack = activePackId != null && id === activePackId;
+  const isActivePack = activePreviewKind === 'pack' && activePreviewId === id;
 
   const moreButtonClass =
     'size-6 flex items-center justify-center rounded-xs text-[#161410] opacity-100 transition-opacity hover:bg-[#e8e2d2] data-[state=open]:opacity-100 data-[state=open]:bg-[#e8e2d2] md:opacity-0 md:group-hover:opacity-100';
@@ -106,6 +106,7 @@ export function SamplePackCard({
           onClick={(e) => {
             e.stopPropagation();
             void playPackPreview({
+              kind: 'pack',
               id,
               name: displayTitle,
               creatorName: displayCreator,

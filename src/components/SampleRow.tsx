@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from 'react';
+import { useState } from 'react';
 import { Crown, Play, Pause, Heart, Download, MoreVertical, FolderOpen, User, Share2, BarChart2, X, Repeat, Loader2 } from 'lucide-react';
 import { toast } from 'sonner';
 import {
@@ -21,6 +21,7 @@ import {
 } from '@/lib/supabase/sampleDownload';
 import { useCredits } from '@/contexts/CreditsContext';
 import { useNavigate } from 'react-router-dom';
+import { usePackPreviewPlayer } from '@/contexts/PackPreviewPlayerContext';
 
 /**
  * @deprecated Use SampleItem from getAllSamples and pass as `sample` prop instead.
@@ -203,11 +204,21 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
   const row = sample ? sampleToDisplay(sample) : item!;
   const sampleId = sample?.id ?? item?.id;
   const [fullRowHovered, setFullRowHovered] = useState(false);
-  const [audioProgress, setAudioProgress] = useState(0);
-  const [isPlaying, setIsPlaying] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const {
+    activePreviewKind,
+    activePreviewId,
+    isPlaying: playerIsPlaying,
+    progress01,
+    playSamplePreview,
+    togglePlayPause,
+  } = usePackPreviewPlayer();
+
+  const isSamplePlaying = activePreviewKind === 'sample' && !!sampleId && activePreviewId === sampleId;
+  const audioProgress = isSamplePlaying ? progress01 : 0;
+  const isPlaying = isSamplePlaying && playerIsPlaying;
 
   const handleDownloadFull = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -249,45 +260,26 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
     }
   };
 
-  useEffect(() => {
-    return () => {
-      if (audioRef.current) {
-        audioRef.current.pause();
-        audioRef.current = null;
-      }
-    };
-  }, []);
-
-  const totalSeconds = row.waveformBars && row.waveformBars.length > 0
-    ? parseDurationToSeconds(row.duration)
-    : parseDurationToSeconds(row.duration);
-
   const handleTogglePlay = () => {
-    if (!row.audioUrl) return;
-    let audio = audioRef.current;
-    if (!audio) {
-      audio = new Audio(row.audioUrl);
-      audioRef.current = audio;
-      const currentAudio = audio;
-      audio.addEventListener('timeupdate', () => {
-        if (!currentAudio) return;
-        const dur = totalSeconds || currentAudio.duration || 0;
-        if (dur > 0) {
-          setAudioProgress(currentAudio.currentTime / dur);
-        }
-      });
-      audio.addEventListener('ended', () => {
-        setAudioProgress(0);
-        setIsPlaying(false);
-      });
+    if (!row.audioUrl || !sampleId) return;
+    if (isSamplePlaying) {
+      togglePlayPause();
+      return;
     }
-    if (audio.paused) {
-      void audio.play();
-      setIsPlaying(true);
-    } else {
-      audio.pause();
-      setIsPlaying(false);
-    }
+
+    void playSamplePreview({
+      kind: 'sample',
+      id: sampleId,
+      name: row.name,
+      creatorName: row.creator,
+      coverUrl: row.imageUrl ?? undefined,
+      packId: sample?.pack_id ?? null,
+      creatorId: sample?.creator_id ?? null,
+      previewAudioUrl: row.audioUrl,
+      durationLabel: row.duration,
+      bpm: sample?.bpm ?? null,
+      key: sample?.key ?? null,
+    });
   };
 
   const handleViewPack = () => {
@@ -357,7 +349,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
           <button
             type="button"
             onClick={(e) => e.stopPropagation()}
-            className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors"
+            className="size-9 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors"
             aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
           >
             <Heart className={`size-5 ${isFavorited ? 'fill-current' : ''}`} />
@@ -367,7 +359,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
             onClick={handleDownloadFull}
             disabled={!sampleId || downloadLoading}
             aria-busy={downloadLoading}
-            className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors disabled:opacity-50 disabled:pointer-events-none"
+            className="size-9 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors disabled:opacity-50 disabled:pointer-events-none"
             aria-label="Download"
           >
             {downloadLoading ? (
@@ -495,7 +487,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
             <button
               type="button"
               onClick={(e) => e.stopPropagation()}
-              className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors"
+              className="size-9 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors"
               aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
             >
               <Heart className={`size-5 ${isFavorited ? 'fill-current' : ''}`} />
@@ -505,7 +497,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
               onClick={handleDownloadFull}
               disabled={!sampleId || downloadLoading}
               aria-busy={downloadLoading}
-              className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors disabled:opacity-50 disabled:pointer-events-none"
+              className="size-9 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors disabled:opacity-50 disabled:pointer-events-none"
               aria-label="Download"
             >
               {downloadLoading ? (
@@ -522,7 +514,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
                 <button
                   type="button"
                   onClick={(e) => e.stopPropagation()}
-                  className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors"
+                  className="size-9 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors"
                 >
                   <MoreVertical className="size-5" />
                 </button>
