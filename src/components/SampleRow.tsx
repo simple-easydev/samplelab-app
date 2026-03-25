@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Crown, Play, Pause, Heart, Download, MoreVertical, FolderOpen, User, Share2, BarChart2, X, Repeat, Loader2 } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { Crown, Play, Pause, Heart, Download, MoreVertical, FolderOpen, User, Share2, BarChart2, X, Repeat, Loader2, Clock, Folder } from 'lucide-react';
 import { toast } from 'sonner';
 import {
   DropdownMenu,
@@ -7,6 +7,11 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
+import {
+  Dialog,
+  DialogClose,
+  DialogContent,
+} from '@/components/ui/dialog';
 import {
   Drawer,
   DrawerContent,
@@ -22,6 +27,7 @@ import {
 import { useCredits } from '@/contexts/CreditsContext';
 import { useNavigate } from 'react-router-dom';
 import { useAudioPreviewPlayer } from '@/contexts/AudioPreviewPlayerContext';
+import { getBillingInfo } from '@/lib/supabase/subscriptions';
 
 /**
  * @deprecated Use SampleItem from getAllSamples and pass as `sample` prop instead.
@@ -200,12 +206,14 @@ export interface SampleRowProps {
 
 export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = false }: SampleRowProps) {
   const navigate = useNavigate();
-  const { refreshCredits } = useCredits();
+  const { credits, refreshCredits } = useCredits();
   const row = sample ? sampleToDisplay(sample) : item!;
   const sampleId = sample?.id ?? item?.id;
   const [fullRowHovered, setFullRowHovered] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [downloadModalOpen, setDownloadModalOpen] = useState(false);
   const [downloadLoading, setDownloadLoading] = useState(false);
+  const [renewDateLabel, setRenewDateLabel] = useState<string | null>(null);
 
   const {
     activePreviewKind,
@@ -219,6 +227,42 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
   const isSamplePlaying = activePreviewKind === 'sample' && !!sampleId && activePreviewId === sampleId;
   const audioProgress = isSamplePlaying ? progress01 : 0;
   const isPlaying = isSamplePlaying && playerIsPlaying;
+
+  const packName = sample?.pack_name ?? null;
+
+  const creditsLabel = useMemo(() => {
+    if (credits == null) return '—';
+    return String(credits);
+  }, [credits]);
+
+  useEffect(() => {
+    if (!downloadModalOpen) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { subscription } = await getBillingInfo();
+        const iso = subscription?.current_period_end;
+        if (!iso) {
+          if (!cancelled) setRenewDateLabel(null);
+          return;
+        }
+        const dt = new Date(iso);
+        const label = dt.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+        if (!cancelled) setRenewDateLabel(label);
+      } catch {
+        if (!cancelled) setRenewDateLabel(null);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [downloadModalOpen]);
+
+  const handleOpenDownloadModal = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!sampleId) return;
+    setDownloadModalOpen(true);
+  };
 
   const handleDownloadFull = async (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -356,19 +400,151 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
           </button>
           <button
             type="button"
-            onClick={handleDownloadFull}
-            disabled={!sampleId || downloadLoading}
-            aria-busy={downloadLoading}
+            onClick={handleOpenDownloadModal}
+            disabled={!sampleId}
             className="size-9 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors disabled:opacity-50 disabled:pointer-events-none"
             aria-label="Download"
           >
-            {downloadLoading ? (
-              <Loader2 className="size-5 animate-spin" aria-hidden />
-            ) : (
-              <Download className="size-5" />
-            )}
+            <Download className="size-5" />
           </button>
         </div>
+
+        <Dialog open={downloadModalOpen} onOpenChange={setDownloadModalOpen}>
+          <DialogContent
+            showCloseButton={false}
+            className="p-0 bg-[#fffbf0] border-0 rounded-lg shadow-[0px_6px_20px_rgba(0,0,0,0.14),0px_1px_3px_rgba(0,0,0,0.08)] max-w-[720px]"
+          >
+            <div className="flex items-center gap-4 w-full border-b border-[#e8e2d2] px-6 py-4">
+              <div className="flex items-center gap-4 min-w-0 flex-1 text-xs leading-4 tracking-[0.2px]">
+                <div className="flex items-center gap-1 min-w-0">
+                  <span className="text-[#7f7766]">Credits remaining:</span>
+                  <span className="text-[#5e584b] font-medium">{creditsLabel}</span>
+                </div>
+                <span className="w-px h-4 bg-[#d6ceb8] shrink-0" aria-hidden />
+                <div className="flex items-center gap-1 min-w-0">
+                  <span className="text-[#7f7766]">Renews on</span>
+                  <span className="text-[#5e584b] font-medium">{renewDateLabel ?? '—'}</span>
+                </div>
+              </div>
+              <DialogClose asChild>
+                <button
+                  type="button"
+                  className="size-6 flex items-center justify-center rounded-full text-[#5e584b] hover:bg-[#e8e2d2] hover:text-[#161410] transition-colors"
+                  aria-label="Close"
+                >
+                  <X className="size-5" />
+                </button>
+              </DialogClose>
+            </div>
+
+            <div className="p-6">
+              <div className="flex flex-col sm:flex-row gap-6 items-start">
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    handleTogglePlay();
+                  }}
+                  className="relative shrink-0 size-[196px] rounded-sm overflow-hidden bg-[#dde1e6]"
+                  aria-label={isPlaying ? 'Pause preview' : 'Play preview'}
+                >
+                  {row.imageUrl ? (
+                    <img src={row.imageUrl} alt="" className="absolute inset-0 size-full object-cover" />
+                  ) : (
+                    <div className="absolute inset-0 bg-[#dde1e6]" aria-hidden />
+                  )}
+                  <div className="absolute inset-0 bg-[#161410] opacity-50" aria-hidden />
+
+                  {row.premium && (
+                    <div className="absolute right-2 top-2 h-5 px-1.5 rounded-md bg-[#f3c16c] border border-[#eaaa3e] inline-flex items-center justify-center">
+                      <span className="text-[10px] font-medium leading-3 tracking-[0.3px] text-[#161410]">
+                        Premium
+                      </span>
+                    </div>
+                  )}
+
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="flex size-14 items-center justify-center rounded-full bg-[#161410]/80 border border-[#e8e2d2]/20">
+                      {isPlaying ? (
+                        <Pause className="size-7 text-[#fffbf0] fill-[#fffbf0] shrink-0" aria-hidden />
+                      ) : (
+                        <Play className="size-7 text-[#fffbf0] fill-[#fffbf0] shrink-0 pl-0.5" aria-hidden />
+                      )}
+                    </div>
+                  </div>
+                </button>
+
+                <div className="flex flex-col gap-4 w-full min-w-0">
+                  <div className="flex flex-col gap-2 min-w-0">
+                    <p className="text-[#161410] text-[18px] font-bold leading-7 truncate">
+                      {row.name}
+                    </p>
+                    <div className="flex flex-wrap items-center gap-4 text-xs leading-4 tracking-[0.2px] text-[#5e584b]">
+                      <div className="inline-flex items-center gap-1">
+                        <Clock className="size-4 shrink-0" aria-hidden />
+                        <span className="tabular-nums">{row.duration}</span>
+                      </div>
+                      {packName && (
+                        <div className="inline-flex items-center gap-1 min-w-0">
+                          <Folder className="size-4 shrink-0" aria-hidden />
+                          <span className="truncate">{packName}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="flex flex-col gap-2 w-full">
+                    <button
+                      type="button"
+                      onClick={handleDownloadFull}
+                      disabled={!sampleId || downloadLoading}
+                      aria-busy={downloadLoading}
+                      className="w-full h-[60px] px-4 rounded-sm bg-[#161410] text-[#fffbf0] disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3"
+                    >
+                      {downloadLoading ? (
+                        <Loader2 className="size-6 animate-spin shrink-0" aria-hidden />
+                      ) : (
+                        <Download className="size-6 shrink-0" aria-hidden />
+                      )}
+                      <div className="flex flex-col items-start leading-none min-w-0">
+                        <span className="text-sm font-medium leading-5 tracking-[0.1px] truncate w-full">
+                          Download sample (WAV)
+                        </span>
+                        <span className="text-xs leading-4 tracking-[0.2px] text-[#d6ceb8]">
+                          3 credits
+                        </span>
+                      </div>
+                    </button>
+
+                    {sample?.has_stems && (
+                      <button
+                        type="button"
+                        onClick={handleDownloadFull}
+                        disabled={!sampleId || downloadLoading}
+                        aria-busy={downloadLoading}
+                        className="w-full h-[60px] px-4 rounded-sm bg-[#161410] text-[#fffbf0] disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3"
+                      >
+                        {downloadLoading ? (
+                          <Loader2 className="size-6 animate-spin shrink-0" aria-hidden />
+                        ) : (
+                          <Download className="size-6 shrink-0" aria-hidden />
+                        )}
+                        <div className="flex flex-col items-start leading-none min-w-0">
+                          <span className="text-sm font-medium leading-5 tracking-[0.1px] truncate w-full">
+                            Download sample (WAV + STEMS)
+                          </span>
+                          <span className="text-xs leading-4 tracking-[0.2px] text-[#d6ceb8]">
+                            7 credits
+                          </span>
+                        </div>
+                      </button>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     );
   }
@@ -494,17 +670,12 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
             </button>
             <button
               type="button"
-              onClick={handleDownloadFull}
-              disabled={!sampleId || downloadLoading}
-              aria-busy={downloadLoading}
+              onClick={handleOpenDownloadModal}
+              disabled={!sampleId}
               className="size-9 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors disabled:opacity-50 disabled:pointer-events-none"
               aria-label="Download"
             >
-              {downloadLoading ? (
-                <Loader2 className="size-5 animate-spin" aria-hidden />
-              ) : (
-                <Download className="size-5" />
-              )}
+              <Download className="size-5" />
             </button>
             <DropdownMenu>
               <DropdownMenuTrigger
@@ -564,6 +735,143 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
         </div>
       </div>
     </div>
+
+    <Dialog open={downloadModalOpen} onOpenChange={setDownloadModalOpen}>
+      <DialogContent
+        showCloseButton={false}
+        className="p-0 bg-[#fffbf0] border-0 rounded-lg shadow-[0px_6px_20px_rgba(0,0,0,0.14),0px_1px_3px_rgba(0,0,0,0.08)] max-w-[720px]"
+      >
+        <div className="flex items-center gap-4 w-full border-b border-[#e8e2d2] px-6 py-4">
+          <div className="flex items-center gap-4 min-w-0 flex-1 text-xs leading-4 tracking-[0.2px]">
+            <div className="flex items-center gap-1 min-w-0">
+              <span className="text-[#7f7766]">Credits remaining:</span>
+              <span className="text-[#5e584b] font-medium">{creditsLabel}</span>
+            </div>
+            <span className="w-px h-4 bg-[#d6ceb8] shrink-0" aria-hidden />
+            <div className="flex items-center gap-1 min-w-0">
+              <span className="text-[#7f7766]">Renews on</span>
+              <span className="text-[#5e584b] font-medium">{renewDateLabel ?? '—'}</span>
+            </div>
+          </div>
+          <DialogClose asChild>
+            <button
+              type="button"
+              className="size-6 flex items-center justify-center rounded-full text-[#5e584b] hover:bg-[#e8e2d2] hover:text-[#161410] transition-colors"
+              aria-label="Close"
+            >
+              <X className="size-5" />
+            </button>
+          </DialogClose>
+        </div>
+
+        <div className="p-6">
+          <div className="flex flex-col sm:flex-row gap-6 items-start">
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                handleTogglePlay();
+              }}
+              className="relative shrink-0 size-[196px] rounded-sm overflow-hidden bg-[#dde1e6]"
+              aria-label={isPlaying ? 'Pause preview' : 'Play preview'}
+            >
+              {row.imageUrl ? (
+                <img src={row.imageUrl} alt="" className="absolute inset-0 size-full object-cover" />
+              ) : (
+                <div className="absolute inset-0 bg-[#dde1e6]" aria-hidden />
+              )}
+              <div className="absolute inset-0 bg-[#161410] opacity-50" aria-hidden />
+
+              {row.premium && (
+                <div className="absolute right-2 top-2 h-5 px-1.5 rounded-md bg-[#f3c16c] border border-[#eaaa3e] inline-flex items-center justify-center">
+                  <span className="text-[10px] font-medium leading-3 tracking-[0.3px] text-[#161410]">
+                    Premium
+                  </span>
+                </div>
+              )}
+
+              <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                <div className="flex size-14 items-center justify-center rounded-full bg-[#161410]/80 border border-[#e8e2d2]/20">
+                  {isPlaying ? (
+                    <Pause className="size-7 text-[#fffbf0] fill-[#fffbf0] shrink-0" aria-hidden />
+                  ) : (
+                    <Play className="size-7 text-[#fffbf0] fill-[#fffbf0] shrink-0 pl-0.5" aria-hidden />
+                  )}
+                </div>
+              </div>
+            </button>
+
+            <div className="flex flex-col gap-4 w-full min-w-0">
+              <div className="flex flex-col gap-2 min-w-0">
+                <p className="text-[#161410] text-[18px] font-bold leading-7 truncate">
+                  {row.name}
+                </p>
+                <div className="flex flex-wrap items-center gap-4 text-xs leading-4 tracking-[0.2px] text-[#5e584b]">
+                  <div className="inline-flex items-center gap-1">
+                    <Clock className="size-4 shrink-0" aria-hidden />
+                    <span className="tabular-nums">{row.duration}</span>
+                  </div>
+                  {packName && (
+                    <div className="inline-flex items-center gap-1 min-w-0">
+                      <Folder className="size-4 shrink-0" aria-hidden />
+                      <span className="truncate">{packName}</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              <div className="flex flex-col gap-2 w-full">
+                <button
+                  type="button"
+                  onClick={handleDownloadFull}
+                  disabled={!sampleId || downloadLoading}
+                  aria-busy={downloadLoading}
+                  className="w-full h-[60px] px-4 rounded-sm bg-[#161410] text-[#fffbf0] disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3"
+                >
+                  {downloadLoading ? (
+                    <Loader2 className="size-6 animate-spin shrink-0" aria-hidden />
+                  ) : (
+                    <Download className="size-6 shrink-0" aria-hidden />
+                  )}
+                  <div className="flex flex-col items-start leading-none min-w-0">
+                    <span className="text-sm font-medium leading-5 tracking-[0.1px] truncate w-full">
+                      Download sample (WAV)
+                    </span>
+                    <span className="text-xs leading-4 tracking-[0.2px] text-[#d6ceb8]">
+                      3 credits
+                    </span>
+                  </div>
+                </button>
+
+                {sample?.has_stems && (
+                  <button
+                    type="button"
+                    onClick={handleDownloadFull}
+                    disabled={!sampleId || downloadLoading}
+                    aria-busy={downloadLoading}
+                    className="w-full h-[60px] px-4 rounded-sm bg-[#161410] text-[#fffbf0] disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3"
+                  >
+                    {downloadLoading ? (
+                      <Loader2 className="size-6 animate-spin shrink-0" aria-hidden />
+                    ) : (
+                      <Download className="size-6 shrink-0" aria-hidden />
+                    )}
+                    <div className="flex flex-col items-start leading-none min-w-0">
+                      <span className="text-sm font-medium leading-5 tracking-[0.1px] truncate w-full">
+                        Download sample (WAV + STEMS)
+                      </span>
+                      <span className="text-xs leading-4 tracking-[0.2px] text-[#d6ceb8]">
+                        7 credits
+                      </span>
+                    </div>
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        </div>
+      </DialogContent>
+    </Dialog>
 
     <Drawer open={detailsOpen} onOpenChange={setDetailsOpen} direction="bottom">
       <DrawerContent className="max-h-[90vh] flex flex-col bg-[#fffbf0] rounded-t-lg shadow-[0px_6px_20px_rgba(0,0,0,0.14),0px_1px_3px_rgba(0,0,0,0.08)] border-0">
