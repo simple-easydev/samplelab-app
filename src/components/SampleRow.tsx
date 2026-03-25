@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { Crown, Play, Pause, Heart, Download, MoreVertical, FolderOpen, User, Share2, BarChart2, X, Repeat } from 'lucide-react';
+import { Crown, Play, Pause, Heart, Download, MoreVertical, FolderOpen, User, Share2, BarChart2, X, Repeat, Loader2 } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -12,6 +13,12 @@ import {
   DrawerClose,
 } from '@/components/ui/drawer';
 import { getSampleMetadata, formatDurationSeconds, type SampleItem } from '@/lib/supabase/samples';
+import {
+  requestSampleDownloadWithRetry,
+  SampleDownloadError,
+  getSampleDownloadErrorMessage,
+  triggerSignedDownload,
+} from '@/lib/supabase/sampleDownload';
 import { useNavigate } from 'react-router-dom';
 
 /**
@@ -192,14 +199,36 @@ export interface SampleRowProps {
 export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = false }: SampleRowProps) {
   const navigate = useNavigate();
   const row = sample ? sampleToDisplay(sample) : item!;
-  if(row.name == "Wealth Fm 84 bpm"){
-    console.log('row', row);
-  }
+  const sampleId = sample?.id ?? item?.id;
   const [fullRowHovered, setFullRowHovered] = useState(false);
   const [audioProgress, setAudioProgress] = useState(0);
   const [isPlaying, setIsPlaying] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
+  const [downloadLoading, setDownloadLoading] = useState(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
+
+  const handleDownloadFull = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!sampleId || downloadLoading) return;
+    setDownloadLoading(true);
+    try {
+      const result = await requestSampleDownloadWithRetry(sampleId);
+      await triggerSignedDownload(result.signedUrl, result.filename);
+      const creditPart =
+        result.creditsCharged > 0
+          ? ` · ${result.creditsCharged} credit${result.creditsCharged === 1 ? '' : 's'} used`
+          : '';
+      toast.success(`Download started${creditPart}`);
+    } catch (err) {
+      if (err instanceof SampleDownloadError) {
+        toast.error(getSampleDownloadErrorMessage(err.code));
+      } else {
+        toast.error('Download failed. Please try again.');
+      }
+    } finally {
+      setDownloadLoading(false);
+    }
+  };
 
   useEffect(() => {
     return () => {
@@ -316,11 +345,17 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
           </button>
           <button
             type="button"
-            onClick={(e) => e.stopPropagation()}
-            className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors"
+            onClick={handleDownloadFull}
+            disabled={!sampleId || downloadLoading}
+            aria-busy={downloadLoading}
+            className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors disabled:opacity-50 disabled:pointer-events-none"
             aria-label="Download"
           >
-            <Download className="size-5" />
+            {downloadLoading ? (
+              <Loader2 className="size-5 animate-spin" aria-hidden />
+            ) : (
+              <Download className="size-5" />
+            )}
           </button>
         </div>
       </div>
@@ -448,11 +483,17 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
             </button>
             <button
               type="button"
-              onClick={(e) => e.stopPropagation()}
-              className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors"
+              onClick={handleDownloadFull}
+              disabled={!sampleId || downloadLoading}
+              aria-busy={downloadLoading}
+              className="size-9 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors disabled:opacity-50 disabled:pointer-events-none"
               aria-label="Download"
             >
-              <Download className="size-5" />
+              {downloadLoading ? (
+                <Loader2 className="size-5 animate-spin" aria-hidden />
+              ) : (
+                <Download className="size-5" />
+              )}
             </button>
             <DropdownMenu>
               <DropdownMenuTrigger
@@ -621,10 +662,17 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
                       </button>
                       <button
                         type="button"
-                        className="size-6 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2]"
+                        onClick={handleDownloadFull}
+                        disabled={!sampleId || downloadLoading}
+                        aria-busy={downloadLoading}
+                        className="size-6 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] disabled:opacity-50 disabled:pointer-events-none"
                         aria-label="Download"
                       >
-                        <Download className="size-5" />
+                        {downloadLoading ? (
+                          <Loader2 className="size-5 animate-spin" aria-hidden />
+                        ) : (
+                          <Download className="size-5" />
+                        )}
                       </button>
                       <button
                         type="button"
