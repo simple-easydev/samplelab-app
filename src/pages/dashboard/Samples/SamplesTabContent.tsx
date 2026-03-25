@@ -5,11 +5,13 @@ import { useSubscription } from '@/hooks/useSubscription';
 import { SamplesFilterBar } from './SamplesFilterBar';
 import { SamplesFilterBarMobile } from './SamplesFilterBarMobile';
 import { SamplesFilterProvider, useSamplesFilterBar } from '@/contexts/SamplesFilterContext';
+import { useAudioPreviewPlayer } from '@/contexts/AudioPreviewPlayerContext';
 
 /** Samples list with infinite scroll (paged RPC). */
 function SamplesList() {
   const { samples, loading, loadingMore, hasMore, loadMore } = useSamplesFilterBar();
   const sentinelRef = useRef<HTMLDivElement>(null);
+  const { setSampleQueue } = useAudioPreviewPlayer();
 
   useEffect(() => {
     const el = sentinelRef.current;
@@ -24,6 +26,35 @@ function SamplesList() {
     obs.observe(el);
     return () => obs.disconnect();
   }, [loading, hasMore, loadingMore, loadMore]);
+
+  useEffect(() => {
+    // Register the currently rendered samples list as the playback queue.
+    setSampleQueue(
+      'samples-tab',
+      samples
+        .filter((s) => !!(s.preview_audio_url ?? s.audio_url))
+        .map((s) => ({
+          id: s.id,
+          name: s.name,
+          creatorName: s.creator_name,
+          coverUrl: s.thumbnail_url,
+          packId: s.pack_id,
+          creatorId: s.creator_id ?? null,
+          previewAudioUrl: (s.preview_audio_url ?? s.audio_url)!,
+          durationLabel: (() => {
+            const meta = s.metadata && typeof s.metadata !== 'string' ? s.metadata : null;
+            if (meta?.duration_seconds != null) {
+              const mins = Math.floor(meta.duration_seconds / 60);
+              const secs = Math.floor(meta.duration_seconds % 60);
+              return `${mins}:${secs.toString().padStart(2, '0')}`;
+            }
+            return '0:00';
+          })(),
+          bpm: s.bpm,
+          key: s.key,
+        }))
+    );
+  }, [samples, setSampleQueue]);
 
   return (
     <section className="w-full" aria-label="Samples list">

@@ -16,6 +16,7 @@ import { packDetailSampleToSampleItem } from '@/lib/utils';
 import { SamplesFilterBar } from '../Samples/SamplesFilterBar';
 import { SamplesFilterBarMobile } from '../Samples/SamplesFilterBarMobile';
 import { SamplesFilterProvider } from '@/contexts/SamplesFilterContext';
+import { useAudioPreviewPlayer } from '@/contexts/AudioPreviewPlayerContext';
 
 function formatReleasedAt(createdAt: string): string {
   const date = new Date(createdAt);
@@ -41,6 +42,7 @@ export default function PackDetailPage() {
   const [pack, setPack] = useState<PackDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const { setSampleQueue } = useAudioPreviewPlayer();
 
   useEffect(() => {
     if (!packId) {
@@ -59,6 +61,28 @@ export default function PackDetailPage() {
       cancelled = true;
     };
   }, [packId]);
+
+  useEffect(() => {
+    if (!pack || !packId) return;
+    // Register the currently displayed pack samples list as the playback queue.
+    setSampleQueue(
+      `pack:${packId}`,
+      (pack.samples ?? [])
+        .filter((s) => !!s.preview_audio_url)
+        .map((s) => ({
+          id: s.id,
+          name: s.name,
+          creatorName: pack.creator_name,
+          coverUrl: pack.cover_url,
+          packId: pack.id,
+          creatorId: pack.creator_id ?? null,
+          previewAudioUrl: s.preview_audio_url,
+          durationLabel: s.length ?? '0:00',
+          bpm: s.bpm,
+          key: s.key,
+        }))
+    );
+  }, [pack, packId, setSampleQueue]);
 
   if (!packId || loading) {
     return (
@@ -294,21 +318,21 @@ export default function PackDetailPage() {
             <div className="flex gap-4 items-center flex-wrap">
               <button
                 type="button"
-                className="bg-[#161410] text-[#fffbf0] h-14 px-5 rounded-[2px] flex items-center gap-2.5 text-lg font-medium hover:opacity-90"
+                className="bg-[#161410] text-[#fffbf0] h-14 px-5 rounded-xs flex items-center gap-2.5 text-lg font-medium hover:opacity-90"
               >
                 <Download className="size-7" />
                 Get Pack
               </button>
               <button
                 type="button"
-                className="border border-[#a49a84] h-14 px-5 rounded-[2px] flex items-center gap-2.5 text-[#161410] text-lg font-medium hover:bg-[#e8e2d2] transition-colors"
+                className="border border-[#a49a84] h-14 px-5 rounded-xs flex items-center gap-2.5 text-[#161410] text-lg font-medium hover:bg-[#e8e2d2] transition-colors"
               >
                 <Play className="size-7" />
                 Play Preview
               </button>
               <button
                 type="button"
-                className="border border-[#a49a84] size-14 flex items-center justify-center rounded-[2px] text-[#161410] hover:bg-[#e8e2d2] transition-colors"
+                className="border border-[#a49a84] size-14 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors"
                 aria-label="Add to favorites"
               >
                 <Heart className="size-7" />

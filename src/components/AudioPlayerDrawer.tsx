@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Download, Heart, MoreHorizontal, Pause, Play, Repeat, Share2, User, Volume2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Download, Heart, MoreHorizontal, Pause, Play, Repeat, Share2, User, Volume2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Slider } from '@/components/ui/slider';
 import {
@@ -32,6 +32,10 @@ interface PackPreviewPlayerDrawerProps {
   onGetPack: () => void;
   onViewCreator: () => void;
   onShare: () => void;
+  onPrevSampleInPack: () => void;
+  onNextSampleInPack: () => void;
+  canPrevSampleInPack: boolean;
+  canNextSampleInPack: boolean;
 }
 
 export function AudioPlayerDrawer({
@@ -48,6 +52,10 @@ export function AudioPlayerDrawer({
   onGetPack,
   onViewCreator,
   onShare,
+  onPrevSampleInPack,
+  onNextSampleInPack,
+  canPrevSampleInPack,
+  canNextSampleInPack,
 }: PackPreviewPlayerDrawerProps) {
   const previewKind = pack.kind ?? 'pack';
   const [isVolumeOpen, setIsVolumeOpen] = useState(false);
@@ -78,14 +86,47 @@ export function AudioPlayerDrawer({
             </div>
           </div>
           <div className="flex flex-col items-center gap-2">
-            <button
-              type="button"
-              onClick={onTogglePlayPause}
-              className="flex size-10 items-center justify-center rounded-full border border-[#d6ceb8] bg-[#161410] text-[#fffbf0]"
-              aria-label={isPlaying ? 'Pause preview' : 'Play preview'}
-            >
-              {isPlaying ? <Pause className="size-4 fill-current" /> : <Play className="size-4 fill-current pl-0.5" />}
-            </button>
+            {previewKind === 'sample' ? (
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={onPrevSampleInPack}
+                  disabled={!canPrevSampleInPack}
+                  className="disabled:opacity-40 disabled:pointer-events-none flex size-9 items-center justify-center rounded-xs hover:bg-[#e8e2d2] transition-colors text-[#161410]"
+                  aria-label="Previous sample"
+                >
+                  <ChevronLeft className="size-5" aria-hidden />
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onTogglePlayPause}
+                  className="flex size-10 items-center justify-center rounded-full border border-[#d6ceb8] bg-[#161410] text-[#fffbf0]"
+                  aria-label={isPlaying ? 'Pause preview' : 'Play preview'}
+                >
+                  {isPlaying ? <Pause className="size-4 fill-current" /> : <Play className="size-4 fill-current pl-0.5" />}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={onNextSampleInPack}
+                  disabled={!canNextSampleInPack}
+                  className="disabled:opacity-40 disabled:pointer-events-none flex size-9 items-center justify-center rounded-xs hover:bg-[#e8e2d2] transition-colors text-[#161410]"
+                  aria-label="Next sample"
+                >
+                  <ChevronRight className="size-5" aria-hidden />
+                </button>
+              </div>
+            ) : (
+              <button
+                type="button"
+                onClick={onTogglePlayPause}
+                className="flex size-10 items-center justify-center rounded-full border border-[#d6ceb8] bg-[#161410] text-[#fffbf0]"
+                aria-label={isPlaying ? 'Pause preview' : 'Play preview'}
+              >
+                {isPlaying ? <Pause className="size-4 fill-current" /> : <Play className="size-4 fill-current pl-0.5" />}
+              </button>
+            )}
             <p className="text-xs leading-4 tracking-[0.2px] text-[#5e584b]">Preview • {previewTime}</p>
           </div>
           <div className="flex flex-1 items-center justify-end gap-5 text-[#161410]">

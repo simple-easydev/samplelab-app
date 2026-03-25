@@ -12,7 +12,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
-import { usePackPreviewPlayer } from '@/contexts/PackPreviewPlayerContext';
+import { useAudioPreviewPlayer } from '@/contexts/AudioPreviewPlayerContext';
 import { AudioBarIcon } from './icons';
 
 /**
@@ -54,7 +54,7 @@ export function SamplePackCard({
   onShare,
   lockDesktop = false,
 }: SamplePackCardProps) {
-  const { activePreviewKind, activePreviewId, isPlaying, playPackPreview } = usePackPreviewPlayer();
+  const { activePreviewKind, activePreviewId, isPlaying, playPackPreview } = useAudioPreviewPlayer();
 
   const id = pack.id;
   const displayTitle = pack.name;

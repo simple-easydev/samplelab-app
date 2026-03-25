@@ -21,7 +21,7 @@ import {
 } from '@/lib/supabase/sampleDownload';
 import { useCredits } from '@/contexts/CreditsContext';
 import { useNavigate } from 'react-router-dom';
-import { usePackPreviewPlayer } from '@/contexts/PackPreviewPlayerContext';
+import { useAudioPreviewPlayer } from '@/contexts/AudioPreviewPlayerContext';
 
 /**
  * @deprecated Use SampleItem from getAllSamples and pass as `sample` prop instead.
@@ -214,7 +214,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
     progress01,
     playSamplePreview,
     togglePlayPause,
-  } = usePackPreviewPlayer();
+  } = useAudioPreviewPlayer();
 
   const isSamplePlaying = activePreviewKind === 'sample' && !!sampleId && activePreviewId === sampleId;
   const audioProgress = isSamplePlaying ? progress01 : 0;

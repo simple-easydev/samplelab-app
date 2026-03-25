@@ -11,7 +11,7 @@ import CreatorDetailPage from './Creators/CreatorDetailPage';
 import GenreDetailPage from './Generes/GenreDetailPage';
 import AccountSettingsPage from './Account/AccountSettingsPage';
 import { DASHBOARD_TABS } from './DashboardTabContent';
-import { PackPreviewPlayerProvider } from '@/contexts/PackPreviewPlayerContext';
+import { AudioPreviewPlayerProvider } from '@/contexts/AudioPreviewPlayerContext';
 
 type DashboardTabId = (typeof DASHBOARD_TABS)[number]['id'];
 const VALID_TAB_IDS = new Set<string>(DASHBOARD_TABS.map((t) => t.id));
@@ -70,7 +70,7 @@ export default function DashboardRouter() {
   const hasStripeSession = searchParams.has('session_id');
 
   return (
-    <PackPreviewPlayerProvider>
+    <AudioPreviewPlayerProvider>
       <Routes>
         {/* /dashboard -> /dashboard/discover; /dashboard?q=... -> SearchResultPage; keep URL when session_id for Stripe */}
         <Route
@@ -115,7 +115,7 @@ export default function DashboardRouter() {
         {/* Invalid or unknown path -> discover */}
         <Route path="*" element={<Navigate to="/dashboard/discover" replace />} />
       </Routes>
-    </PackPreviewPlayerProvider>
+    </AudioPreviewPlayerProvider>
   );
 }
 
