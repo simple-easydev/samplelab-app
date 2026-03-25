@@ -230,6 +230,13 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
 
   const packName = sample?.pack_name ?? null;
 
+  const wavCreditCost = sample?.credit_cost ?? null;
+  const stemsCreditCost = sample?.has_stems ? (wavCreditCost != null ? wavCreditCost + 4 : null) : null;
+
+  const wavCreditLabel = wavCreditCost != null ? `${wavCreditCost} credit${wavCreditCost === 1 ? '' : 's'}` : '— credits';
+  const stemsCreditLabel =
+    stemsCreditCost != null ? `${stemsCreditCost} credit${stemsCreditCost === 1 ? '' : 's'}` : '— credits';
+
   const creditsLabel = useMemo(() => {
     if (credits == null) return '—';
     return String(credits);
@@ -511,7 +518,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
                           Download sample (WAV)
                         </span>
                         <span className="text-xs leading-4 tracking-[0.2px] text-[#d6ceb8]">
-                          3 credits
+                          {wavCreditLabel}
                         </span>
                       </div>
                     </button>
@@ -534,7 +541,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
                             Download sample (WAV + STEMS)
                           </span>
                           <span className="text-xs leading-4 tracking-[0.2px] text-[#d6ceb8]">
-                            7 credits
+                            {stemsCreditLabel}
                           </span>
                         </div>
                       </button>
@@ -838,7 +845,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
                       Download sample (WAV)
                     </span>
                     <span className="text-xs leading-4 tracking-[0.2px] text-[#d6ceb8]">
-                      3 credits
+                      {wavCreditLabel}
                     </span>
                   </div>
                 </button>
@@ -861,7 +868,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
                         Download sample (WAV + STEMS)
                       </span>
                       <span className="text-xs leading-4 tracking-[0.2px] text-[#d6ceb8]">
-                        7 credits
+                        {stemsCreditLabel}
                       </span>
                     </div>
                   </button>

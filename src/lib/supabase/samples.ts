@@ -19,6 +19,8 @@ export interface SampleItem {
   creator_id?: string | null;
   pack_name: string;
   creator_name: string;
+  /** Credits required to download the base sample (WAV). */
+  credit_cost?: number | null;
   /** Legacy field (may be absent after RPC change). */
   audio_url: string | null;
   /** New field returned by RPC `get_all_samples` (used for previews). */
