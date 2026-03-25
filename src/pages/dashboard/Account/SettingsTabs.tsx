@@ -3,6 +3,7 @@ import { cn } from '@/lib/utils';
 
 export const SETTINGS_TABS = [
   { label: 'Account settings', path: '/dashboard/settings/account' },
+  { label: 'Billing', path: '/dashboard/settings/bill' },
 ] as const;
 
 export function SettingsTabs() {

@@ -1,5 +1,5 @@
 import { Link } from 'react-router-dom';
-import { User, Settings, LogOut } from 'lucide-react';
+import { User, Settings, LogOut, CreditCard } from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -46,6 +46,12 @@ export function UserDropdownMenu({
             <Link to="/dashboard/settings/account" className="flex items-center gap-1.5 text-[#161410]">
               <Settings className="size-5 shrink-0" />
               Account settings
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild className={`${MENU_ITEM_CLASS} focus:bg-[#f6f2e6]`}>
+            <Link to="/dashboard/settings/bill" className="flex items-center gap-1.5 text-[#161410]">
+              <CreditCard className="size-5 shrink-0" />
+              Billing
             </Link>
           </DropdownMenuItem>
         </div>
