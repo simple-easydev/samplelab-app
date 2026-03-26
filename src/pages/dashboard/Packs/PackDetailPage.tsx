@@ -7,6 +7,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { ArrowLeft, Share2, Download, Play, Heart, Crown } from 'lucide-react';
+import { toast } from 'sonner';
 import { SamplePackCard } from '@/components/SamplePackCard';
 import { CardCarousel } from '@/components/CardCarousel';
 import { ExploreLibraryCta } from '@/components/ExploreLibraryCta';
@@ -17,6 +18,8 @@ import { SamplesFilterBar } from '../Samples/SamplesFilterBar';
 import { SamplesFilterBarMobile } from '../Samples/SamplesFilterBarMobile';
 import { SamplesFilterProvider } from '@/contexts/SamplesFilterContext';
 import { useAudioPreviewPlayer } from '@/contexts/AudioPreviewPlayerContext';
+import { isPackLiked, likePack, unlikePack } from '@/lib/supabase/likes';
+import { supabase } from '@/lib/supabase/client';
 
 function formatReleasedAt(createdAt: string): string {
   const date = new Date(createdAt);
@@ -42,7 +45,40 @@ export default function PackDetailPage() {
   const [pack, setPack] = useState<PackDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [descriptionExpanded, setDescriptionExpanded] = useState(false);
+  const [packLiked, setPackLiked] = useState(false);
+  const [packLikeBusy, setPackLikeBusy] = useState(false);
   const { setSampleQueue } = useAudioPreviewPlayer();
+
+  useEffect(() => {
+    if (!packId) return;
+    let cancelled = false;
+    isPackLiked(packId).then((v) => {
+      if (!cancelled) setPackLiked(v);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [packId]);
+
+  const handleTogglePackFavorite = async () => {
+    if (!packId || packLikeBusy) return;
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.user) {
+      toast.error('Sign in to save favorites.');
+      return;
+    }
+    setPackLikeBusy(true);
+    const next = !packLiked;
+    setPackLiked(next);
+    const res = next ? await likePack(packId) : await unlikePack(packId);
+    if ('error' in res) {
+      setPackLiked(!next);
+      toast.error(res.error);
+    }
+    setPackLikeBusy(false);
+  };
 
   useEffect(() => {
     if (!packId) {
@@ -193,10 +229,13 @@ export default function PackDetailPage() {
                 </button>
                 <button
                   type="button"
-                  className="border border-[#a49a84] size-10 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors"
-                  aria-label="Add to favorites"
+                  onClick={() => void handleTogglePackFavorite()}
+                  disabled={packLikeBusy}
+                  className="border border-[#a49a84] size-10 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors disabled:opacity-50"
+                  aria-label={packLiked ? 'Remove from favorites' : 'Add to favorites'}
+                  aria-pressed={packLiked}
                 >
-                  <Heart className="size-5" />
+                  <Heart className={`size-5 ${packLiked ? 'fill-current' : ''}`} />
                 </button>
               </div>
 
@@ -332,10 +371,13 @@ export default function PackDetailPage() {
               </button>
               <button
                 type="button"
-                className="border border-[#a49a84] size-14 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors"
-                aria-label="Add to favorites"
+                onClick={() => void handleTogglePackFavorite()}
+                disabled={packLikeBusy}
+                className="border border-[#a49a84] size-14 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors disabled:opacity-50"
+                aria-label={packLiked ? 'Remove from favorites' : 'Add to favorites'}
+                aria-pressed={packLiked}
               >
-                <Heart className="size-7" />
+                <Heart className={`size-7 ${packLiked ? 'fill-current' : ''}`} />
               </button>
             </div>
 

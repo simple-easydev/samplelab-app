@@ -3,12 +3,7 @@
  * Import from here for a single entry point.
  */
 export { DASHBOARD_TABS } from './constants';
-export {
-  FEATURED_PACKS,
-  SIMILAR_PACKS_TO_LIKES,
-  FEATURED_CREATORS,
-  TOP_GENRES,
-} from './constants';
+export { FEATURED_PACKS, FEATURED_CREATORS, TOP_GENRES } from './constants';
 export type { DiscoverTabContentProps } from './DiscoverTabContent';
 export { DiscoverTabContent } from './DiscoverTabContent';
 export { PacksTabContent } from './Packs/PacksTabContent';

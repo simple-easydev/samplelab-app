@@ -28,6 +28,12 @@ import { useCredits } from '@/contexts/CreditsContext';
 import { useNavigate } from 'react-router-dom';
 import { useAudioPreviewPlayer } from '@/contexts/AudioPreviewPlayerContext';
 import { getBillingInfo } from '@/lib/supabase/subscriptions';
+import {
+  isSampleLiked,
+  likeSample,
+  unlikeSample,
+} from '@/lib/supabase/likes';
+import { supabase } from '@/lib/supabase/client';
 
 /**
  * @deprecated Use SampleItem from getAllSamples and pass as `sample` prop instead.
@@ -209,6 +215,8 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
   const { credits, refreshCredits } = useCredits();
   const row = sample ? sampleToDisplay(sample) : item!;
   const sampleId = sample?.id ?? item?.id;
+  const [liked, setLiked] = useState(isFavorited);
+  const [likeBusy, setLikeBusy] = useState(false);
   const [fullRowHovered, setFullRowHovered] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
   const [downloadModalOpen, setDownloadModalOpen] = useState(false);
@@ -264,6 +272,38 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
       cancelled = true;
     };
   }, [downloadModalOpen]);
+
+  useEffect(() => {
+    if (!sampleId) return;
+    let cancelled = false;
+    isSampleLiked(sampleId).then((v) => {
+      if (!cancelled) setLiked(v);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [sampleId]);
+
+  const handleToggleFavorite = async (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (!sampleId || likeBusy) return;
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.user) {
+      toast.error('Sign in to save favorites.');
+      return;
+    }
+    setLikeBusy(true);
+    const next = !liked;
+    setLiked(next);
+    const res = next ? await likeSample(sampleId) : await unlikeSample(sampleId);
+    if ('error' in res) {
+      setLiked(!next);
+      toast.error(res.error);
+    }
+    setLikeBusy(false);
+  };
 
   const handleOpenDownloadModal = (e: React.MouseEvent) => {
     e.stopPropagation();
@@ -399,11 +439,13 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
         <div className="flex gap-1 items-center shrink-0 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
           <button
             type="button"
-            onClick={(e) => e.stopPropagation()}
-            className="size-9 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors"
-            aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+            onClick={handleToggleFavorite}
+            disabled={likeBusy}
+            className="size-9 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors disabled:opacity-50"
+            aria-label={liked ? 'Remove from favorites' : 'Add to favorites'}
+            aria-pressed={liked}
           >
-            <Heart className={`size-5 ${isFavorited ? 'fill-current' : ''}`} />
+            <Heart className={`size-5 ${liked ? 'fill-current' : ''}`} />
           </button>
           <button
             type="button"
@@ -669,11 +711,13 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
           <div className="flex gap-1 items-center shrink-0 opacity-100 md:opacity-0 md:transition-opacity md:duration-200 md:group-hover:opacity-100">
             <button
               type="button"
-              onClick={(e) => e.stopPropagation()}
-              className="size-9 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors"
-              aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+              onClick={handleToggleFavorite}
+              disabled={likeBusy}
+              className="size-9 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] transition-colors disabled:opacity-50"
+              aria-label={liked ? 'Remove from favorites' : 'Add to favorites'}
+              aria-pressed={liked}
             >
-              <Heart className={`size-5 ${isFavorited ? 'fill-current' : ''}`} />
+              <Heart className={`size-5 ${liked ? 'fill-current' : ''}`} />
             </button>
             <button
               type="button"
@@ -981,10 +1025,13 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
                       </button>
                       <button
                         type="button"
-                        className="size-6 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2]"
-                        aria-label={isFavorited ? 'Remove from favorites' : 'Add to favorites'}
+                        onClick={handleToggleFavorite}
+                        disabled={likeBusy}
+                        className="size-6 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] disabled:opacity-50"
+                        aria-label={liked ? 'Remove from favorites' : 'Add to favorites'}
+                        aria-pressed={liked}
                       >
-                        <Heart className={`size-5 ${isFavorited ? 'fill-current' : ''}`} />
+                        <Heart className={`size-5 ${liked ? 'fill-current' : ''}`} />
                       </button>
                       <button
                         type="button"

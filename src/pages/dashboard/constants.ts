@@ -76,17 +76,6 @@ export const PACKS_GRID_ITEMS: PackItem[] = [
   { id: 'soulful-chops', title: 'Soulful Chops', creator: 'Beat Lab', playCount: '17', genre: 'Soul' },
 ];
 
-export const LIKED_PACK_NAME = 'Sample Pack Name';
-
-export const SIMILAR_PACKS_TO_LIKES: PackItem[] = [
-  { id: 'sample-pack-name-goes-here', title: 'Sample Pack Name Goes Here', creator: 'Creator Name', playCount: '30', genre: 'Hip-Hop' },
-  { id: 'lo-fi-essentials-vol-2', title: 'Lo-Fi Essentials Vol. 2', creator: 'Beat Lab', playCount: '30', genre: 'Lo-Fi' },
-  { id: 'trap-drums-melodies', title: 'Trap Drums & Melodies', creator: 'Sound Factory', playCount: '15', genre: 'Trap', premium: true },
-  { id: 'soul-chops-collection', title: 'Soul Chops Collection', creator: 'Vinyl Revival', playCount: '24', genre: 'Soul' },
-  { id: 'electronic-textures', title: 'Electronic Textures', creator: 'Synth Wave', playCount: '18', genre: 'Electronic' },
-  { id: 'the-jungle', title: 'The Jungle', creator: 'Creator Name', playCount: '12', genre: 'Hip-Hop', premium: true },
-];
-
 export function getPackById(packId: string): PackItem | undefined {
   return PACKS_GRID_ITEMS.find((p) => p.id === packId);
 }

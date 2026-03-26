@@ -28,7 +28,7 @@ export function SimilarSamplesSection() {
     };
   }, []);
 
-  if (!loading && items.length === 0) return null;
+  if (loading || items.length === 0) return null;
 
   const sourceSampleName =
     items[0]?.seed_sample_name?.trim() || 'your last download';
@@ -44,11 +44,9 @@ export function SimilarSamplesSection() {
         </p>
       </div>
       <div className="border border-[#e8e2d2] rounded overflow-hidden flex flex-col">
-        {loading ? (
-          <p className="text-[#5e584b] text-sm p-4">Loading…</p>
-        ) : (
-          items.map((sample) => <SampleRow key={sample.id} sample={sample} />)
-        )}
+        {items.map((sample) => (
+          <SampleRow key={sample.id} sample={sample} />
+        ))}
       </div>
     </section>
   );

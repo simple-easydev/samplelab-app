@@ -4,8 +4,10 @@
  * Cover image, optional Premium badge, overline, title, creator, tag pills.
  * More options button opens context menu. Pack title navigates to the pack detail page.
  */
+import { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Play, Pause, MoreHorizontal, Music2, Heart, Download, User, Share2, Crown } from 'lucide-react';
+import { toast } from 'sonner';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -14,6 +16,8 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { useAudioPreviewPlayer } from '@/contexts/AudioPreviewPlayerContext';
 import { AudioBarIcon } from './icons';
+import { isPackLiked, likePack, unlikePack } from '@/lib/supabase/likes';
+import { supabase } from '@/lib/supabase/client';
 
 /**
  * Pack data for the card (e.g. from get_featured_packs or compatible shape).
@@ -55,6 +59,8 @@ export function SamplePackCard({
   lockDesktop = false,
 }: SamplePackCardProps) {
   const { activePreviewKind, activePreviewId, isPlaying, playPackPreview } = useAudioPreviewPlayer();
+  const [packLiked, setPackLiked] = useState(false);
+  const [packLikeBusy, setPackLikeBusy] = useState(false);
 
   const id = pack.id;
   const displayTitle = pack.name;
@@ -65,6 +71,41 @@ export function SamplePackCard({
   const displayGenre = pack.category_name ?? undefined;
   const displayPremium = pack.is_premium ?? false;
   const isActivePack = activePreviewKind === 'pack' && activePreviewId === id;
+
+  useEffect(() => {
+    if (!id) return;
+    let cancelled = false;
+    isPackLiked(id).then((v) => {
+      if (!cancelled) setPackLiked(v);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [id]);
+
+  const handlePackFavorite = async () => {
+    if (onAddToFavorites) {
+      onAddToFavorites();
+      return;
+    }
+    if (!id || packLikeBusy) return;
+    const {
+      data: { session },
+    } = await supabase.auth.getSession();
+    if (!session?.user) {
+      toast.error('Sign in to save favorites.');
+      return;
+    }
+    setPackLikeBusy(true);
+    const next = !packLiked;
+    setPackLiked(next);
+    const res = next ? await likePack(id) : await unlikePack(id);
+    if ('error' in res) {
+      setPackLiked(!next);
+      toast.error(res.error);
+    }
+    setPackLikeBusy(false);
+  };
 
   const moreButtonClass =
     'size-6 flex items-center justify-center rounded-xs text-[#161410] opacity-100 transition-opacity hover:bg-[#e8e2d2] data-[state=open]:opacity-100 data-[state=open]:bg-[#e8e2d2] md:opacity-0 md:group-hover:opacity-100';
@@ -177,11 +218,14 @@ export function SamplePackCard({
             className="flex h-10 cursor-pointer items-center gap-1.5 px-3 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]"
             onSelect={(e) => {
               e.preventDefault();
-              onAddToFavorites?.();
+              void handlePackFavorite();
             }}
           >
-            <Heart className="size-5 shrink-0" aria-hidden />
-            Add to favorites
+            <Heart
+              className={`size-5 shrink-0 ${packLiked && !onAddToFavorites ? 'fill-current' : ''}`}
+              aria-hidden
+            />
+            {packLiked && !onAddToFavorites ? 'Remove from favorites' : 'Add to favorites'}
           </DropdownMenuItem>
           <DropdownMenuItem
             className="flex h-10 cursor-pointer items-center gap-1.5 px-3 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]"

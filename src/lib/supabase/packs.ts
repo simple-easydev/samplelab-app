@@ -189,3 +189,54 @@ export async function getFeaturedPacks(): Promise<FeaturedPackRow[]> {
 
   return Array.isArray(data) ? (data as FeaturedPackRow[]) : [];
 }
+
+/** Liked pack anchor returned by get_similar_packs_by_liked_pack. */
+export interface LikedPackRef {
+  id: string;
+  name: string;
+}
+
+/** RPC get_similar_packs_by_liked_pack — similar packs for Discover "Because you liked". */
+export interface SimilarPacksByLikedResult {
+  liked_pack: LikedPackRef | null;
+  similarities: PackRow[];
+}
+
+/**
+ * Similar packs based on a pack the user liked (or most recent liked pack when p_pack_id omitted).
+ * RPC: get_similar_packs_by_liked_pack
+ */
+export async function getSimilarPacksByLikedPack(options?: {
+  p_pack_id?: string;
+  p_limit?: number;
+}): Promise<SimilarPacksByLikedResult | null> {
+  const p_limit = options?.p_limit ?? 6;
+  const params: { p_limit: number; p_pack_id?: string } = { p_limit };
+  if (options?.p_pack_id) params.p_pack_id = options.p_pack_id;
+
+  const { data, error } = await supabase.rpc('get_similar_packs_by_liked_pack', params);
+
+  if (error) {
+    console.error('Error fetching similar packs by liked pack:', error);
+    return null;
+  }
+
+  if (data == null || typeof data !== 'object') return null;
+
+  const row = data as Record<string, unknown>;
+  const rawLiked = row.liked_pack;
+  const liked_pack =
+    rawLiked &&
+    typeof rawLiked === 'object' &&
+    'id' in rawLiked &&
+    'name' in rawLiked &&
+    typeof (rawLiked as { id: unknown }).id === 'string' &&
+    typeof (rawLiked as { name: unknown }).name === 'string'
+      ? { id: (rawLiked as { id: string }).id, name: (rawLiked as { name: string }).name }
+      : null;
+
+  const sims = row.similarities;
+  const similarities = Array.isArray(sims) ? (sims as PackRow[]) : [];
+
+  return { liked_pack, similarities };
+}

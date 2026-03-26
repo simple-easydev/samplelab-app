@@ -186,7 +186,9 @@ export type Database = {
           email: string | null
           id: string
           is_active: boolean | null
+          is_featured: boolean | null
           name: string
+          rank: number | null
           updated_at: string | null
         }
         Insert: {
@@ -196,7 +198,9 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean | null
+          is_featured?: boolean | null
           name: string
+          rank?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -206,7 +210,9 @@ export type Database = {
           email?: string | null
           id?: string
           is_active?: boolean | null
+          is_featured?: boolean | null
           name?: string
+          rank?: number | null
           updated_at?: string | null
         }
         Relationships: []
@@ -263,6 +269,8 @@ export type Database = {
           id: string
           is_active: boolean | null
           name: string
+          rank: number | null
+          thumbnail_url: string | null
         }
         Insert: {
           created_at?: string | null
@@ -270,6 +278,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name: string
+          rank?: number | null
+          thumbnail_url?: string | null
         }
         Update: {
           created_at?: string | null
@@ -277,6 +287,8 @@ export type Database = {
           id?: string
           is_active?: boolean | null
           name?: string
+          rank?: number | null
+          thumbnail_url?: string | null
         }
         Relationships: []
       }
@@ -343,6 +355,7 @@ export type Database = {
           description: string | null
           download_count: number | null
           id: string
+          is_featured: boolean | null
           is_premium: boolean | null
           name: string
           status: string
@@ -357,6 +370,7 @@ export type Database = {
           description?: string | null
           download_count?: number | null
           id?: string
+          is_featured?: boolean | null
           is_premium?: boolean | null
           name: string
           status?: string
@@ -371,6 +385,7 @@ export type Database = {
           description?: string | null
           download_count?: number | null
           id?: string
+          is_featured?: boolean | null
           is_premium?: boolean | null
           name?: string
           status?: string
@@ -503,11 +518,17 @@ export type Database = {
           file_size_bytes: number | null
           has_stems: boolean | null
           id: string
+          instrument: string | null
           key: string | null
           length: string | null
+          metadata: Json | null
           name: string
           pack_id: string
+          preview_audio_url: string | null
+          release_date: string | null
           status: string
+          thumbnail_url: string | null
+          trending_score: number | null
           type: string
           updated_at: string | null
         }
@@ -520,11 +541,17 @@ export type Database = {
           file_size_bytes?: number | null
           has_stems?: boolean | null
           id?: string
+          instrument?: string | null
           key?: string | null
           length?: string | null
+          metadata?: Json | null
           name: string
           pack_id: string
+          preview_audio_url?: string | null
+          release_date?: string | null
           status?: string
+          thumbnail_url?: string | null
+          trending_score?: number | null
           type: string
           updated_at?: string | null
         }
@@ -537,11 +564,17 @@ export type Database = {
           file_size_bytes?: number | null
           has_stems?: boolean | null
           id?: string
+          instrument?: string | null
           key?: string | null
           length?: string | null
+          metadata?: Json | null
           name?: string
           pack_id?: string
+          preview_audio_url?: string | null
+          release_date?: string | null
           status?: string
+          thumbnail_url?: string | null
+          trending_score?: number | null
           type?: string
           updated_at?: string | null
         }
@@ -551,6 +584,41 @@ export type Database = {
             columns: ["pack_id"]
             isOneToOne: false
             referencedRelation: "packs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sample_credit_downloads: {
+        Row: {
+          id: string
+          user_id: string
+          sample_id: string
+          idempotency_key: string | null
+          credits_charged: number
+          created_at: string
+        }
+        Insert: {
+          id?: string
+          user_id: string
+          sample_id: string
+          idempotency_key?: string | null
+          credits_charged: number
+          created_at?: string
+        }
+        Update: {
+          id?: string
+          user_id?: string
+          sample_id?: string
+          idempotency_key?: string | null
+          credits_charged?: number
+          created_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "sample_credit_downloads_sample_id_fkey"
+            columns: ["sample_id"]
+            isOneToOne: false
+            referencedRelation: "samples"
             referencedColumns: ["id"]
           },
         ]
@@ -655,6 +723,72 @@ export type Database = {
           },
         ]
       }
+      user_pack_likes: {
+        Row: {
+          created_at: string | null
+          pack_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          pack_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          pack_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_pack_likes_pack_id_fkey"
+            columns: ["pack_id"]
+            isOneToOne: false
+            referencedRelation: "packs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_pack_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_sample_likes: {
+        Row: {
+          created_at: string | null
+          sample_id: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string | null
+          sample_id: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string | null
+          sample_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_sample_likes_sample_id_fkey"
+            columns: ["sample_id"]
+            isOneToOne: false
+            referencedRelation: "samples"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_sample_likes_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "users"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       users: {
         Row: {
           avatar_url: string | null
@@ -719,6 +853,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      get_my_credit_activity: {
+        Args: { p_limit?: number; p_offset?: number }
+        Returns: Json
+      }
       create_admin_user_record: {
         Args: {
           p_email: string
@@ -733,7 +871,170 @@ export type Database = {
         Args: { p_cost: number; p_sample_id: string; p_user_id: string }
         Returns: boolean
       }
+      request_sample_download_prepare: {
+        Args: {
+          p_idempotency_key?: string | null
+          p_sample_id: string
+          p_user_id: string
+        }
+        Returns: Json
+      }
+      get_all_categories: {
+        Args: never
+        Returns: {
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          packs_count: number
+        }[]
+      }
+      get_all_genres: {
+        Args: never
+        Returns: {
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          packs_count: number
+          samples_count: number
+          thumbnail_url: string
+        }[]
+      }
+      get_all_moods: {
+        Args: never
+        Returns: {
+          created_at: string
+          id: string
+          is_active: boolean
+          name: string
+        }[]
+      }
+      get_all_packs: {
+        Args: {
+          p_access?: string
+          p_creators?: string[]
+          p_genres?: string[]
+          p_keywords?: string[]
+          p_license?: string
+          p_limit?: number
+          p_offset?: number
+          p_released?: string
+          p_search?: string
+          p_sort?: string
+        }
+        Returns: {
+          category_id: string
+          category_name: string
+          cover_url: string
+          created_at: string
+          creator_id: string
+          creator_name: string
+          download_count: number
+          genres: string[]
+          id: string
+          is_premium: boolean
+          name: string
+          samples_count: number
+          status: string
+          tags: string[]
+          total_count: number
+        }[]
+      }
+      get_all_samples: {
+        Args: {
+          p_bpm_exact?: number
+          p_bpm_max?: number
+          p_bpm_min?: number
+          p_genres?: string[]
+          p_instrument?: string
+          p_key_quality?: string
+          p_keys?: string[]
+          p_keywords?: string[]
+          p_limit?: number
+          p_offset?: number
+          p_search?: string
+          p_sort?: string
+          p_stems?: string
+          p_type?: string
+        }
+        Returns: {
+          bpm: number
+          created_at: string
+          creator_id: string
+          creator_name: string
+          credit_cost: number
+          download_count: number
+          genre: string
+          has_stems: boolean
+          id: string
+          instrument: string | null
+          key: string
+          metadata: Json
+          name: string
+          pack_id: string
+          pack_name: string
+          preview_audio_url: string
+          status: string
+          stems_count: number
+          thumbnail_url: string
+          total_count: number
+          type: string
+        }[]
+      }
       get_auth_user_id_by_email: { Args: { p_email: string }; Returns: string }
+      get_creator_by_id: { Args: { p_creator_id: string }; Returns: Json }
+      get_creators_with_counts: {
+        Args: { p_limit?: number; p_offset?: number; p_search?: string }
+        Returns: {
+          avatar_url: string
+          id: string
+          name: string
+          packs_count: number
+          samples_count: number
+        }[]
+      }
+      get_featured_creators: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          bio: string
+          created_at: string
+          email: string
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          name: string
+          packs_count: number
+          rank: number
+          samples_count: number
+          updated_at: string
+        }[]
+      }
+      get_featured_packs: {
+        Args: never
+        Returns: {
+          category_name: string
+          cover_url: string
+          created_at: string
+          creator_id: string
+          creator_name: string
+          description: string
+          download_count: number
+          id: string
+          is_featured: boolean
+          is_premium: boolean
+          name: string
+          samples_count: number
+          status: string
+          tags: string[]
+          updated_at: string
+        }[]
+      }
+      get_genre_detail_by_id: { Args: { p_genre_id: string }; Returns: Json }
+      get_home_feed: { Args: never; Returns: Json }
       get_invite_by_token: {
         Args: { p_token: string }
         Returns: {
@@ -743,10 +1044,83 @@ export type Database = {
         }[]
       }
       get_my_billing_info: { Args: never; Returns: Json }
+      get_new_releases: {
+        Args: never
+        Returns: {
+          audio_url: string
+          bpm: number
+          created_at: string
+          creator_name: string
+          download_count: number
+          genre: string
+          has_stems: boolean
+          id: string
+          key: string
+          metadata: Json
+          name: string
+          pack_id: string
+          pack_name: string
+          release_date: string
+          status: string
+          stems_count: number
+          thumbnail_url: string
+          trending_score: number
+          type: string
+        }[]
+      }
+      get_pack_by_id: { Args: { p_pack_id: string }; Returns: Json }
       get_pack_sample_count: { Args: { pack_uuid: string }; Returns: number }
       get_stripe_products: {
         Args: { visible_onboarding?: boolean }
         Returns: Json
+      }
+      get_top_creators: {
+        Args: never
+        Returns: {
+          avatar_url: string
+          id: string
+          name: string
+          packs_count: number
+          rank: number
+          samples_count: number
+        }[]
+      }
+      get_top_ranked_genres: {
+        Args: { p_limit?: number }
+        Returns: {
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean
+          name: string
+          packs_count: number
+          rank: number
+          thumbnail_url: string
+        }[]
+      }
+      get_trending_samples: {
+        Args: never
+        Returns: {
+          audio_url: string
+          bpm: number
+          created_at: string
+          creator_name: string
+          download_count: number
+          genre: string
+          has_stems: boolean
+          id: string
+          key: string
+          metadata: Json
+          name: string
+          pack_id: string
+          pack_name: string
+          release_date: string
+          status: string
+          stems_count: number
+          thumbnail_url: string
+          trending_score: number
+          type: string
+        }[]
       }
       has_sufficient_credits: {
         Args: { p_cost: number; p_user_id: string }
@@ -761,6 +1135,10 @@ export type Database = {
         Returns: undefined
       }
       is_current_user_admin: { Args: never; Returns: boolean }
+      search_library: {
+        Args: { p_context?: string; p_query: string }
+        Returns: Json
+      }
       update_user_last_login: {
         Args: { p_user_id: string }
         Returns: undefined
