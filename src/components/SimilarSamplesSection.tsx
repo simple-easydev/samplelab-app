@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { SampleRow } from '@/components/SampleRow';
-import { getSimilarSamplesByDownloadedSample, type SimilarSampleItem } from '@/lib/supabase/samples';
+import {
+  getSimilarSamplesByDownloadedSample,
+  type SimilarSamplesByDownloadedSampleResult,
+} from '@/lib/supabase/samples';
 
 /**
  * "Because you downloaded …" section from Figma (node 789-45225):
@@ -8,7 +11,7 @@ import { getSimilarSamplesByDownloadedSample, type SimilarSampleItem } from '@/l
  * thumbnail, name, creator, waveform, duration, tags, BPM • Key.
  */
 export function SimilarSamplesSection() {
-  const [items, setItems] = useState<SimilarSampleItem[]>([]);
+  const [result, setResult] = useState<SimilarSamplesByDownloadedSampleResult | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -17,7 +20,7 @@ export function SimilarSamplesSection() {
       setLoading(true);
       try {
         const data = await getSimilarSamplesByDownloadedSample({ p_limit: 5 });
-        if (!cancelled) setItems(data);
+        if (!cancelled) setResult(data);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -28,10 +31,10 @@ export function SimilarSamplesSection() {
     };
   }, []);
 
-  if (loading || items.length === 0) return null;
+  if (loading || !result || result.similarities.length === 0) return null;
 
   const sourceSampleName =
-    items[0]?.seed_sample_name?.trim() || 'your last download';
+    result.seed_sample.name?.trim() || 'your last download';
 
   return (
     <section className="flex flex-col gap-8 w-full">
@@ -44,7 +47,7 @@ export function SimilarSamplesSection() {
         </p>
       </div>
       <div className="border border-[#e8e2d2] rounded overflow-hidden flex flex-col">
-        {items.map((sample) => (
+        {result.similarities.map((sample) => (
           <SampleRow key={sample.id} sample={sample} />
         ))}
       </div>

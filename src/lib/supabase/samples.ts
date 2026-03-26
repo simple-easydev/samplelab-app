@@ -116,9 +116,21 @@ export async function getAllSamples(options?: GetAllSamplesOptions): Promise<Sam
   });
 }
 
-export interface SimilarSampleItem extends SampleItem {
-  seed_sample_id: string;
-  seed_sample_name: string;
+/** RPC `get_similar_samples_by_downloaded_sample` payload. */
+export interface SimilarSamplesByDownloadedSampleResult {
+  seed_sample: { id: string; name: string };
+  similarities: SampleItem[];
+}
+
+function normalizeSampleRow(row: Record<string, unknown>): SampleItem {
+  const audioUrl =
+    (row.audio_url as string | null | undefined) ??
+    (row.preview_audio_url as string | null | undefined) ??
+    null;
+  return {
+    ...row,
+    audio_url: audioUrl,
+  } as SampleItem;
 }
 
 /**
@@ -127,7 +139,7 @@ export interface SimilarSampleItem extends SampleItem {
  */
 export async function getSimilarSamplesByDownloadedSample(options?: {
   p_limit?: number;
-}): Promise<SimilarSampleItem[]> {
+}): Promise<SimilarSamplesByDownloadedSampleResult | null> {
   const p_limit = options?.p_limit ?? 24;
 
   const { data, error } = await supabase.rpc(
@@ -137,20 +149,36 @@ export async function getSimilarSamplesByDownloadedSample(options?: {
 
   if (error) {
     console.error('Error fetching similar samples:', error);
-    return [];
+    return null;
   }
 
-  if (!Array.isArray(data)) return [];
-  return (data as Array<Record<string, unknown>>).map((row) => {
-    const audioUrl =
-      (row.audio_url as string | null | undefined) ??
-      (row.preview_audio_url as string | null | undefined) ??
-      null;
-    return {
-      ...(row as Record<string, unknown>),
-      audio_url: audioUrl,
-    } as SimilarSampleItem;
-  });
+  if (!data || typeof data !== 'object' || Array.isArray(data)) {
+    return null;
+  }
+
+  const payload = data as Record<string, unknown>;
+  const seedRaw = payload.seed_sample;
+  const similaritiesRaw = payload.similarities;
+
+  if (!seedRaw || typeof seedRaw !== 'object' || Array.isArray(seedRaw)) {
+    return null;
+  }
+
+  const seedObj = seedRaw as Record<string, unknown>;
+  const seed_sample = {
+    id: typeof seedObj.id === 'string' ? seedObj.id : '',
+    name: typeof seedObj.name === 'string' ? seedObj.name : '',
+  };
+
+  if (!Array.isArray(similaritiesRaw)) {
+    return { seed_sample, similarities: [] };
+  }
+
+  const similarities = similaritiesRaw.map((row) =>
+    normalizeSampleRow(row as Record<string, unknown>)
+  );
+
+  return { seed_sample, similarities };
 }
 
 /** Parse metadata from row (handles JSON string from DB). */
