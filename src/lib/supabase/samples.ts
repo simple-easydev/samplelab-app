@@ -116,6 +116,43 @@ export async function getAllSamples(options?: GetAllSamplesOptions): Promise<Sam
   });
 }
 
+export interface SimilarSampleItem extends SampleItem {
+  seed_sample_id: string;
+  seed_sample_name: string;
+}
+
+/**
+ * Fetch similar samples based on the user's most recently downloaded sample.
+ * RPC: get_similar_samples_by_downloaded_sample
+ */
+export async function getSimilarSamplesByDownloadedSample(options?: {
+  p_limit?: number;
+}): Promise<SimilarSampleItem[]> {
+  const p_limit = options?.p_limit ?? 24;
+
+  const { data, error } = await supabase.rpc(
+    'get_similar_samples_by_downloaded_sample',
+    { p_limit }
+  );
+
+  if (error) {
+    console.error('Error fetching similar samples:', error);
+    return [];
+  }
+
+  if (!Array.isArray(data)) return [];
+  return (data as Array<Record<string, unknown>>).map((row) => {
+    const audioUrl =
+      (row.audio_url as string | null | undefined) ??
+      (row.preview_audio_url as string | null | undefined) ??
+      null;
+    return {
+      ...(row as Record<string, unknown>),
+      audio_url: audioUrl,
+    } as SimilarSampleItem;
+  });
+}
+
 /** Parse metadata from row (handles JSON string from DB). */
 export function getSampleMetadata(row: SampleItem): SampleMetadata | null {
   const raw = row.metadata;

@@ -1,87 +1,37 @@
-import { SampleRow, type SampleRowItem } from '@/components/SampleRow';
-
-export type { SampleRowItem } from '@/components/SampleRow';
-
-export interface SimilarSamplesSectionProps {
-  /** The name of the sample the user previously downloaded (shown in the title). Omit to use default. */
-  sourceSampleName?: string;
-  /** Similar sample items. Omit to use default mock data. */
-  items?: SampleRowItem[];
-}
-
-const SIMILAR_SAMPLES_SOURCE = 'Sample Name';
-
-const SIMILAR_SAMPLES_ITEMS: SampleRowItem[] = [
-  {
-    id: '1',
-    name: 'Sample name goes here',
-    creator: 'Creator name',
-    duration: '0:34',
-    progress: 0.2,
-    tags: ['Hip-Hop', 'Loop', 'Stems'],
-    royaltyFree: true,
-    premium: false,
-    bpm: 120,
-    key: 'F Minor',
-  },
-  {
-    id: '2',
-    name: 'Sample name goes here',
-    creator: 'Creator name',
-    duration: '0:34',
-    progress: 0.65,
-    tags: ['Hip-Hop', 'Loop', 'Stems'],
-    royaltyFree: true,
-    premium: true,
-    bpm: 120,
-    key: 'F Minor',
-  },
-  {
-    id: '3',
-    name: 'Lo-Fi Keys Loop',
-    creator: 'Beat Lab',
-    duration: '0:28',
-    progress: 0,
-    tags: ['Lo-Fi', 'Loop'],
-    royaltyFree: true,
-    bpm: 92,
-    key: 'C Major',
-  },
-  {
-    id: '4',
-    name: 'Trap Hi-Hat Sequence',
-    creator: 'Sound Factory',
-    duration: '0:45',
-    progress: 0.9,
-    tags: ['Trap', 'One-Shot'],
-    royaltyFree: true,
-    premium: true,
-    bpm: 140,
-    key: 'A Minor',
-  },
-  {
-    id: '5',
-    name: 'Soul Chop 04',
-    creator: 'Vinyl Revival',
-    duration: '0:22',
-    progress: 0.45,
-    tags: ['Soul', 'Stems', 'Loop'],
-    royaltyFree: true,
-    bpm: 88,
-    key: 'E Minor',
-  },
-];
+import { useEffect, useState } from 'react';
+import { SampleRow } from '@/components/SampleRow';
+import { getSimilarSamplesByDownloadedSample, type SimilarSampleItem } from '@/lib/supabase/samples';
 
 /**
  * "Because you downloaded …" section from Figma (node 789-45225):
  * similar samples list with title, subtitle "Updated daily", and rows with
  * thumbnail, name, creator, waveform, duration, tags, BPM • Key.
  */
-export function SimilarSamplesSection({
-  sourceSampleName = SIMILAR_SAMPLES_SOURCE,
-  items = SIMILAR_SAMPLES_ITEMS,
-}: SimilarSamplesSectionProps) {
-  if (items.length === 0) return null;
+export function SimilarSamplesSection() {
+  const [items, setItems] = useState<SimilarSampleItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    const run = async () => {
+      setLoading(true);
+      try {
+        const data = await getSimilarSamplesByDownloadedSample({ p_limit: 5 });
+        if (!cancelled) setItems(data);
+      } finally {
+        if (!cancelled) setLoading(false);
+      }
+    };
+    run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  if (!loading && items.length === 0) return null;
+
+  const sourceSampleName =
+    items[0]?.seed_sample_name?.trim() || 'your last download';
 
   return (
     <section className="flex flex-col gap-8 w-full">
@@ -94,9 +44,11 @@ export function SimilarSamplesSection({
         </p>
       </div>
       <div className="border border-[#e8e2d2] rounded overflow-hidden flex flex-col">
-        {items.map((item) => (
-          <SampleRow key={item.id} item={item} />
-        ))}
+        {loading ? (
+          <p className="text-[#5e584b] text-sm p-4">Loading…</p>
+        ) : (
+          items.map((sample) => <SampleRow key={sample.id} sample={sample} />)
+        )}
       </div>
     </section>
   );
