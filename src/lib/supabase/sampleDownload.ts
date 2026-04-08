@@ -66,7 +66,7 @@ export function getSampleDownloadErrorMessage(code: string): string {
  */
 export async function requestSampleDownload(
   sampleId: string,
-  options?: { idempotencyKey?: string }
+  options?: { idempotencyKey?: string; includeStemsZip?: boolean }
 ): Promise<RequestSampleDownloadSuccess> {
   const {
     data: { session },
@@ -80,9 +80,16 @@ export async function requestSampleDownload(
   }
 
   const url = requestSampleDownloadUrl();
-  const body: { sampleId: string; idempotencyKey?: string } = { sampleId };
+  const body: {
+    sampleId: string;
+    idempotencyKey?: string;
+    includeStemsZip?: boolean;
+  } = { sampleId };
   if (options?.idempotencyKey) {
     body.idempotencyKey = options.idempotencyKey;
+  }
+  if (options?.includeStemsZip) {
+    body.includeStemsZip = true;
   }
 
   const res = await fetch(url, {
@@ -146,15 +153,22 @@ function isRetryableDownloadError(err: unknown): boolean {
  * One user click: new idempotency key; on retryable failure, one repeat with the same key.
  */
 export async function requestSampleDownloadWithRetry(
-  sampleId: string
+  sampleId: string,
+  options?: { includeStemsZip?: boolean }
 ): Promise<RequestSampleDownloadSuccess> {
   const idempotencyKey = crypto.randomUUID();
   try {
-    return await requestSampleDownload(sampleId, { idempotencyKey });
+    return await requestSampleDownload(sampleId, {
+      idempotencyKey,
+      includeStemsZip: options?.includeStemsZip,
+    });
   } catch (first) {
     if (!isRetryableDownloadError(first)) {
       throw first;
     }
-    return await requestSampleDownload(sampleId, { idempotencyKey });
+    return await requestSampleDownload(sampleId, {
+      idempotencyKey,
+      includeStemsZip: options?.includeStemsZip,
+    });
   }
 }

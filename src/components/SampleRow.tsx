@@ -311,12 +311,15 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
     setDownloadModalOpen(true);
   };
 
-  const handleDownloadFull = async (e: React.MouseEvent) => {
+  const handleDownloadFull = async (
+    e: React.MouseEvent,
+    options?: { includeStemsZip?: boolean }
+  ) => {
     e.stopPropagation();
     if (!sampleId || downloadLoading) return;
     setDownloadLoading(true);
     try {
-      const result = await requestSampleDownloadWithRetry(sampleId);
+      const result = await requestSampleDownloadWithRetry(sampleId, options);
       await triggerSignedDownload(result.signedUrl, result.filename);
       const used =
         result.creditsCharged > 0
@@ -545,7 +548,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
                   <div className="flex flex-col gap-2 w-full">
                     <button
                       type="button"
-                      onClick={handleDownloadFull}
+                      onClick={(e) => handleDownloadFull(e, { includeStemsZip: false })}
                       disabled={!sampleId || downloadLoading}
                       aria-busy={downloadLoading}
                       className="w-full h-[60px] px-4 rounded-sm bg-[#161410] text-[#fffbf0] disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3"
@@ -568,7 +571,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
                     {sample?.has_stems && (
                       <button
                         type="button"
-                        onClick={handleDownloadFull}
+                        onClick={(e) => handleDownloadFull(e, { includeStemsZip: true })}
                         disabled={!sampleId || downloadLoading}
                         aria-busy={downloadLoading}
                         className="w-full h-[60px] px-4 rounded-sm bg-[#161410] text-[#fffbf0] disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3"
@@ -874,7 +877,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
               <div className="flex flex-col gap-2 w-full">
                 <button
                   type="button"
-                  onClick={handleDownloadFull}
+                  onClick={(e) => handleDownloadFull(e, { includeStemsZip: false })}
                   disabled={!sampleId || downloadLoading}
                   aria-busy={downloadLoading}
                   className="w-full h-[60px] px-4 rounded-sm bg-[#161410] text-[#fffbf0] disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3"
@@ -897,7 +900,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
                 {sample?.has_stems && (
                   <button
                     type="button"
-                    onClick={handleDownloadFull}
+                    onClick={(e) => handleDownloadFull(e, { includeStemsZip: true })}
                     disabled={!sampleId || downloadLoading}
                     aria-busy={downloadLoading}
                     className="w-full h-[60px] px-4 rounded-sm bg-[#161410] text-[#fffbf0] disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3"
@@ -1035,7 +1038,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
                       </button>
                       <button
                         type="button"
-                        onClick={handleDownloadFull}
+                        onClick={(e) => handleDownloadFull(e, { includeStemsZip: false })}
                         disabled={!sampleId || downloadLoading}
                         aria-busy={downloadLoading}
                         className="size-6 flex items-center justify-center rounded-xs text-[#161410] hover:bg-[#e8e2d2] disabled:opacity-50 disabled:pointer-events-none"

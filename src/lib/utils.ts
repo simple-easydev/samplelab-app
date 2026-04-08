@@ -61,6 +61,7 @@ export function packDetailSampleToSampleItem(
     name: s.name,
     pack_id: s.pack_id,
     pack_name,
+    credit_cost: s.credit_cost,
     creator_name,
     audio_url: s.preview_audio_url,
     thumbnail_url: null,
