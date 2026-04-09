@@ -793,7 +793,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
     <Dialog open={downloadModalOpen} onOpenChange={setDownloadModalOpen}>
       <DialogContent
         showCloseButton={false}
-        className="p-0 bg-[#fffbf0] border-0 rounded-lg shadow-[0px_6px_20px_rgba(0,0,0,0.14),0px_1px_3px_rgba(0,0,0,0.08)] max-w-[720px]"
+        className="p-0 bg-[#fffbf0] border-0 rounded-lg shadow-[0px_6px_20px_rgba(0,0,0,0.14),0px_1px_3px_rgba(0,0,0,0.08)] w-fit max-w-[calc(100vw-2rem)]"
       >
         <div className="flex items-center gap-4 w-full border-b border-[#e8e2d2] px-6 py-4">
           <div className="flex items-center gap-4 min-w-0 flex-1 text-xs leading-4 tracking-[0.2px]">
@@ -818,8 +818,8 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
           </DialogClose>
         </div>
 
-        <div className="p-6">
-          <div className="flex flex-col sm:flex-row gap-6 items-start">
+        <div className="p-6 min-w-0">
+          <div className="flex min-w-0 w-full flex-col gap-6 items-start sm:flex-row">
             <button
               type="button"
               onClick={(e) => {
@@ -855,7 +855,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
               </div>
             </button>
 
-            <div className="flex flex-col gap-4 w-full min-w-0">
+            <div className="flex min-w-0 w-full flex-col gap-4 sm:w-auto sm:flex-1">
               <div className="flex flex-col gap-2 min-w-0">
                 <p className="text-[#161410] text-[18px] font-bold leading-7 truncate">
                   {row.name}
@@ -880,15 +880,15 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
                   onClick={(e) => handleDownloadFull(e, { includeStemsZip: false })}
                   disabled={!sampleId || downloadLoading}
                   aria-busy={downloadLoading}
-                  className="w-full h-[60px] px-4 rounded-sm bg-[#161410] text-[#fffbf0] disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3"
+                  className="w-full min-h-[60px] px-4 py-3 rounded-sm bg-[#161410] text-[#fffbf0] disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3"
                 >
                   {downloadLoading ? (
                     <Loader2 className="size-6 animate-spin shrink-0" aria-hidden />
                   ) : (
                     <Download className="size-6 shrink-0" aria-hidden />
                   )}
-                  <div className="flex flex-col items-start leading-none min-w-0">
-                    <span className="text-sm font-medium leading-5 tracking-[0.1px] truncate w-full">
+                  <div className="flex min-w-0 flex-col items-start leading-none">
+                    <span className="w-full text-left text-sm font-medium leading-5 tracking-[0.1px] wrap-break-word">
                       Download sample (WAV)
                     </span>
                     <span className="text-xs leading-4 tracking-[0.2px] text-[#d6ceb8]">
@@ -903,16 +903,18 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
                     onClick={(e) => handleDownloadFull(e, { includeStemsZip: true })}
                     disabled={!sampleId || downloadLoading}
                     aria-busy={downloadLoading}
-                    className="w-full h-[60px] px-4 rounded-sm bg-[#161410] text-[#fffbf0] disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3"
+                    className="w-full min-h-[60px] px-4 py-3 rounded-sm bg-[#161410] text-[#fffbf0] disabled:opacity-50 disabled:pointer-events-none flex items-center gap-3"
                   >
                     {downloadLoading ? (
                       <Loader2 className="size-6 animate-spin shrink-0" aria-hidden />
                     ) : (
                       <Download className="size-6 shrink-0" aria-hidden />
                     )}
-                    <div className="flex flex-col items-start leading-none min-w-0">
-                      <span className="text-sm font-medium leading-5 tracking-[0.1px] truncate w-full">
-                        Download sample (WAV + STEMS)
+                    <div className="flex min-w-0 flex-col items-start leading-none">
+                      <span className="w-full text-left text-sm font-medium leading-5 tracking-[0.1px] wrap-break-word">
+                        Download sample 
+                        <br />
+                        (WAV + STEMS)
                       </span>
                       <span className="text-xs leading-4 tracking-[0.2px] text-[#d6ceb8]">
                         {stemsCreditLabel}
