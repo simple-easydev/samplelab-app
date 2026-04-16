@@ -177,6 +177,7 @@ export default function AccountSettingsPage() {
   const [isProfileSaving, setIsProfileSaving] = useState(false);
   const [isAvatarUploading, setIsAvatarUploading] = useState(false);
   const [isProfileLoaded, setIsProfileLoaded] = useState(false);
+  const [isPasswordSaving, setIsPasswordSaving] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -191,6 +192,9 @@ export default function AccountSettingsPage() {
   const normalizedLastName = lastName.trim();
   const normalizedDisplayName = displayName.trim();
   const normalizedEmail = email.trim();
+  const normalizedCurrentPassword = currentPassword.trim();
+  const normalizedNewPassword = newPassword.trim();
+  const normalizedConfirmPassword = confirmPassword.trim();
 
   useEffect(() => {
     let cancelled = false;
@@ -415,6 +419,64 @@ export default function AccountSettingsPage() {
     }
   }
 
+  async function handleUpdatePassword() {
+    if (!session?.user) {
+      toast.error('You need to be signed in to update your password.');
+      return;
+    }
+
+    if (!normalizedNewPassword) {
+      toast.error('Please enter a new password.');
+      return;
+    }
+
+    if (normalizedNewPassword.length < 8) {
+      toast.error('Password must be at least 8 characters.');
+      return;
+    }
+
+    if (normalizedNewPassword !== normalizedConfirmPassword) {
+      toast.error('Passwords do not match.');
+      return;
+    }
+
+    setIsPasswordSaving(true);
+
+    try {
+      const emailForReauth = session.user.email ?? normalizedEmail;
+      if (emailForReauth && normalizedCurrentPassword) {
+        const { error: reauthError } = await supabase.auth.signInWithPassword({
+          email: emailForReauth,
+          password: normalizedCurrentPassword,
+        });
+
+        if (reauthError) {
+          throw new Error('Current password is incorrect.');
+        }
+      }
+
+      const { error } = await supabase.auth.updateUser({
+        password: normalizedNewPassword,
+      });
+
+      if (error) {
+        throw error;
+      }
+
+      setCurrentPassword('');
+      setNewPassword('');
+      setConfirmPassword('');
+      toast.success('Password updated.');
+    } catch (error) {
+      console.error('Failed to update password:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to update password.'
+      );
+    } finally {
+      setIsPasswordSaving(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#fffbf0] flex flex-col items-center pt-8 pb-32 px-8">
       <div className="w-full max-w-[676px] flex flex-col gap-8">
@@ -525,9 +587,17 @@ export default function AccountSettingsPage() {
             />
             <Button
               type="button"
+              onClick={handleUpdatePassword}
+              disabled={
+                !session ||
+                isLoading ||
+                isPasswordSaving ||
+                !normalizedNewPassword ||
+                normalizedNewPassword !== normalizedConfirmPassword
+              }
               className="h-12 px-4 bg-[#161410] text-[#fffbf0] hover:bg-[#161410]/90 font-medium text-base rounded-xs"
             >
-              Update password
+              {isPasswordSaving ? 'Updating...' : 'Update password'}
             </Button>
           </div>
         </div>
