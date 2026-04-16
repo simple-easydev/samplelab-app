@@ -1,20 +1,99 @@
 import { CreditCard, Plus, ArrowRight } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+const VISA_LOGO_URL =
+  'https://www.figma.com/api/mcp/asset/4bf08588-0ed1-4288-9d08-78e30eb6c226';
+
+type PaymentMethod = {
+  id: string;
+  type: string;
+  isDefault?: boolean;
+  card?: {
+    brand: string;
+    last4: string;
+    expMonth: number;
+    expYear: number;
+  };
+  billingDetails?: {
+    name?: string | null;
+    email?: string | null;
+  };
+  created: number;
+};
+
+function formatCardBrandLabel(input: string | undefined) {
+  if (!input) return 'Card';
+  return input.toUpperCase();
+}
+
 export function PaymentMethodSection({
   onBrowseLibrary,
   onAddPaymentMethod,
+  paymentMethods = [],
+  loading = false,
 }: {
   onBrowseLibrary: () => void;
   onAddPaymentMethod: () => void;
+  paymentMethods?: PaymentMethod[];
+  loading?: boolean;
 }) {
+  const methods = Array.isArray(paymentMethods) ? paymentMethods : [];
+  const defaultMethod =
+    methods.find((m) => m.isDefault) ?? (methods.length ? methods[0] : null);
+  const maskedCardNumber =
+    defaultMethod?.type === 'card'
+      ? `${formatCardBrandLabel(defaultMethod.card?.brand)} **** **** **** ${
+          defaultMethod.card?.last4 ?? '—'
+        }`
+      : null;
+
+  const brand = defaultMethod?.card?.brand?.toLowerCase?.() ?? '';
+  const hasVisaLogo = defaultMethod?.type === 'card' && brand === 'visa';
+
   return (
     <section className="w-full flex flex-col gap-6" aria-label="Payment method">
       <h2 className="text-[28px] font-bold leading-9 text-[#161410] tracking-[-0.2px]">
         Payment Method
       </h2>
 
-      <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded-[4px] w-full py-16 flex items-center justify-center">
+      {loading ? (
+        <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded-[4px] w-full py-16 flex items-center justify-center">
+          <p className="text-[#7f7766] text-sm leading-5 tracking-[0.1px]">
+            Loading…
+          </p>
+        </div>
+      ) : defaultMethod ? (
+        <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded-[4px] w-full px-6 py-6 flex items-center justify-between">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="bg-white border border-[#e8e2d2] rounded-xs w-14 h-10 shrink-0 overflow-hidden flex items-center justify-center">
+              {hasVisaLogo ? (
+                <img
+                  src={VISA_LOGO_URL}
+                  alt="Visa"
+                  className="h-3 w-auto object-contain"
+                />
+              ) : (
+                <span className="text-xs font-semibold tracking-[0.4px] text-[#161410]">
+                  {formatCardBrandLabel(defaultMethod.card?.brand)}
+                </span>
+              )}
+            </div>
+
+            <p className="text-[#161410] text-base font-bold leading-6 truncate">
+              {maskedCardNumber ?? defaultMethod.type}
+            </p>
+          </div>
+
+          <button
+            type="button"
+            onClick={onAddPaymentMethod}
+            className="text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] underline underline-offset-2 hover:opacity-80 shrink-0"
+          >
+            Edit
+          </button>
+        </div>
+      ) : (
+        <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded-[4px] w-full py-16 flex items-center justify-center">
         <div className="w-full max-w-[442px] flex flex-col items-center gap-6 px-4 text-center">
           <CreditCard className="size-12 text-[#7f7766]" aria-hidden />
 
@@ -49,6 +128,7 @@ export function PaymentMethodSection({
           </div>
         </div>
       </div>
+      )}
     </section>
   );
 }
