@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { ChangeEvent, useEffect, useRef, useState } from 'react';
 import {
   User,
   Pencil,
@@ -6,19 +6,87 @@ import {
   EyeOff,
   ArrowRight,
   Trash2,
+  Loader2,
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { SettingsTabs } from './SettingsTabs';
+import { useAuth } from '@/contexts/AuthContext';
+import { supabase } from '@/lib/supabase/client';
+import { authManager } from '@/lib/supabase/auth-manager';
+import { toast } from 'sonner';
 
-function ProfileAvatar() {
+const AVATAR_BUCKET = 'avatars' as const;
+
+type UserProfileRow = {
+  name: string | null;
+  email: string;
+  avatar_url: string | null;
+};
+
+type EditableProfile = {
+  firstName: string;
+  lastName: string;
+  displayName: string;
+  email: string;
+  avatarUrl: string | null;
+};
+
+function getProfileFromSession(
+  user: NonNullable<ReturnType<typeof useAuth>['session']>['user'],
+  profile?: UserProfileRow | null
+): EditableProfile {
+  const metadata = user.user_metadata ?? {};
+  const firstName = String(metadata.first_name ?? '').trim();
+  const lastName = String(metadata.last_name ?? '').trim();
+  const metadataDisplayName = String(
+    metadata.display_name ?? metadata.username ?? ''
+  ).trim();
+  const combinedName = [firstName, lastName].filter(Boolean).join(' ').trim();
+  const profileName = (profile?.name ?? '').trim();
+
+  return {
+    firstName,
+    lastName,
+    displayName: metadataDisplayName || profileName || combinedName,
+    email: profile?.email ?? user.email ?? '',
+    avatarUrl:
+      profile?.avatar_url ??
+      (typeof metadata.avatar_url === 'string' ? metadata.avatar_url : null),
+  };
+}
+
+function ProfileAvatar({
+  avatarUrl,
+  uploading,
+  onEdit,
+}: {
+  avatarUrl: string | null;
+  uploading: boolean;
+  onEdit: () => void;
+}) {
   return (
     <div className="relative shrink-0 size-[120px]">
-      <div className="bg-[#e8e2d2] border border-[#d6ceb8] rounded-full size-full flex items-center justify-center">
-        <User className="size-12 text-[#7f7766]" />
+      <div className="bg-[#e8e2d2] border border-[#d6ceb8] rounded-full size-full flex items-center justify-center overflow-hidden">
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt="Profile avatar"
+            className="size-full object-cover"
+          />
+        ) : (
+          <User className="size-12 text-[#7f7766]" />
+        )}
+        {uploading && (
+          <div className="absolute inset-0 rounded-full bg-[#161410]/45 flex items-center justify-center">
+            <Loader2 className="size-8 animate-spin text-[#fffbf0]" />
+          </div>
+        )}
       </div>
       <button
         type="button"
+        onClick={onEdit}
+        disabled={uploading}
         className="absolute top-0 right-0 bg-[#161410] text-[#fffbf0] flex items-center justify-center size-10 rounded-full hover:opacity-90 transition-opacity outline-none focus-visible:ring-2 focus-visible:ring-[#161410]/40 focus-visible:ring-offset-2"
         aria-label="Edit profile photo"
       >
@@ -96,10 +164,19 @@ function PasswordField({
 }
 
 export default function AccountSettingsPage() {
-  const [firstName, setFirstName] = useState('Alex');
-  const [lastName, setLastName] = useState('Johnson');
-  const [displayName, setDisplayName] = useState('alexbeats');
-  const [email, setEmail] = useState('your@email.com');
+  const { session, isLoading } = useAuth();
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [displayName, setDisplayName] = useState('');
+  const [email, setEmail] = useState('');
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
+  const [initialProfile, setInitialProfile] = useState<EditableProfile | null>(
+    null
+  );
+  const [isProfileSaving, setIsProfileSaving] = useState(false);
+  const [isAvatarUploading, setIsAvatarUploading] = useState(false);
+  const [isProfileLoaded, setIsProfileLoaded] = useState(false);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -110,23 +187,263 @@ export default function AccountSettingsPage() {
   const inputClass =
     'h-12 border border-[#d6ceb8] rounded-xs px-3 text-sm text-[#161410] placeholder:text-[#7f7766] bg-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#161410]/20 focus-visible:border-[#161410]';
 
+  const normalizedFirstName = firstName.trim();
+  const normalizedLastName = lastName.trim();
+  const normalizedDisplayName = displayName.trim();
+  const normalizedEmail = email.trim();
+
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadProfile() {
+      if (!session?.user) {
+        if (!cancelled) {
+          setFirstName('');
+          setLastName('');
+          setDisplayName('');
+          setEmail('');
+          setAvatarUrl(null);
+          setInitialProfile(null);
+          setIsProfileLoaded(true);
+        }
+        return;
+      }
+
+      try {
+        const { data, error } = await supabase
+          .from('users')
+          .select('name, email, avatar_url')
+          .eq('id', session.user.id)
+          .maybeSingle<UserProfileRow>();
+
+        if (error) {
+          throw error;
+        }
+
+        if (!cancelled) {
+          const nextProfile = getProfileFromSession(session.user, data);
+          setFirstName(nextProfile.firstName);
+          setLastName(nextProfile.lastName);
+          setDisplayName(nextProfile.displayName);
+          setEmail(nextProfile.email);
+          setAvatarUrl(nextProfile.avatarUrl);
+          setInitialProfile(nextProfile);
+          setIsProfileLoaded(true);
+        }
+      } catch (error) {
+        console.error('Failed to load account profile:', error);
+        if (!cancelled) {
+          const fallbackProfile = getProfileFromSession(session.user, null);
+          setFirstName(fallbackProfile.firstName);
+          setLastName(fallbackProfile.lastName);
+          setDisplayName(fallbackProfile.displayName);
+          setEmail(fallbackProfile.email);
+          setAvatarUrl(fallbackProfile.avatarUrl);
+          setInitialProfile(fallbackProfile);
+          setIsProfileLoaded(true);
+        }
+      }
+    }
+
+    setIsProfileLoaded(false);
+    void loadProfile();
+
+    return () => {
+      cancelled = true;
+    };
+  }, [session]);
+
+  const hasProfileChanges =
+    normalizedFirstName !== (initialProfile?.firstName ?? '') ||
+    normalizedLastName !== (initialProfile?.lastName ?? '') ||
+    normalizedDisplayName !== (initialProfile?.displayName ?? '') ||
+    normalizedEmail !== (initialProfile?.email ?? '');
+
+  async function uploadAvatar(file: File) {
+    if (!session?.user) {
+      toast.error('You need to be signed in to update your avatar.');
+      return;
+    }
+
+    const isImage = file.type.startsWith('image/');
+    if (!isImage) {
+      toast.error('Please choose an image file.');
+      return;
+    }
+
+    const maxBytes = 5 * 1024 * 1024;
+    if (file.size > maxBytes) {
+      toast.error('Please choose an image under 5 MB.');
+      return;
+    }
+
+    setIsAvatarUploading(true);
+
+    try {
+      const extension = file.name.split('.').pop()?.toLowerCase() || 'jpg';
+      const filePath = `customers/${session.user.id}/avatar.${extension}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from(AVATAR_BUCKET)
+        .upload(filePath, file, {
+          cacheControl: '3600',
+          upsert: true,
+        });
+
+      if (uploadError) {
+        throw uploadError;
+      }
+
+      const {
+        data: { publicUrl },
+      } = supabase.storage.from(AVATAR_BUCKET).getPublicUrl(filePath);
+
+      const avatarValue = `${publicUrl}?t=${Date.now()}`;
+      const { error: authError } = await supabase.auth.updateUser({
+        data: {
+          ...session.user.user_metadata,
+          avatar_url: avatarValue,
+        },
+      });
+
+      if (authError) {
+        throw authError;
+      }
+
+      const { error: profileError } = await supabase
+        .from('users')
+        .update({ avatar_url: avatarValue })
+        .eq('id', session.user.id);
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      await authManager.refreshUserData();
+      setAvatarUrl(avatarValue);
+      toast.success('Profile photo updated.');
+    } catch (error) {
+      console.error('Failed to upload avatar:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to upload avatar.'
+      );
+    } finally {
+      setIsAvatarUploading(false);
+    }
+  }
+
+  async function handleAvatarChange(event: ChangeEvent<HTMLInputElement>) {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) return;
+
+    await uploadAvatar(file);
+  }
+
+  async function handleSaveProfile() {
+    if (!session?.user) {
+      toast.error('You need to be signed in to update your account.');
+      return;
+    }
+
+    if (!normalizedFirstName || !normalizedLastName || !normalizedDisplayName) {
+      toast.error('First name, last name, and display name are required.');
+      return;
+    }
+
+    if (!normalizedEmail) {
+      toast.error('Email is required.');
+      return;
+    }
+
+    setIsProfileSaving(true);
+
+    try {
+      const fullName = `${normalizedFirstName} ${normalizedLastName}`.trim();
+      const metadata = {
+        ...session.user.user_metadata,
+        first_name: normalizedFirstName,
+        last_name: normalizedLastName,
+        display_name: normalizedDisplayName,
+        full_name: fullName,
+        name: fullName,
+      };
+
+      const emailChanged = normalizedEmail !== (session.user.email ?? '');
+      const { error: authError } = await supabase.auth.updateUser({
+        ...(emailChanged ? { email: normalizedEmail } : {}),
+        data: metadata,
+      });
+
+      if (authError) {
+        throw authError;
+      }
+
+      const { error: profileError } = await supabase
+        .from('users')
+        .update({
+          name: normalizedDisplayName,
+          email: normalizedEmail,
+        })
+        .eq('id', session.user.id);
+
+      if (profileError) {
+        throw profileError;
+      }
+
+      await authManager.refreshUserData();
+      setInitialProfile({
+        firstName: normalizedFirstName,
+        lastName: normalizedLastName,
+        displayName: normalizedDisplayName,
+        email: normalizedEmail,
+        avatarUrl,
+      });
+      toast.success(
+        emailChanged
+          ? 'Profile updated. Check your inbox to confirm the new email if required.'
+          : 'Profile updated.'
+      );
+    } catch (error) {
+      console.error('Failed to save profile:', error);
+      toast.error(
+        error instanceof Error ? error.message : 'Failed to save profile.'
+      );
+    } finally {
+      setIsProfileSaving(false);
+    }
+  }
+
   return (
     <div className="min-h-screen bg-[#fffbf0] flex flex-col items-center pt-8 pb-32 px-8">
       <div className="w-full max-w-[676px] flex flex-col gap-8">
         <SettingsTabs />
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          className="hidden"
+          onChange={handleAvatarChange}
+        />
 
         <div className="flex flex-col gap-6">
           {/* Profile */}
           <h1 className="text-[28px] font-bold leading-9 text-[#161410] tracking-[-0.2px]">
             Profile
           </h1>
-          <ProfileAvatar />
+          <ProfileAvatar
+            avatarUrl={avatarUrl}
+            uploading={isAvatarUploading}
+            onEdit={() => fileInputRef.current?.click()}
+          />
           <div className="flex flex-col gap-5 w-full">
             <Field label="First name">
               <Input
                 value={firstName}
                 onChange={(e) => setFirstName(e.target.value)}
                 className={inputClass}
+                disabled={!session || isLoading || !isProfileLoaded}
               />
             </Field>
             <Field label="Last name">
@@ -134,6 +451,7 @@ export default function AccountSettingsPage() {
                 value={lastName}
                 onChange={(e) => setLastName(e.target.value)}
                 className={inputClass}
+                disabled={!session || isLoading || !isProfileLoaded}
               />
             </Field>
             <Field label="Display name">
@@ -141,6 +459,7 @@ export default function AccountSettingsPage() {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 className={inputClass}
+                disabled={!session || isLoading || !isProfileLoaded}
               />
             </Field>
             <Field label="Email">
@@ -149,13 +468,22 @@ export default function AccountSettingsPage() {
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className={inputClass}
+                disabled={!session || isLoading || !isProfileLoaded}
               />
             </Field>
             <Button
               type="button"
+              onClick={handleSaveProfile}
+              disabled={
+                !session ||
+                isLoading ||
+                !isProfileLoaded ||
+                isProfileSaving ||
+                !hasProfileChanges
+              }
               className="h-12 px-4 bg-[#161410] text-[#fffbf0] hover:bg-[#161410]/90 font-medium text-base rounded-xs"
             >
-              Save changes
+              {isProfileSaving ? 'Saving...' : 'Save changes'}
             </Button>
           </div>
         </div>

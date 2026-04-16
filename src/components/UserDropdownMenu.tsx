@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/lib/supabase/client';
+import { useAuth } from '@/contexts/AuthContext';
 
 const MENU_ITEM_CLASS =
   'flex h-10 cursor-pointer items-center gap-1.5 px-3 py-0 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]';
@@ -25,13 +26,27 @@ export function UserDropdownMenu({
   onLogout?: () => void;
   triggerClassName?: string;
 }) {
+  const { session } = useAuth();
+  const avatarUrl =
+    typeof session?.user?.user_metadata?.avatar_url === 'string'
+      ? session.user.user_metadata.avatar_url
+      : null;
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger
         className={triggerClassName ?? TRIGGER_CLASS}
         aria-label="Account menu"
       >
-        <User className="size-5" />
+        {avatarUrl ? (
+          <img
+            src={avatarUrl}
+            alt="Your avatar"
+            className="size-6 rounded-full object-cover"
+          />
+        ) : (
+          <User className="size-5" />
+        )}
       </DropdownMenuTrigger>
       <DropdownMenuContent
         align="end"
