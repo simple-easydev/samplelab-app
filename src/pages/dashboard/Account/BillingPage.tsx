@@ -118,6 +118,9 @@ export default function BillingPage() {
               ? billingDetails.transactions
               : []
           }
+          onEmailTransactionsReport={() => {
+            // TODO: wire to backend
+          }}
         />
 
         <CreditActivitySection
