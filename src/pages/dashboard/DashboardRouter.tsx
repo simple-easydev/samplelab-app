@@ -11,6 +11,7 @@ import CreatorDetailPage from './Creators/CreatorDetailPage';
 import GenreDetailPage from './Generes/GenreDetailPage';
 import AccountSettingsPage from './Account/AccountSettingsPage';
 import BillingPage from './Account/BillingPage';
+import PlansCreditsPage from './Account/PlansCreditsPage';
 import { DASHBOARD_TABS } from './DashboardTabContent';
 import { AudioPreviewPlayerProvider } from '@/contexts/AudioPreviewPlayerContext';
 
@@ -100,6 +101,9 @@ export default function DashboardRouter() {
 
         {/* /dashboard/settings/account — account settings page */}
         <Route path="settings/account" element={<AccountSettingsPage />} />
+
+        {/* /dashboard/settings/plans — plans & credits page */}
+        <Route path="settings/plans" element={<PlansCreditsPage />} />
 
         {/* /dashboard/settings/bill — billing page */}
         <Route path="settings/bill" element={<BillingPage />} />

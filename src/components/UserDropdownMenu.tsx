@@ -10,6 +10,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { CoinsStack } from './icons';
 
 const MENU_ITEM_CLASS =
   'flex h-10 cursor-pointer items-center gap-1.5 px-3 py-0 text-[14px] font-medium tracking-[0.1px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]';
@@ -61,6 +62,12 @@ export function UserDropdownMenu({
             <Link to="/dashboard/settings/account" className="flex items-center gap-1.5 text-[#161410]">
               <Settings className="size-5 shrink-0" />
               Account settings
+            </Link>
+          </DropdownMenuItem>
+          <DropdownMenuItem asChild className={`${MENU_ITEM_CLASS} focus:bg-[#f6f2e6]`}>
+            <Link to="/dashboard/settings/plans" className="flex items-center gap-1.5 text-[#161410]">
+              <CoinsStack className="size-5 shrink-0" />
+              Plans & credits
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild className={`${MENU_ITEM_CLASS} focus:bg-[#f6f2e6]`}>

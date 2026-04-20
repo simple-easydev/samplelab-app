@@ -197,7 +197,7 @@ export default function BillingPage() {
 
         <TransactionHistorySection
           onBrowseLibrary={() => navigate('/dashboard')}
-          onViewPlans={() => navigate('/dashboard/settings/account')}
+          onViewPlans={() => navigate('/dashboard/settings/plans')}
           loading={loadingBillingDetails}
           transactions={
             billingDetails && 'success' in billingDetails && billingDetails.success
