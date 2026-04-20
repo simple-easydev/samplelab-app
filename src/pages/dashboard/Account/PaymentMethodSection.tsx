@@ -1,5 +1,11 @@
-import { CreditCard, Plus, ArrowRight } from 'lucide-react';
+import { CreditCard, Plus, ArrowRight, Download, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
 
 const VISA_LOGO_URL =
   'https://www.figma.com/api/mcp/asset/4bf08588-0ed1-4288-9d08-78e30eb6c226';
@@ -29,11 +35,15 @@ function formatCardBrandLabel(input: string | undefined) {
 export function PaymentMethodSection({
   onBrowseLibrary,
   onAddPaymentMethod,
+  onUpdatePaymentMethod,
+  onDeletePaymentMethod,
   paymentMethods = [],
   loading = false,
 }: {
   onBrowseLibrary: () => void;
   onAddPaymentMethod: () => void;
+  onUpdatePaymentMethod?: (paymentMethodId: string) => void | Promise<void>;
+  onDeletePaymentMethod?: (paymentMethodId: string) => void | Promise<void>;
   paymentMethods?: PaymentMethod[];
   loading?: boolean;
 }) {
@@ -86,10 +96,49 @@ export function PaymentMethodSection({
 
           <button
             type="button"
-            onClick={onAddPaymentMethod}
             className="text-[#161410] text-sm font-medium leading-5 tracking-[0.1px] underline underline-offset-2 hover:opacity-80 shrink-0"
           >
-            Edit
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <span className="cursor-pointer">Edit</span>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent
+                align="end"
+                sideOffset={8}
+                className="rounded-[4px] border-[#d6ceb8] bg-white p-1 shadow-[0px_6px_20px_0px_rgba(0,0,0,0.14),0px_1px_3px_0px_rgba(0,0,0,0.08)]"
+              >
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    void onUpdatePaymentMethod?.(defaultMethod.id);
+                    if (!onUpdatePaymentMethod) onAddPaymentMethod();
+                  }}
+                  className="h-10 px-3 gap-1.5 rounded-[4px] text-[#5e584b] focus:bg-[#f6f2e6] focus:text-[#161410]"
+                >
+                  <Download className="size-5 shrink-0" aria-hidden />
+                  <span className="text-sm font-medium leading-5 tracking-[0.1px]">
+                    Update payment method
+                  </span>
+                </DropdownMenuItem>
+                <DropdownMenuItem
+                  onSelect={(e) => {
+                    e.preventDefault();
+                    const ok = window.confirm(
+                      'Delete this payment method? This cannot be undone.'
+                    );
+                    if (!ok) return;
+                    void onDeletePaymentMethod?.(defaultMethod.id);
+                  }}
+                  disabled={!onDeletePaymentMethod}
+                  className="h-10 px-3 gap-1.5 rounded-[4px] text-[#b3402d] data-disabled:opacity-50 data-disabled:pointer-events-none focus:bg-[#f6f2e6] focus:text-[#b3402d]"
+                >
+                  <Trash2 className="size-5 shrink-0" aria-hidden />
+                  <span className="text-sm font-medium leading-5 tracking-[0.1px]">
+                    Delete payment method
+                  </span>
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </button>
         </div>
       ) : (

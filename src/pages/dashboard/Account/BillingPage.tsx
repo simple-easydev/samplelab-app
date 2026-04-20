@@ -55,41 +55,125 @@ export default function BillingPage() {
   const [billingDetails, setBillingDetails] =
     useState<BillingDetailsResponse | null>(null);
 
+  const refreshBillingDetails = async (options?: { cancelled?: () => boolean }) => {
+    setLoadingBillingDetails(true);
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'get-stripe-billing-details',
+        {
+          body: { limit: 25 },
+        }
+      );
+
+      if (error) throw error;
+      if (!options?.cancelled?.()) {
+        setBillingDetails((data ?? null) as BillingDetailsResponse | null);
+      }
+    } catch (e) {
+      console.error('Failed to fetch billing details:', e);
+      if (!options?.cancelled?.()) {
+        setBillingDetails(null);
+        toast.error('Failed to load billing details.');
+      }
+    } finally {
+      if (!options?.cancelled?.()) {
+        setLoadingBillingDetails(false);
+      }
+    }
+  };
+
   useEffect(() => {
     let cancelled = false;
 
     (async () => {
-      setLoadingBillingDetails(true);
       try {
-        const { data, error } = await supabase.functions.invoke(
-          'get-stripe-billing-details',
-          {
-            body: { limit: 25 },
-          }
-        );
-
-        if (error) {
-          throw error;
-        }
-
-        if (!cancelled) {
-          setBillingDetails((data ?? null) as BillingDetailsResponse | null);
-        }
+        await refreshBillingDetails({ cancelled: () => cancelled });
       } catch (e) {
         console.error('Failed to fetch billing details:', e);
         if (!cancelled) {
           setBillingDetails(null);
         }
         toast.error('Failed to load billing details.');
-      } finally {
-        if (!cancelled) setLoadingBillingDetails(false);
       }
     })();
 
+    const handleFocus = () => {
+      void refreshBillingDetails({ cancelled: () => cancelled });
+    };
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        void refreshBillingDetails({ cancelled: () => cancelled });
+      }
+    };
+
+    window.addEventListener('focus', handleFocus);
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
     return () => {
       cancelled = true;
+      window.removeEventListener('focus', handleFocus);
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
     };
   }, []);
+
+  const openBillingPortal = async () => {
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'create-stripe-billing-portal-session',
+        {
+          body: { returnUrl: window.location.href },
+        }
+      );
+
+      if (error) throw error;
+
+      const url =
+        ((data as any)?.url as string | undefined) ??
+        ((data as any)?.data?.url as string | undefined) ??
+        ((data as any)?.sessionUrl as string | undefined);
+      if (!url) {
+        const message =
+          (data as any)?.message ??
+          (data as any)?.error ??
+          'Billing portal URL was not returned.';
+        throw new Error(message);
+      }
+
+      window.location.assign(url);
+    } catch (e) {
+      console.error('Failed to open billing portal:', e);
+      toast.error('Unable to open billing portal.');
+    }
+  };
+
+  const deletePaymentMethod = async (paymentMethodId: string) => {
+    try {
+      const { data, error } = await supabase.functions.invoke(
+        'delete-stripe-payment-method',
+        {
+          body: { paymentMethodId },
+        }
+      );
+
+      if (error) throw error;
+      const success =
+        typeof (data as any)?.success === 'boolean' ? (data as any).success : true;
+      if (!success) {
+        throw new Error(
+          (data as any)?.message ??
+            (data as any)?.error ??
+            'Failed to delete payment method.'
+        );
+      }
+
+      toast.success('Payment method deleted.');
+      await refreshBillingDetails();
+    } catch (e) {
+      console.error('Failed to delete payment method:', e);
+      toast.error('Unable to delete payment method.');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-[#fffbf0] flex flex-col items-center pt-8 pb-32 px-8">
@@ -99,8 +183,10 @@ export default function BillingPage() {
         <PaymentMethodSection
           onBrowseLibrary={() => navigate('/dashboard')}
           onAddPaymentMethod={() => {
-            // TODO: wire to Stripe/portal when backend is ready
+            void openBillingPortal();
           }}
+          onUpdatePaymentMethod={() => openBillingPortal()}
+          onDeletePaymentMethod={(paymentMethodId) => deletePaymentMethod(paymentMethodId)}
           loading={loadingBillingDetails}
           paymentMethods={
             billingDetails && 'success' in billingDetails && billingDetails.success
