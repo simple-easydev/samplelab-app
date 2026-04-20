@@ -8,8 +8,16 @@ import {
   XCircle,
   RotateCcw,
   Mail,
+  Download,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu';
+import { toast } from 'sonner';
 
 type Transaction = {
   id: string;
@@ -125,6 +133,19 @@ export function TransactionHistorySection({
 }) {
   const txs = Array.isArray(transactions) ? transactions : [];
   const hasTransactions = txs.length > 0;
+
+  function getInvoiceDownloadUrl(t: Transaction): string | null {
+    return t.invoicePdf ?? t.hostedInvoiceUrl ?? t.stripeUrl ?? null;
+  }
+
+  function handleDownloadInvoice(t: Transaction) {
+    const url = getInvoiceDownloadUrl(t);
+    if (!url) {
+      toast.error('No invoice is available for this transaction.');
+      return;
+    }
+    window.open(url, '_blank', 'noreferrer');
+  }
 
   return (
     <section className="w-full flex flex-col gap-6" aria-label="Transaction history">
@@ -286,13 +307,36 @@ export function TransactionHistorySection({
                   </div>
 
                   <div className="w-[48px] px-3 flex items-center justify-center">
-                    <button
-                      type="button"
-                      className="size-6 rounded-xs flex items-center justify-center hover:bg-[#e8e2d2] transition-colors"
-                      aria-label="More actions"
-                    >
-                      <MoreHorizontal className="size-5 text-[#161410]" />
-                    </button>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <button
+                          type="button"
+                          className="size-6 rounded-xs flex items-center justify-center hover:bg-[#e8e2d2] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#161410]/20 focus-visible:ring-offset-2"
+                          aria-label="More actions"
+                        >
+                          <MoreHorizontal className="size-5 text-[#161410]" />
+                        </button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent
+                        align="end"
+                        sideOffset={8}
+                        className="rounded-[4px] border-[#d6ceb8] bg-white p-1 shadow-[0px_6px_20px_0px_rgba(0,0,0,0.14),0px_1px_3px_0px_rgba(0,0,0,0.08)]"
+                      >
+                        <DropdownMenuItem
+                          onSelect={(e) => {
+                            e.preventDefault();
+                            handleDownloadInvoice(t);
+                          }}
+                          disabled={!getInvoiceDownloadUrl(t)}
+                          className="h-10 px-3 gap-1.5 rounded-[4px] text-[#5e584b] data-disabled:opacity-50 data-disabled:pointer-events-none focus:bg-[#f6f2e6] focus:text-[#161410]"
+                        >
+                          <Download className="size-5 shrink-0" aria-hidden />
+                          <span className="text-sm font-medium leading-5 tracking-[0.1px]">
+                            Download invoice
+                          </span>
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
                   </div>
                 </div>
               );
