@@ -55,7 +55,7 @@ function NoActiveSubscriptionState({
 
 export default function PlansCreditsPage() {
   const navigate = useNavigate();
-  const { isActive, loading, subscription } = useSubscription();
+  const { isActive, isTrialing, loading, subscription } = useSubscription();
   const { credits } = useCredits();
   const [plans, setPlans] = useState<PlanTierPublic[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
@@ -108,6 +108,33 @@ export default function PlansCreditsPage() {
     }).format(d);
   }, [subscription?.current_period_end]);
 
+  const trialEndsOnLabel = useMemo(() => {
+    const input = subscription?.trial_end;
+    if (!input) return '—';
+    const d = new Date(input);
+    if (Number.isNaN(d.getTime())) return '—';
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'short',
+      day: '2-digit',
+      year: 'numeric',
+    }).format(d);
+  }, [subscription?.trial_end]);
+
+  const proPlan = useMemo(() => {
+    const pro =
+      plans.find((p) => (p.display_name ?? '').toLowerCase().includes('pro')) ??
+      plans.find((p) => (p.name ?? '').toLowerCase().includes('pro')) ??
+      null;
+    return pro ?? currentPlan ?? null;
+  }, [plans, currentPlan]);
+
+  const afterTrialPriceLabel =
+    typeof proPlan?.price === 'number' ? `$${proPlan.price}/month` : '—';
+  const afterTrialCreditsLabel =
+    typeof proPlan?.credits_monthly === 'number'
+      ? `${proPlan.credits_monthly} credits/month`
+      : '—';
+
   const topUpOptions = useMemo(
     () => [
       { credits: 20, price: 4.99 },
@@ -123,12 +150,12 @@ export default function PlansCreditsPage() {
         <SettingsTabs />
 
         {loading || plansLoading ? (
-            <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded-[4px] w-full py-16 flex items-center justify-center">
-              <p className="text-[#7f7766] text-sm leading-5 tracking-[0.1px]">
-                Loading…
-              </p>
-            </div>
-          ) : !isActive ? (
+          <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded-[4px] w-full py-16 flex items-center justify-center">
+            <p className="text-[#7f7766] text-sm leading-5 tracking-[0.1px]">
+              Loading…
+            </p>
+          </div>
+        ) : !isActive ? (
           <div className="flex flex-col gap-6">
             <h1 className="text-[28px] font-bold leading-9 text-[#161410] tracking-[-0.2px]">
               Plans & credits
@@ -138,8 +165,91 @@ export default function PlansCreditsPage() {
               onStartFreeTrial={() => navigate('/pricing')}
             />
           </div>
+        ) : isTrialing ? (
+          <div className="flex flex-col gap-6">
+            <div className="flex flex-col gap-2">
+              <h1 className="text-[20px] md:text-[28px] font-bold leading-7 md:leading-9 text-[#161410] tracking-[-0.2px]">
+                You’re on a 3-day free trial
+              </h1>
+              <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
+                Your trial will automatically convert to the{' '}
+                <span className="font-bold">Pro plan</span> unless you change or
+                cancel before it ends. Trial credits do{' '}
+                <span className="font-bold">not</span> roll over
+              </p>
+            </div>
+
+            <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded-[4px] w-full p-6 md:p-8 flex flex-col gap-6">
+              <div className="w-full flex flex-col md:flex-row items-start gap-6 md:gap-8">
+                <div className="flex-1 min-w-0 flex flex-col gap-1">
+                  <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
+                    Trial credits remaining
+                  </p>
+                  <p className="text-[#161410] text-base font-bold leading-6">
+                    {credits != null ? `${credits} credits` : '—'}
+                  </p>
+                </div>
+
+                <div className="hidden md:block w-px self-stretch bg-[#d6ceb8]" />
+                <div className="md:hidden h-px w-full bg-[#d6ceb8]" />
+
+                <div className="flex-1 min-w-0 flex flex-col gap-1">
+                  <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
+                    After trial
+                  </p>
+                  <p className="text-[#161410] text-base font-bold leading-6">
+                    {afterTrialPriceLabel}
+                  </p>
+                  <p className="text-[#7f7766] text-xs leading-4 tracking-[0.2px]">
+                    {afterTrialCreditsLabel}
+                  </p>
+                </div>
+
+                <div className="hidden md:block w-px self-stretch bg-[#d6ceb8]" />
+                <div className="md:hidden h-px w-full bg-[#d6ceb8]" />
+
+                <div className="flex-1 min-w-0 flex flex-col gap-1">
+                  <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
+                    Trial ends on
+                  </p>
+                  <p className="text-[#161410] text-base font-bold leading-6">
+                    {trialEndsOnLabel}
+                  </p>
+                </div>
+              </div>
+
+              <p className="text-[#7f7766] text-xs leading-4 tracking-[0.2px]">
+                You’ll be charged{' '}
+                <span className="font-bold text-[#7f7766]">
+                  {typeof proPlan?.price === 'number'
+                    ? `$${proPlan.price} on ${trialEndsOnLabel}`
+                    : `— on ${trialEndsOnLabel}`}
+                </span>{' '}
+                if you keep this plan
+              </p>
+            </div>
+
+            <div className="flex flex-col md:flex-row gap-4 w-full">
+              <Button
+                type="button"
+                onClick={() => navigate('/pricing')}
+                className="h-12 w-full md:w-auto rounded-xs bg-[#161410] text-[#fffbf0] hover:bg-[#161410]/90 px-4"
+              >
+                <span className="px-2">Skip trial &amp; start Pro now</span>
+              </Button>
+
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => navigate('/dashboard/settings/bill')}
+                className="h-12 w-full md:w-auto rounded-xs border border-[#a49a84] bg-transparent text-[#161410] hover:bg-[#e8e2d2] px-4"
+              >
+                <span className="px-2">Manage plan</span>
+              </Button>
+            </div>
+          </div>
         ) : (
-            <div className="flex flex-col gap-12">
+          <div className="flex flex-col gap-12">
             {/* Plan */}
             <div className="flex flex-col gap-6">
               <div className="flex flex-col gap-2">
@@ -212,6 +322,62 @@ export default function PlansCreditsPage() {
             </div>
 
             <div className="h-px w-full bg-[#e8e2d2]" />
+
+            {/* Credits */}
+            <div className="flex flex-col gap-6">
+              <div className="flex flex-col gap-2">
+                <h2 className="text-[20px] font-bold leading-7 text-[#161410]">
+                  Need more credits?
+                </h2>
+                <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
+                  Buy one-time credit packs. Credits never expire
+                </p>
+              </div>
+
+              <div className="bg-[#f6f2e6] border border-[#e8e2d2] rounded-[4px] w-full p-6 md:p-8 flex flex-col md:flex-row gap-4 items-stretch md:items-center justify-center">
+                {topUpOptions.map((opt) => {
+                  const isSelected = selectedTopUpCredits === opt.credits;
+                  return (
+                    <button
+                      key={opt.credits}
+                      type="button"
+                      onClick={() => setSelectedTopUpCredits(opt.credits)}
+                      className={[
+                        'w-full md:flex-1 min-w-0 rounded-[4px] border p-4 flex flex-col gap-1.5 text-left transition-colors',
+                        isSelected
+                          ? 'border-[#161410] bg-transparent'
+                          : 'border-[#d6ceb8] bg-transparent hover:border-[#a49a84]',
+                      ].join(' ')}
+                    >
+                      <div className="w-full flex items-start justify-between gap-2">
+                        <p className="text-[#5e584b] text-sm leading-5 tracking-[0.1px]">
+                          {opt.credits} credits
+                        </p>
+                        {isSelected ? (
+                          <CheckCircle2
+                            className="size-5 text-[#161410]"
+                            aria-hidden
+                          />
+                        ) : null}
+                      </div>
+                      <p className="text-[#161410] text-base font-bold leading-6">
+                        ${opt.price.toFixed(2)}
+                      </p>
+                    </button>
+                  );
+                })}
+              </div>
+
+              <Button
+                type="button"
+                onClick={() => {
+                  toast.message('Buying credits is coming soon.');
+                }}
+                className="h-12 w-full md:w-auto rounded-xs bg-[#161410] text-[#fffbf0] hover:bg-[#161410]/90 px-4 self-start md:self-start"
+              >
+                <span className="px-2">Buy credits</span>
+              </Button>
+            </div>
           </div>
         )}
       </div>
