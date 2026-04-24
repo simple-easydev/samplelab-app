@@ -64,7 +64,7 @@ export default function AuthCallbackPage() {
         if (shouldTrack) {
           const dedupeKey = `klaviyo:google-signup:${user.id}`;
           if (!window.localStorage.getItem(dedupeKey)) {
-            ensureKlaviyoLoaded("WYxquu");
+            ensureKlaviyoLoaded("JtiqB7");
             window._learnq?.push([
               'identify',
               {

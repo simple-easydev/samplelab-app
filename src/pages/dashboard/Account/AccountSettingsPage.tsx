@@ -1,4 +1,4 @@
-import { ChangeEvent, useEffect, useRef, useState } from 'react';
+import { ChangeEvent, FormEvent, useEffect, useRef, useState } from 'react';
 import {
   User,
   Pencil,
@@ -196,6 +196,25 @@ export default function AccountSettingsPage() {
   const normalizedNewPassword = newPassword.trim();
   const normalizedConfirmPassword = confirmPassword.trim();
 
+  const hasProfileChanges =
+    normalizedFirstName !== (initialProfile?.firstName ?? '') ||
+    normalizedLastName !== (initialProfile?.lastName ?? '') ||
+    normalizedDisplayName !== (initialProfile?.displayName ?? '') ||
+    normalizedEmail !== (initialProfile?.email ?? '');
+
+  /** At least one of first/last is filled but the other is empty (Option A still requires both). */
+  const hasOnlyOneNameFieldFilled = Boolean(
+    (normalizedFirstName && !normalizedLastName) ||
+      (!normalizedFirstName && normalizedLastName)
+  );
+
+  const canSaveProfile =
+    (hasProfileChanges || hasOnlyOneNameFieldFilled) &&
+    Boolean(session) &&
+    !isLoading &&
+    isProfileLoaded &&
+    !isProfileSaving;
+
   useEffect(() => {
     let cancelled = false;
 
@@ -256,12 +275,6 @@ export default function AccountSettingsPage() {
       cancelled = true;
     };
   }, [session]);
-
-  const hasProfileChanges =
-    normalizedFirstName !== (initialProfile?.firstName ?? '') ||
-    normalizedLastName !== (initialProfile?.lastName ?? '') ||
-    normalizedDisplayName !== (initialProfile?.displayName ?? '') ||
-    normalizedEmail !== (initialProfile?.email ?? '');
 
   async function uploadAvatar(file: File) {
     if (!session?.user) {
@@ -345,14 +358,28 @@ export default function AccountSettingsPage() {
     await uploadAvatar(file);
   }
 
+  function onProfileFormSubmit(e: FormEvent<HTMLFormElement>) {
+    e.preventDefault();
+    void handleSaveProfile();
+  }
+
   async function handleSaveProfile() {
     if (!session?.user) {
       toast.error('You need to be signed in to update your account.');
       return;
     }
 
-    if (!normalizedFirstName || !normalizedLastName || !normalizedDisplayName) {
-      toast.error('First name, last name, and display name are required.');
+    if (!canSaveProfile) {
+      return;
+    }
+
+    if (!normalizedFirstName || !normalizedLastName) {
+      toast.error('First and last name are required.');
+      return;
+    }
+
+    if (!normalizedDisplayName) {
+      toast.error('Display name is required.');
       return;
     }
 
@@ -397,23 +424,49 @@ export default function AccountSettingsPage() {
       }
 
       await authManager.refreshUserData();
-      setInitialProfile({
-        firstName: normalizedFirstName,
-        lastName: normalizedLastName,
-        displayName: normalizedDisplayName,
-        email: normalizedEmail,
-        avatarUrl,
-      });
-      toast.success(
-        emailChanged
-          ? 'Profile updated. Check your inbox to confirm the new email if required.'
-          : 'Profile updated.'
-      );
+      const { data: authRes, error: getUserError } = await supabase.auth.getUser();
+      if (getUserError) {
+        throw getUserError;
+      }
+      const u = authRes.user;
+      if (u) {
+        const { data: row, error: rowError } = await supabase
+          .from('users')
+          .select('name, email, avatar_url')
+          .eq('id', u.id)
+          .maybeSingle<UserProfileRow>();
+        if (rowError) {
+          throw rowError;
+        }
+        const nextProfile = getProfileFromSession(u, row);
+        setFirstName(nextProfile.firstName);
+        setLastName(nextProfile.lastName);
+        setDisplayName(nextProfile.displayName);
+        setEmail(nextProfile.email);
+        setAvatarUrl(nextProfile.avatarUrl);
+        setInitialProfile(nextProfile);
+      } else {
+        setInitialProfile({
+          firstName: normalizedFirstName,
+          lastName: normalizedLastName,
+          displayName: normalizedDisplayName,
+          email: normalizedEmail,
+          avatarUrl,
+        });
+      }
+
+      if (emailChanged) {
+        toast.success('Profile updated', {
+          description: 'Check your inbox to confirm the new email if required.',
+        });
+      } else {
+        toast.success('Profile updated');
+      }
     } catch (error) {
       console.error('Failed to save profile:', error);
-      toast.error(
-        error instanceof Error ? error.message : 'Failed to save profile.'
-      );
+      toast.error('Failed to update profile', {
+        description: error instanceof Error ? error.message : 'Failed to save profile.',
+      });
     } finally {
       setIsProfileSaving(false);
     }
@@ -499,7 +552,10 @@ export default function AccountSettingsPage() {
             uploading={isAvatarUploading}
             onEdit={() => fileInputRef.current?.click()}
           />
-          <div className="flex flex-col gap-5 w-full">
+          <form
+            className="flex flex-col gap-5 w-full"
+            onSubmit={onProfileFormSubmit}
+          >
             <Field label="First name">
               <Input
                 value={firstName}
@@ -534,20 +590,13 @@ export default function AccountSettingsPage() {
               />
             </Field>
             <Button
-              type="button"
-              onClick={handleSaveProfile}
-              disabled={
-                !session ||
-                isLoading ||
-                !isProfileLoaded ||
-                isProfileSaving ||
-                !hasProfileChanges
-              }
+              type="submit"
+              disabled={!canSaveProfile}
               className="h-12 px-4 bg-[#161410] text-[#fffbf0] hover:bg-[#161410]/90 font-medium text-base rounded-xs"
             >
               {isProfileSaving ? 'Saving...' : 'Save changes'}
             </Button>
-          </div>
+          </form>
         </div>
 
         {/* Security */}
