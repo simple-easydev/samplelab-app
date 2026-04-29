@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Coins, ArrowRight, CheckCircle2 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
-import { SettingsTabs } from './SettingsTabs';
+import { SettingsTabs } from '../SettingsTabs';
 import { useSubscription } from '@/hooks/useSubscription';
 import { useCredits } from '@/contexts/CreditsContext';
 import { getStripePlans, type PlanTierPublic } from '@/lib/supabase/plans';

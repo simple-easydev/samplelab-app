@@ -10,7 +10,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { SettingsTabs } from './SettingsTabs';
+import { SettingsTabs } from '../SettingsTabs';
 import { useAuth } from '@/contexts/AuthContext';
 import { supabase } from '@/lib/supabase/client';
 import { authManager } from '@/lib/supabase/auth-manager';

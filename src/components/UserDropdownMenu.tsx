@@ -1,3 +1,4 @@
+import type { ComponentType } from 'react';
 import { Link } from 'react-router-dom';
 import { User, Settings, LogOut, CreditCard } from 'lucide-react';
 import {
@@ -10,6 +11,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
+import { SETTINGS_TABS } from '@/pages/dashboard/Account/SettingsTabs';
 import { CoinsStack } from './icons';
 
 const MENU_ITEM_CLASS =
@@ -19,6 +21,15 @@ const SECTION_HEADER_CLASS =
 
 const TRIGGER_CLASS =
   'border border-[#a49a84] flex items-center justify-center size-10 rounded-xs shrink-0 text-[#161410] hover:bg-[#e8e2d2] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#161410]/20 focus-visible:ring-offset-2';
+
+const settingsTabIconByPath: Record<
+  (typeof SETTINGS_TABS)[number]['path'],
+  ComponentType<{ className?: string }>
+> = {
+  '/dashboard/settings/account': Settings,
+  '/dashboard/settings/plans': CoinsStack,
+  '/dashboard/settings/bill': CreditCard,
+};
 
 export function UserDropdownMenu({
   onLogout,
@@ -58,24 +69,24 @@ export function UserDropdownMenu({
           <DropdownMenuLabel className={SECTION_HEADER_CLASS}>
             Account
           </DropdownMenuLabel>
-          <DropdownMenuItem asChild className={`${MENU_ITEM_CLASS} focus:bg-[#f6f2e6]`}>
-            <Link to="/dashboard/settings/account" className="flex items-center gap-1.5 text-[#161410]">
-              <Settings className="size-5 shrink-0" />
-              Account settings
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild className={`${MENU_ITEM_CLASS} focus:bg-[#f6f2e6]`}>
-            <Link to="/dashboard/settings/plans" className="flex items-center gap-1.5 text-[#161410]">
-              <CoinsStack className="size-5 shrink-0" />
-              Plans & credits
-            </Link>
-          </DropdownMenuItem>
-          <DropdownMenuItem asChild className={`${MENU_ITEM_CLASS} focus:bg-[#f6f2e6]`}>
-            <Link to="/dashboard/settings/bill" className="flex items-center gap-1.5 text-[#161410]">
-              <CreditCard className="size-5 shrink-0" />
-              Billing
-            </Link>
-          </DropdownMenuItem>
+          {SETTINGS_TABS.map((tab) => {
+            const Icon = settingsTabIconByPath[tab.path];
+            return (
+              <DropdownMenuItem
+                key={tab.path}
+                asChild
+                className={`${MENU_ITEM_CLASS} focus:bg-[#f6f2e6]`}
+              >
+                <Link
+                  to={tab.path}
+                  className="flex items-center gap-1.5 text-[#161410]"
+                >
+                  <Icon className="size-5 shrink-0" />
+                  {tab.label}
+                </Link>
+              </DropdownMenuItem>
+            );
+          })}
         </div>
         <DropdownMenuSeparator className="my-0 bg-[#d6ceb8]" />
         <div>

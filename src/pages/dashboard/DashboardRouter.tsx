@@ -9,9 +9,9 @@ import SearchResultPage from './SearchResultPage';
 import PackDetailPage from './Packs/PackDetailPage';
 import CreatorDetailPage from './Creators/CreatorDetailPage';
 import GenreDetailPage from './Generes/GenreDetailPage';
-import AccountSettingsPage from './Account/AccountSettingsPage';
-import BillingPage from './Account/BillingPage';
-import PlansCreditsPage from './Account/PlansCreditsPage';
+import AccountSettingsPage from './Account/AccountSetting/AccountSettingsPage';
+import BillingPage from './Account/Billing/BillingPage';
+import PlansCreditsPage from './Account/PlansCredits/PlansCreditsPage';
 import { DASHBOARD_TABS } from './DashboardTabContent';
 import { AudioPreviewPlayerProvider } from '@/contexts/AudioPreviewPlayerContext';
 

@@ -1,4 +1,4 @@
-import { SettingsTabs } from './SettingsTabs';
+import { SettingsTabs } from '../SettingsTabs';
 import { useNavigate } from 'react-router-dom';
 import { PaymentMethodSection } from './PaymentMethodSection';
 import { TransactionHistorySection } from './TransactionHistorySection';
