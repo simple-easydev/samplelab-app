@@ -1,6 +1,15 @@
 import type { ComponentType } from 'react';
 import { Link } from 'react-router-dom';
-import { User, Settings, LogOut, CreditCard } from 'lucide-react';
+import {
+  User,
+  Settings,
+  LogOut,
+  CreditCard,
+  Heart,
+  Download,
+  FileText,
+  HelpCircle,
+} from 'lucide-react';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +20,7 @@ import {
 } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/lib/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
-import { SETTINGS_TABS } from '@/pages/dashboard/Account/SettingsTabs';
+import { SETTINGS_TABS_GROUPS } from '@/pages/dashboard/Account/SettingsTabs';
 import { CoinsStack } from './icons';
 
 const MENU_ITEM_CLASS =
@@ -22,14 +31,21 @@ const SECTION_HEADER_CLASS =
 const TRIGGER_CLASS =
   'border border-[#a49a84] flex items-center justify-center size-10 rounded-xs shrink-0 text-[#161410] hover:bg-[#e8e2d2] transition-colors outline-none focus-visible:ring-2 focus-visible:ring-[#161410]/20 focus-visible:ring-offset-2';
 
-const settingsTabIconByPath: Record<
-  (typeof SETTINGS_TABS)[number]['path'],
-  ComponentType<{ className?: string }>
-> = {
+const settingsTabIconByPath: Record<string, ComponentType<{ className?: string }>> =
+  {
   '/dashboard/settings/account': Settings,
   '/dashboard/settings/plans': CoinsStack,
   '/dashboard/settings/bill': CreditCard,
 };
+
+const dropdownIconByPath: Record<string, ComponentType<{ className?: string }>> =
+  {
+    ...settingsTabIconByPath,
+    '/dashboard/library/favorites': Heart,
+    '/dashboard/settings/downloads': Download,
+    '/dashboard/library/licenses': FileText,
+    '/dashboard/support/help-center': HelpCircle,
+  };
 
 export function UserDropdownMenu({
   onLogout,
@@ -66,27 +82,31 @@ export function UserDropdownMenu({
         className="min-w-[220px] w-[220px] rounded-[4px] border-[#d6ceb8] bg-white p-0 shadow-[0px_6px_20px_0px_rgba(0,0,0,0.14),0px_1px_3px_0px_rgba(0,0,0,0.08)]"
       >
         <div className="py-1">
-          <DropdownMenuLabel className={SECTION_HEADER_CLASS}>
-            Account
-          </DropdownMenuLabel>
-          {SETTINGS_TABS.map((tab) => {
-            const Icon = settingsTabIconByPath[tab.path];
-            return (
-              <DropdownMenuItem
-                key={tab.path}
-                asChild
-                className={`${MENU_ITEM_CLASS} focus:bg-[#f6f2e6]`}
-              >
-                <Link
-                  to={tab.path}
-                  className="flex items-center gap-1.5 text-[#161410]"
-                >
-                  <Icon className="size-5 shrink-0" />
-                  {tab.label}
-                </Link>
-              </DropdownMenuItem>
-            );
-          })}
+          {SETTINGS_TABS_GROUPS.map((group) => (
+            <div key={group.sectionLabel}>
+              <DropdownMenuLabel className={SECTION_HEADER_CLASS}>
+                {group.sectionLabel}
+              </DropdownMenuLabel>
+              {group.tabs.map((tab) => {
+                const Icon = dropdownIconByPath[tab.path] ?? Settings;
+                return (
+                  <DropdownMenuItem
+                    key={tab.path}
+                    asChild
+                    className={`${MENU_ITEM_CLASS} focus:bg-[#f6f2e6]`}
+                  >
+                    <Link
+                      to={tab.path}
+                      className="flex items-center gap-1.5 text-[#161410]"
+                    >
+                      <Icon className="size-5 shrink-0" />
+                      {tab.label}
+                    </Link>
+                  </DropdownMenuItem>
+                );
+              })}
+            </div>
+          ))}
         </div>
         <DropdownMenuSeparator className="my-0 bg-[#d6ceb8]" />
         <div>

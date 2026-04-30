@@ -12,6 +12,10 @@ import GenreDetailPage from './Generes/GenreDetailPage';
 import AccountSettingsPage from './Account/AccountSetting/AccountSettingsPage';
 import BillingPage from './Account/Billing/BillingPage';
 import PlansCreditsPage from './Account/PlansCredits/PlansCreditsPage';
+import SettingsDownloadsPage from './Account/Download/DownloadsPage.tsx';
+import FavoritesPage from './Library/FavoritesPage.tsx';
+import LicensesPage from './Library/LicensesPage.tsx';
+import HelpCenterPage from './Support/HelpCenterPage';
 import { DASHBOARD_TABS } from './DashboardTabContent';
 import { AudioPreviewPlayerProvider } from '@/contexts/AudioPreviewPlayerContext';
 
@@ -107,6 +111,16 @@ export default function DashboardRouter() {
 
         {/* /dashboard/settings/bill — billing page */}
         <Route path="settings/bill" element={<BillingPage />} />
+
+        {/* /dashboard/settings/downloads — downloads (settings) page */}
+        <Route path="settings/downloads" element={<SettingsDownloadsPage />} />
+
+        {/* /dashboard/library/* — library pages */}
+        <Route path="library/favorites" element={<FavoritesPage />} />
+        <Route path="library/licenses" element={<LicensesPage />} />
+
+        {/* /dashboard/support/* — support pages */}
+        <Route path="support/help-center" element={<HelpCenterPage />} />
 
         {/* /dashboard/:tabName — tab content, optional ?q= & ?genre= etc. */}
         <Route
