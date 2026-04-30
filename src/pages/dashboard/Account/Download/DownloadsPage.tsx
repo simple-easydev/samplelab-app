@@ -174,7 +174,7 @@ function DownloadsPageInner() {
             ) : filteredRows.length ? (
               <div className="rounded-[4px] border border-[#e8e2d2] overflow-hidden">
                 {filteredItems.map((item) => (
-                  <SampleRow key={item.id} item={item} />
+                  <SampleRow key={item.id} item={item} isDownloaded={true} />
                 ))}
               </div>
             ) : (

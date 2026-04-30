@@ -10,7 +10,7 @@ export { ArrowLeftIcon } from './ArrowLeftIcon';
 export { ArrowRightIcon } from './ArrowRightIcon';
 
 // UI Icons
-export { CheckIcon } from './CheckIcon';
+export { CheckIcon, CheckLightIcon } from './CheckIcon';
 export { CheckCircleIcon } from './CheckCircleIcon';
 
 export { MusicRecordIcon } from './MusicRecordIcon';

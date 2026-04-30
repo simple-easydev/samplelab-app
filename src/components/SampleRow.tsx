@@ -203,9 +203,11 @@ export interface SampleRowProps {
   rank?: number;
   /** When true, show filled heart and "Remove from favorites" (e.g. on Favorites page). */
   isFavorited?: boolean;
+  
+  isDownloaded?: boolean;
 }
 
-export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = false }: SampleRowProps) {
+export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = false, isDownloaded = false }: SampleRowProps) {
   const navigate = useNavigate();
   const { credits, refreshCredits } = useCredits();
   const row = sample ? sampleToDisplay(sample) : item!;
@@ -715,6 +717,7 @@ export function SampleRow({ sample, item, variant = 'full', rank, isFavorited = 
             onViewDetails={() => setDetailsOpen(true)}
             onViewPack={handleViewPack}
             onViewCreator={handleViewCreator}
+            isDownloaded={isDownloaded}
           />
         </div>
       </div>
