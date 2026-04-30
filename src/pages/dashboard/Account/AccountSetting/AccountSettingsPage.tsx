@@ -532,8 +532,8 @@ export default function AccountSettingsPage() {
 
   return (
     <div className="min-h-screen bg-[#fffbf0] flex flex-col items-center pt-8 pb-32 px-8">
-      <div className="w-full max-w-[676px] flex flex-col gap-8">
         <SettingsTabs />
+      <div className="w-full max-w-[676px] flex flex-col gap-8 py-8">
         <input
           ref={fileInputRef}
           type="file"
